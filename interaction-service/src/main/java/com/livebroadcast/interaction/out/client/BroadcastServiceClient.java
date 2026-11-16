@@ -54,7 +54,7 @@ public class BroadcastServiceClient implements BroadcastQueryPort {
                             throw unavailable();
                         }
                         return Optional.of(new BroadcastInfo(dto.id(), dto.ownerId(), dto.ownerNickname(),
-                                dto.title(), dto.status()));
+                                dto.title(), dto.status(), dto.targetId(), dto.targetName()));
                     });
         } catch (RestClientException e) {
             throw unavailable();
@@ -67,6 +67,7 @@ public class BroadcastServiceClient implements BroadcastQueryPort {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record BroadcastDto(Long id, Long ownerId, String ownerNickname, String title, String status) {
+    record BroadcastDto(Long id, Long ownerId, String ownerNickname, String title, String status, Long targetId,
+                        String targetName) {
     }
 }

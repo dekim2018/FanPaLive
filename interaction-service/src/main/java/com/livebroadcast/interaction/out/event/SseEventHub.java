@@ -14,13 +14,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.livebroadcast.interaction.app.port.out.LiveEventPublisherPort;
+import com.livebroadcast.interaction.app.port.out.PresencePort;
 
 /**
  * 방송별 시청자에게 댓글/후원 이벤트를 Server-Sent Events 로 밀어준다.
  * 단일 인스턴스 기준 인메모리 구현이며, 여러 인스턴스로 늘릴 때는 Redis Pub/Sub 어댑터로 교체하면 된다.
  */
 @Component
-public class SseEventHub implements LiveEventPublisherPort {
+public class SseEventHub implements LiveEventPublisherPort, PresencePort {
 
     private static final Logger log = LoggerFactory.getLogger(SseEventHub.class);
     private static final long TIMEOUT_MS = 30 * 60 * 1000L;
@@ -70,6 +71,13 @@ public class SseEventHub implements LiveEventPublisherPort {
                 removeEmitter(broadcastId, emitter);
             }
         }
+    }
+
+    /** 지금 이 방송의 실시간 이벤트를 구독 중인 연결 수. 시청 화면 하나가 연결 하나다. */
+    @Override
+    public int currentViewers(Long broadcastId) {
+        List<SseEmitter> list = emitters.get(broadcastId);
+        return list == null ? 0 : list.size();
     }
 
     /** 프록시(Caddy, Gateway)가 유휴 연결을 끊지 않도록 주기적으로 주석 이벤트를 보낸다. */

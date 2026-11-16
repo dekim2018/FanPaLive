@@ -31,8 +31,11 @@ management:
 
 services:
   broadcast-url: ${BROADCAST_SERVICE_URL:http://localhost:8082}
+  fandom-url: ${FANDOM_SERVICE_URL:http://localhost:8084}
 
 app:
+  streams:
+    donations: fanpa:stream:donations
   jwt:
     secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789abcdef}
     issuer: live-broadcast

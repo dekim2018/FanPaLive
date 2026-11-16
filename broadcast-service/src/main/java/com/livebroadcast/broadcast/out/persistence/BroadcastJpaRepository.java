@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,8 @@ import com.livebroadcast.broadcast.domain.BroadcastStatus;
 
 import jakarta.persistence.LockModeType;
 
-public interface BroadcastJpaRepository extends JpaRepository<BroadcastJpaEntity, Long> {
+public interface BroadcastJpaRepository extends JpaRepository<BroadcastJpaEntity, Long>,
+        JpaSpecificationExecutor<BroadcastJpaEntity> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from BroadcastJpaEntity b where b.id = :id")

@@ -22,6 +22,7 @@ import com.livebroadcast.auth.app.port.out.UserRepositoryPort;
 import com.livebroadcast.auth.domain.AuthErrors;
 import com.livebroadcast.auth.domain.IssuedTokens;
 import com.livebroadcast.auth.domain.RefreshTokenClaims;
+import com.livebroadcast.auth.domain.Role;
 import com.livebroadcast.auth.domain.User;
 import com.livebroadcast.common.error.DomainException;
 
@@ -146,14 +147,23 @@ public class AuthService implements SignUpUseCase, LoginUseCase, TokenUseCase, U
         for (TestAccountProperties.Account account : testAccounts.accounts()) {
             userRepository.findByUsername(account.username()).ifPresentOrElse(
                     user -> {
+                        User updated = user;
                         if (!passwordHasher.matches(password, user.getPasswordHash())) {
-                            userRepository.save(user.withPasswordHash(passwordHasher.hash(password)));
+                            updated = updated.withPasswordHash(passwordHasher.hash(password));
+                        }
+                        // 관리자 권한은 테스트 계정이 켜져 있을 때만 준다. 끄면 일반 회원으로 되돌린다.
+                        Role role = enabled ? Role.from(account.role()) : Role.USER;
+                        if (updated.getRole() != role) {
+                            updated = updated.withRole(role);
+                        }
+                        if (updated != user) {
+                            userRepository.save(updated);
                         }
                     },
                     () -> {
                         if (enabled) {
                             userRepository.save(User.register(account.username(), passwordHasher.hash(password),
-                                    account.nickname(), clock.instant()));
+                                    account.nickname(), clock.instant()).withRole(Role.from(account.role())));
                         }
                     });
         }

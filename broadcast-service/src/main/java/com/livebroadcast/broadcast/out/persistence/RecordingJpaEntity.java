@@ -5,6 +5,7 @@ import java.time.Instant;
 import com.livebroadcast.broadcast.domain.RecordingStatus;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -61,12 +62,17 @@ public class RecordingJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Embedded
+    private FanSideColumns side;
+
     protected RecordingJpaEntity() {
     }
 
     RecordingJpaEntity(Long id, Long broadcastId, Long ownerId, String ownerNickname, String title, String mediaPath,
                        String storageLocation, RecordingStatus status, Instant startedAt, Instant endedAt,
-                       long durationSeconds, int segmentCount, String lastSegmentPath, Instant createdAt) {
+                       long durationSeconds, int segmentCount, String lastSegmentPath, Instant createdAt,
+                       FanSideColumns side) {
+        this.side = side;
         this.id = id;
         this.broadcastId = broadcastId;
         this.ownerId = ownerId;
@@ -97,4 +103,5 @@ public class RecordingJpaEntity {
     int getSegmentCount() { return segmentCount; }
     String getLastSegmentPath() { return lastSegmentPath; }
     Instant getCreatedAt() { return createdAt; }
+    FanSideColumns getSide() { return side; }
 }

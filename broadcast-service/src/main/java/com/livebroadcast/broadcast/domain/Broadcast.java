@@ -37,11 +37,21 @@ public class Broadcast {
     private Instant endedAt;
     private final Instant createdAt;
     private Instant updatedAt;
+    private FanSide side;
 
     public Broadcast(Long id, Long ownerId, String ownerNickname, String title, String description,
                      BroadcastStatus status, SourceType sourceType, boolean streamOnline, String publishToken,
                      Instant streamOfflineSince, Instant startedAt, Instant endedAt,
                      Instant createdAt, Instant updatedAt) {
+        this(id, ownerId, ownerNickname, title, description, status, sourceType, streamOnline, publishToken,
+                streamOfflineSince, startedAt, endedAt, createdAt, updatedAt, FanSide.NONE);
+    }
+
+    public Broadcast(Long id, Long ownerId, String ownerNickname, String title, String description,
+                     BroadcastStatus status, SourceType sourceType, boolean streamOnline, String publishToken,
+                     Instant streamOfflineSince, Instant startedAt, Instant endedAt,
+                     Instant createdAt, Instant updatedAt, FanSide side) {
+        this.side = side == null ? FanSide.NONE : side;
         this.id = id;
         this.ownerId = ownerId;
         this.ownerNickname = ownerNickname;
@@ -59,8 +69,14 @@ public class Broadcast {
     }
 
     public static Broadcast create(Long ownerId, String ownerNickname, String title, String description, Instant now) {
+        return create(ownerId, ownerNickname, title, description, FanSide.NONE, now);
+    }
+
+    /** 응원팀을 지정한 편파방. 응원팀 없이 만들면 지금까지와 같은 일반 방송이다. */
+    public static Broadcast create(Long ownerId, String ownerNickname, String title, String description, FanSide side,
+                                   Instant now) {
         return new Broadcast(null, ownerId, ownerNickname, validTitle(title), validDescription(description),
-                BroadcastStatus.READY, null, false, null, null, null, null, now, now);
+                BroadcastStatus.READY, null, false, null, null, null, null, now, now, side);
     }
 
     public static Optional<Long> parseMediaPath(String path) {
@@ -76,9 +92,14 @@ public class Broadcast {
     }
 
     public void updateInfo(Long requesterId, String title, String description, Instant now) {
+        updateInfo(requesterId, title, description, side, now);
+    }
+
+    public void updateInfo(Long requesterId, String title, String description, FanSide newSide, Instant now) {
         ensureOwner(requesterId);
         this.title = validTitle(title);
         this.description = validDescription(description);
+        this.side = newSide == null ? FanSide.NONE : newSide;
         this.updatedAt = now;
     }
 
@@ -226,4 +247,5 @@ public class Broadcast {
     public Instant getEndedAt() { return endedAt; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public FanSide getSide() { return side; }
 }

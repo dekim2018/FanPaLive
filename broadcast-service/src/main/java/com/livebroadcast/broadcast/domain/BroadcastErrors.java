@@ -35,6 +35,18 @@ public final class BroadcastErrors {
         return DomainException.badRequest("INVALID_DESCRIPTION", "방송 설명은 1000자 이하여야 합니다.");
     }
 
+    public static DomainException invalidFanTarget() {
+        return DomainException.badRequest("INVALID_FAN_TARGET", "응원팀을 찾을 수 없거나 운영이 중단된 대상입니다.");
+    }
+
+    public static DomainException invalidMatch() {
+        return DomainException.badRequest("INVALID_MATCH", "응원팀이 나오는 예정 또는 진행 중 경기만 지정할 수 있습니다.");
+    }
+
+    public static DomainException targetRequiredForMatch() {
+        return DomainException.badRequest("TARGET_REQUIRED", "경기를 지정하려면 응원팀을 먼저 골라 주세요.");
+    }
+
     public static DomainException recordingNotFound() {
         return DomainException.notFound("RECORDING_NOT_FOUND", "녹화 영상을 찾을 수 없습니다.");
     }

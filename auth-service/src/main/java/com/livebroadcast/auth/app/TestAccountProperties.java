@@ -24,6 +24,13 @@ public record TestAccountProperties(boolean enabled, String password, List<Accou
         return enabled && accounts.stream().anyMatch(a -> a.username().equals(username));
     }
 
-    public record Account(String username, String nickname) {
+    /**
+     * @param role USER(기본) 또는 ADMIN. ADMIN 계정으로 팀/선수 신청 승인과 경기 등록을 확인한다.
+     */
+    public record Account(String username, String nickname, String role) {
+
+        public Account(String username, String nickname) {
+            this(username, nickname, "USER");
+        }
     }
 }

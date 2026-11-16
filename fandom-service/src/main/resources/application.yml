@@ -1,0 +1,58 @@
+server:
+  port: 8084
+  shutdown: graceful
+
+spring:
+  application:
+    name: fandom-service
+  datasource:
+    # reWriteBatchedInserts: 하트 배치 INSERT 를 여러 행 INSERT 한 문장으로 바꿔 보낸다.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${FANDOM_DB_NAME:fandom_db}?reWriteBatchedInserts=true
+    username: ${DB_USERNAME:livebroadcast}
+    password: ${DB_PASSWORD:livebroadcast}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:8}
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  mvc:
+    async:
+      request-timeout: -1
+  threads:
+    virtual:
+      enabled: ${VIRTUAL_THREADS:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+services:
+  interaction-url: ${INTERACTION_SERVICE_URL:http://localhost:8083}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789abcdef}
+    issuer: live-broadcast
+  internal:
+    api-key: ${INTERNAL_API_KEY:local-dev-internal-key}
+  streams:
+    donations: fanpa:stream:donations
+  fandom:
+    heart-daily-max: ${HEART_DAILY_MAX:5}
+    heart-per-target-max: ${HEART_PER_TARGET_MAX:3}
+    heart-base-points: 10
+    new-account-days: 7
+    max-accounts-per-device: 2
+    max-accounts-per-ip: 5
+    primary-cooldown: ${PRIMARY_FAN_COOLDOWN:30d}
+    season-start: ${SEASON_START:03-01}
+    zone: Asia/Seoul
+    features:
+      hearts: ${FEATURE_HEARTS:true}
+      matches: ${FEATURE_MATCHES:true}
+      target-requests: ${FEATURE_TARGET_REQUESTS:true}

@@ -7,10 +7,12 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.livebroadcast.broadcast.domain.RecordingStatus;
 
-public interface RecordingJpaRepository extends JpaRepository<RecordingJpaEntity, Long> {
+public interface RecordingJpaRepository extends JpaRepository<RecordingJpaEntity, Long>,
+        JpaSpecificationExecutor<RecordingJpaEntity> {
 
     Optional<RecordingJpaEntity> findFirstByMediaPathAndStatusOrderByIdDesc(String mediaPath, RecordingStatus status);
 

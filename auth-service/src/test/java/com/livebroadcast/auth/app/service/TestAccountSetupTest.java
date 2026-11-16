@@ -17,13 +17,15 @@ import com.livebroadcast.auth.app.TestAccountProperties;
 import com.livebroadcast.auth.app.TestAccountProperties.Account;
 import com.livebroadcast.auth.app.port.out.PasswordHasherPort;
 import com.livebroadcast.auth.app.port.out.UserRepositoryPort;
+import com.livebroadcast.auth.domain.Role;
 import com.livebroadcast.auth.domain.User;
 
 /** 서버 기동 시 테스트 계정 준비 규칙: 기본 꺼짐, 비밀번호 동기화, 비밀번호 미설정 시 무작위 */
 class TestAccountSetupTest {
 
     private static final Instant NOW = Instant.parse("2026-11-10T00:00:00Z");
-    private static final List<Account> ACCOUNTS = List.of(new Account("tester1", "테스터1"));
+    private static final List<Account> ACCOUNTS = List.of(new Account("tester1", "테스터1"),
+            new Account("admin1", "운영자", "ADMIN"));
 
     private final FakeUserRepository users = new FakeUserRepository();
     /** 해시 대신 접두사만 붙이는 가짜 해셔 */
@@ -94,6 +96,23 @@ class TestAccountSetupTest {
         assertThat(hasher.matches("", hash)).isFalse();
     }
 
+    @Test
+    void 켜져_있으면_관리자_테스트_계정은_ADMIN_역할로_만들고_일반_계정은_USER_로_만든다() {
+        service(true, "secret-1").ensureTestAccounts();
+
+        assertThat(users.byUsername.get("admin1").getRole()).isEqualTo(Role.ADMIN);
+        assertThat(users.byUsername.get("tester1").getRole()).isEqualTo(Role.USER);
+    }
+
+    @Test
+    void 테스트_계정을_끄면_관리자_권한도_회수한다() {
+        service(true, "secret-1").ensureTestAccounts();
+
+        service(false, "secret-1").ensureTestAccounts();
+
+        assertThat(users.byUsername.get("admin1").getRole()).isEqualTo(Role.USER);
+    }
+
     static class FakeUserRepository implements UserRepositoryPort {
         final Map<String, User> byUsername = new HashMap<>();
         long seq;
@@ -101,7 +120,7 @@ class TestAccountSetupTest {
         @Override
         public User save(User u) {
             User saved = new User(u.getId() == null ? ++seq : u.getId(), u.getUsername(), u.getPasswordHash(),
-                    u.getNickname(), u.getCreatedAt());
+                    u.getNickname(), u.getRole(), u.getCreatedAt());
             byUsername.put(saved.getUsername(), saved);
             return saved;
         }

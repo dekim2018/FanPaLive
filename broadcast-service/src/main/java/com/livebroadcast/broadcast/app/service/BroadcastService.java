@@ -6,6 +6,7 @@ import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.livebroadcast.broadcast.app.BroadcastFilter;
 import com.livebroadcast.broadcast.app.MediaProperties;
 import com.livebroadcast.broadcast.app.PageResult;
 import com.livebroadcast.broadcast.app.port.in.BroadcastCommandUseCase;
@@ -16,6 +17,7 @@ import com.livebroadcast.broadcast.app.port.out.DomainEventPublisherPort;
 import com.livebroadcast.broadcast.domain.Broadcast;
 import com.livebroadcast.broadcast.domain.BroadcastErrors;
 import com.livebroadcast.broadcast.domain.BroadcastStatus;
+import com.livebroadcast.broadcast.domain.FanSide;
 import com.livebroadcast.broadcast.domain.SourceType;
 import com.livebroadcast.broadcast.domain.event.BroadcastEnded;
 
@@ -28,22 +30,26 @@ public class BroadcastService implements BroadcastCommandUseCase, BroadcastQuery
     private final DomainEventPublisherPort events;
     private final PublishTokenGenerator tokenGenerator;
     private final MediaProperties mediaProperties;
+    private final FanSideResolver fanSideResolver;
     private final Clock clock;
 
     public BroadcastService(BroadcastRepositoryPort broadcastRepository, DomainEventPublisherPort events,
-                            PublishTokenGenerator tokenGenerator, MediaProperties mediaProperties, Clock clock) {
+                            PublishTokenGenerator tokenGenerator, MediaProperties mediaProperties,
+                            FanSideResolver fanSideResolver, Clock clock) {
         this.broadcastRepository = broadcastRepository;
         this.events = events;
         this.tokenGenerator = tokenGenerator;
         this.mediaProperties = mediaProperties;
+        this.fanSideResolver = fanSideResolver;
         this.clock = clock;
     }
 
     @Override
     @Transactional
     public Broadcast create(CreateCommand command) {
-        Broadcast broadcast = Broadcast.create(
-                command.ownerId(), command.ownerNickname(), command.title(), command.description(), clock.instant());
+        FanSide side = fanSideResolver.resolve(command.targetId(), command.matchId());
+        Broadcast broadcast = Broadcast.create(command.ownerId(), command.ownerNickname(), command.title(),
+                command.description(), side, clock.instant());
         return broadcastRepository.save(broadcast);
     }
 
@@ -51,7 +57,12 @@ public class BroadcastService implements BroadcastCommandUseCase, BroadcastQuery
     @Transactional
     public Broadcast update(UpdateCommand command) {
         Broadcast broadcast = lock(command.broadcastId());
-        broadcast.updateInfo(command.requesterId(), command.title(), command.description(), clock.instant());
+        // 소유자 확인을 외부 호출보다 먼저 한다(남의 방송이면 fandom-service 를 부르지 않고 바로 403).
+        broadcast.ensureOwner(command.requesterId());
+        FanSide side = command.targetId() == null && !command.clearTarget()
+                ? broadcast.getSide()
+                : fanSideResolver.resolve(command.targetId(), command.matchId());
+        broadcast.updateInfo(command.requesterId(), command.title(), command.description(), side, clock.instant());
         return broadcastRepository.save(broadcast);
     }
 
@@ -72,7 +83,13 @@ public class BroadcastService implements BroadcastCommandUseCase, BroadcastQuery
     @Override
     @Transactional(readOnly = true)
     public PageResult<Broadcast> list(BroadcastStatus status, int page, int size) {
-        return broadcastRepository.findAll(status, Math.max(page, 0), clampSize(size));
+        return list(BroadcastFilter.ofStatus(status), page, size);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<Broadcast> list(BroadcastFilter filter, int page, int size) {
+        return broadcastRepository.findAll(filter, Math.max(page, 0), clampSize(size));
     }
 
     @Override

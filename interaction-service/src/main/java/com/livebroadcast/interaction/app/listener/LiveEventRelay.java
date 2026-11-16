@@ -50,6 +50,10 @@ public class LiveEventRelay {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void on(DonationCompleted event) {
         Donation d = event.donation();
+        if (!d.isForBroadcast() || d.getBroadcastId() == null) {
+            // 구단/선수 응원기금은 방송 화면이 없으므로 실시간 알림 대상이 아니다.
+            return;
+        }
         liveEvents.publish(d.getBroadcastId(), "donation.completed", DonationPayload.from(d));
         // 커밋된 뒤에 합계를 다시 계산하므로 방금 확정된 후원까지 포함된다.
         liveEvents.publish(d.getBroadcastId(), "donation.summary", donationRepository.summarize(d.getBroadcastId()));
@@ -64,10 +68,11 @@ public class LiveEventRelay {
     }
 
     public record DonationPayload(Long id, Long broadcastId, String donorNickname, long amount, String message,
-                                  String approvedAt) {
+                                  String approvedAt, Long targetId, String targetName) {
         static DonationPayload from(Donation d) {
             return new DonationPayload(d.getId(), d.getBroadcastId(), d.getDonorNickname(), d.getAmount(),
-                    d.getMessage(), d.getApprovedAt() == null ? null : d.getApprovedAt().toString());
+                    d.getMessage(), d.getApprovedAt() == null ? null : d.getApprovedAt().toString(),
+                    d.getTargetId(), d.getTargetName());
         }
     }
 }

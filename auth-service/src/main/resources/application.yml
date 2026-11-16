@@ -47,3 +47,7 @@ app:
         nickname: 테스터1
       - username: tester2
         nickname: 테스터2
+      # 팀/선수 등록 신청 승인, 경기 등록 같은 관리자 기능 확인용
+      - username: admin1
+        nickname: 운영자
+        role: ADMIN

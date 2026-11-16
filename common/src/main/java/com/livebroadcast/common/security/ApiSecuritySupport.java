@@ -27,7 +27,10 @@ public class ApiSecuritySupport {
 
     public HttpSecurity applyDefaults(HttpSecurity http) throws Exception {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        // role 클레임이 ADMIN 이면 ROLE_ADMIN 권한을 더 준다. 관리자 API 는 hasRole("ADMIN") 으로 막는다.
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> JwtClaims.ROLE_ADMIN.equals(jwt.getClaimAsString(JwtClaims.ROLE))
+                ? List.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
+                : List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
         return http
                 .csrf(AbstractHttpConfigurer::disable)

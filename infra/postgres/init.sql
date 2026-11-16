@@ -2,3 +2,4 @@
 CREATE DATABASE auth_db;
 CREATE DATABASE broadcast_db;
 CREATE DATABASE interaction_db;
+CREATE DATABASE fandom_db;
