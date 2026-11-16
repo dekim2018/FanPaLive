@@ -2,7 +2,9 @@
 import { nextTick, onMounted, ref } from 'vue'
 import { commentApi } from '../api/interactions'
 import { errorMessage } from '../api/http'
+import TeamBadge from './TeamBadge.vue'
 import { useAuthStore } from '../stores/auth'
+import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
 
 /**
@@ -15,6 +17,7 @@ const props = defineProps({
 })
 
 const auth = useAuthStore()
+const fandom = useFandomStore()
 const toast = useToastStore()
 const comments = ref([])
 const content = ref('')
@@ -37,6 +40,7 @@ async function load(more = false) {
       comments.value = items
     }
     hasMore.value = res.page + 1 < res.totalPages
+    fandom.fetchBadges(comments.value.map((c) => c.authorId))
     if (!more) scrollToBottom()
   } catch (e) {
     toast.error(errorMessage(e, '댓글을 불러오지 못했습니다.'))
@@ -53,6 +57,7 @@ function upsert(c) {
   if (idx >= 0) comments.value[idx] = { ...comments.value[idx], ...c }
   else {
     comments.value.push(c)
+    fandom.fetchBadges([c.authorId])
     scrollToBottom()
   }
 }
@@ -130,6 +135,8 @@ onMounted(() => load())
           </div>
         </template>
         <template v-else>
+          <TeamBadge v-if="fandom.badges[c.authorId]?.length" :label="fandom.badges[c.authorId][0].shortName"
+                     :color="fandom.badges[c.authorId][0].colorPrimary" class="cbadge" />
           <span class="author">{{ c.authorNickname }}</span>
           <span class="text">{{ c.content }}</span>
           <span v-if="c.edited" class="muted small"> (수정됨)</span>
@@ -154,11 +161,12 @@ onMounted(() => load())
 .chat { display: flex; flex-direction: column; gap: 10px; }
 .chat-list { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
 .chat-item { font-size: 14px; word-break: break-all; line-height: 1.45; }
-.author { color: var(--accent); font-weight: 700; margin-right: 6px; }
+.cbadge { margin-right: 4px; }
+.author { color: #b3a4ff; font-weight: 700; margin-right: 6px; }
 .actions { margin-left: 6px; }
 .link { background: none; border: none; color: var(--text-sub); font-size: 12px; cursor: pointer; padding: 0 3px; }
 .link:hover { color: var(--text); }
-.ok { color: var(--accent); }
+.ok { color: var(--ok); }
 .center { text-align: center; padding: 8px 0; }
 .chat-form { flex-wrap: nowrap; }
 @media (max-width: 960px) { .chat-list { height: 320px !important; } }

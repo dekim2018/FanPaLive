@@ -4,6 +4,10 @@ import { recordingApi } from '../api/broadcasts'
 import { errorMessage } from '../api/http'
 import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, formatDuration } from '../lib/format'
+import { useFandomStore } from '../stores/fandom'
+
+const fandom = useFandomStore()
+const league = ref('')
 
 const items = ref([])
 const loading = ref(true)
@@ -14,7 +18,9 @@ const totalPages = ref(0)
 async function load() {
   loading.value = true
   try {
-    const res = await recordingApi.list({ page: page.value, size: 20 })
+    const params = { page: page.value, size: 20 }
+    if (league.value) params.league = league.value
+    const res = await recordingApi.list(params)
     items.value = res.content
     totalPages.value = res.totalPages
   } catch (e) {
@@ -22,6 +28,12 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+function changeLeague(code) {
+  league.value = code
+  page.value = 0
+  load()
 }
 
 function move(delta) {
@@ -35,6 +47,10 @@ onMounted(load)
 <template>
   <div class="stack">
     <h1>다시보기</h1>
+    <div class="pill-tabs" style="margin:0">
+      <button :class="{ active: !league }" @click="changeLeague('')">전체</button>
+      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="changeLeague(l.code)">{{ l.name }}</button>
+    </div>
     <div v-if="error" class="empty">{{ error }}</div>
     <div v-else-if="!loading && !items.length" class="empty">아직 녹화된 방송이 없습니다. 방송을 하면 자동으로 녹화됩니다.</div>
     <div v-else class="grid">
@@ -45,6 +61,7 @@ onMounted(load)
           <span class="small muted">{{ r.status === 'READY' ? formatDuration(r.durationSeconds) : '녹화 중' }}</span>
         </div>
         <div class="title">{{ r.title }}</div>
+        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: r.side.targetColor }">{{ r.side.targetShortName || r.side.targetName }}</span><span class="xsmall muted">{{ r.side.leagueCode }} 편파중계</span></div>
         <div class="small muted">{{ r.ownerNickname }}, {{ formatDate(r.startedAt) }}</div>
       </RouterLink>
     </div>
@@ -57,5 +74,6 @@ onMounted(load)
 
 <style scoped>
 .rec { gap: 8px; }
+.tchip { color: #fff; font-size: 11px; font-weight: 800; padding: 0 6px; border-radius: 4px; line-height: 18px; }
 .title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

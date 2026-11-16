@@ -24,3 +24,14 @@ export function elapsedSince(value) {
   if (!value) return ''
   return formatDuration((Date.now() - new Date(value).getTime()) / 1000)
 }
+
+export function formatCount(n) {
+  const v = Number(n || 0)
+  if (v >= 10000) return `${(v / 10000).toFixed(v >= 100000 ? 0 : 1)}만`
+  return v.toLocaleString('ko-KR')
+}
+
+const timeFormatter = new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit' })
+export function formatTime(value) {
+  return value ? timeFormatter.format(new Date(value)) : '-'
+}

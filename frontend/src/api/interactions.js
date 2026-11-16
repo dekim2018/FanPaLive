@@ -15,3 +15,10 @@ export const donationApi = {
   list: (broadcastId, params) => http.get(`/broadcasts/${broadcastId}/donations`, { params }).then((r) => r.data),
   summary: (broadcastId) => http.get(`/broadcasts/${broadcastId}/donations/summary`).then((r) => r.data)
 }
+
+export const fundApi = {
+  list: (targetId, params) => http.get(`/targets/${targetId}/donations`, { params }).then((r) => r.data),
+  summary: (targetId) => http.get(`/targets/${targetId}/donations/summary`).then((r) => r.data),
+  mine: (params) => http.get('/donations/mine', { params }).then((r) => r.data),
+  received: (params) => http.get('/donations/received', { params }).then((r) => r.data)
+}
