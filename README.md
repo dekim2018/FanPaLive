@@ -1,7 +1,11 @@
-# LiveBroadcast
+# 팬파라이브 (FanPa Live)
 
-브라우저만으로 PC 화면 공유 방송과 모바일 카메라 방송을 송출하고, 다른 기기에서 실시간으로 시청할 수 있는 라이브 방송 플랫폼입니다.
-백엔드는 Spring Boot 기반 MSA(Gateway + 3개 서비스), 각 서비스 내부는 헥사고날 구조(app / in / out / domain)로 구성했습니다.
+팬이 직접 하는 스포츠 **편파중계** 라이브 플랫폼입니다.
+브라우저만으로 PC 화면 공유 방송과 모바일 카메라 방송을 송출하고 다른 기기에서 실시간으로 시청하는 과제 기능 위에,
+종목과 구단/선수, 팬 등록, 하트 응원, 응원 랭킹, 후원 3종(방송자, 편파방, 구단 응원기금), 경기 매치룸을 더했습니다.
+
+백엔드는 Spring Boot 기반 MSA(Gateway + 4개 서비스), 각 서비스 내부는 헥사고날 구조(app / in / out / domain)로 구성했습니다.
+**전체 기능 목록과 확인 방법은 [docs/FEATURES.md](docs/FEATURES.md) 에 정리했습니다.**
 
 | 심사 안내 | 바로가기 |
 | --- | --- |
@@ -10,6 +14,7 @@
 | 테스트 계정 바로 로그인 | [테스트 계정](#테스트-계정) |
 | 실행 방법 (실행 환경, 환경변수 예시) | [실행 방법](#실행-방법) |
 | 기능 확인 (송출, 시청, 종료, 지원 환경) | [기능 확인 방법](#기능-확인-방법) |
+| 팬파라이브 기능 (팬, 하트, 랭킹, 후원 3종, 매치룸) | [docs/FEATURES.md](docs/FEATURES.md) |
 
 ## 서비스 주소
 
@@ -38,7 +43,8 @@
 | 버튼 | 아이디 | 용도 |
 | --- | --- | --- |
 | **테스터1 (tester1)** | `tester1` | 방송 소유자 역할: 방송 만들기, 송출, 종료 |
-| **테스터2 (tester2)** | `tester2` | 다른 사용자 역할: 시청, 댓글, 후원, 남의 방송 수정 거절 확인 |
+| **테스터2 (tester2)** | `tester2` | 다른 사용자 역할: 시청, 댓글, 후원, 하트, 남의 방송 수정 거절 확인 |
+| **운영자 (admin1)** | `admin1` | 운영자 역할: 팀/선수 신청 승인과 반려, 경기 등록과 점수 입력, 운영 지표 |
 
 - 두 기기(또는 일반 창과 시크릿 창)에서 각각 테스터1, 테스터2 로 로그인하면 방송자와 시청자를 동시에 확인할 수 있습니다.
 - 원클릭 로그인 버튼이 보이지 않으면 **회원가입**으로 새 계정을 만들어 같은 기능을 확인할 수 있습니다.
@@ -118,6 +124,7 @@ docker compose -f docker-compose.dev.yml up -d
 ./gradlew :auth-service:bootRun
 ./gradlew :broadcast-service:bootRun
 ./gradlew :interaction-service:bootRun
+./gradlew :fandom-service:bootRun
 ./gradlew :gateway:bootRun
 
 # 프론트엔드 (Node 20 이상)
@@ -132,7 +139,7 @@ cd frontend && npm install && npm run dev
 ./gradlew test
 ```
 
-도메인 규칙(상태 전이, 소유자 검증, 송출 토큰, 후원 중복 적립 방지, 금액 검증)을 스프링 컨텍스트 없이 검증합니다.
+도메인 규칙(상태 전이, 소유자 검증, 송출 토큰, 후원 중복 적립 방지, 금액 검증)과 팬파라이브 규칙(주 응원팀 30일 고정, 하트 쓰기 병합, 어뷰징 점수, 랭킹 동점 인코딩과 기간 경계, 후원 이벤트 멱등 반영, 결제 결과 모름 처리)을 스프링 컨텍스트 없이 검증합니다.
 
 ## 기능 확인 방법
 
@@ -242,6 +249,7 @@ docker compose restart
 | 선택 | 댓글 | 방송별 댓글 CRUD, 작성자 검증, SSE 로 실시간 반영 |
 | 선택 | 도네이션 | 토스페이먼츠 테스트 결제, 서버 승인 및 금액/주문/대상 검증, 행 잠금 + 유니크 제약 + 멱등키로 중복 적립 방지, 방송별 내역과 합계, 웹훅 처리 |
 | 선택 | 녹화 및 다시보기 | MediaMTX 자동 녹화(fMP4), 녹화 메타데이터와 저장 위치 DB 저장, 목록/상세/재생 |
+| 추가 | 팬파라이브 | 편파중계(방송 응원팀), 종목/리그/구단/선수, 팬 등록, 하트와 응원 랭킹, 후원 3종, 결제 결과 모름(UNKNOWN) 처리와 결제 대사, 순시청자(HyperLogLog), 매치룸 응원 게이지, 신청과 운영자 승인. [docs/FEATURES.md](docs/FEATURES.md) |
 
 ## 아키텍처
 
@@ -259,9 +267,10 @@ flowchart LR
         AUTH[auth-service<br/>:8081]
         BC[broadcast-service<br/>:8082]
         IT[interaction-service<br/>:8083]
+        FD[fandom-service<br/>:8084]
         MTX[MediaMTX<br/>WHIP/WHEP, 녹화]
-        PG[(PostgreSQL<br/>auth_db / broadcast_db / interaction_db)]
-        REDIS[(Redis<br/>Refresh Token, 블랙리스트)]
+        PG[(PostgreSQL<br/>auth_db / broadcast_db / interaction_db / fandom_db)]
+        REDIS[(Redis<br/>토큰, 하트 한도, 랭킹, 후원 스트림, 순시청자)]
     end
 
     TOSS[토스페이먼츠<br/>테스트 모드]
@@ -272,13 +281,17 @@ flowchart LR
     PC & MOBILE & VIEWER -. "WebRTC 미디어 UDP/TCP 8189" .-> MTX
     CADDY -- /api --> GW
     CADDY -- /media, /playback --> MTX
-    GW --> AUTH & BC & IT
+    GW --> AUTH & BC & IT & FD
     MTX -- "인증 훅 / 이벤트 훅" --> BC
     BC -- "Control API (강제 종료), Playback API" --> MTX
     IT -- "/internal/broadcasts/{id}" --> BC
+    BC -- "/internal/targets, /internal/matches" --> FD
+    IT -- "/internal/targets/{id}" --> FD
+    IT -. "후원 확정 이벤트 (Redis Stream)" .-> FD
+    FD -- "/internal/donations/target-totals (매일 대사)" --> IT
     IT -- 결제 승인/조회 --> TOSS
-    AUTH & BC & IT --> PG
-    AUTH & BC & IT --> REDIS
+    AUTH & BC & IT & FD --> PG
+    AUTH & BC & IT & FD --> REDIS
 ```
 
 ### 서비스 역할
@@ -288,7 +301,8 @@ flowchart LR
 | gateway | 외부 진입점, 라우팅, 내부 헤더 위조 차단, 요청 ID 부여 | - |
 | auth-service | 회원, 로그인, 토큰 발급/갱신/폐기, 테스트 계정 | `auth_db`, Redis |
 | broadcast-service | 방송 정보, 방송 상태, 송출 권한(토큰) 발급, MediaMTX 인증/이벤트 처리, 녹화 | `broadcast_db` |
-| interaction-service | 댓글, 후원, 실시간 이벤트(SSE) | `interaction_db` |
+| interaction-service | 댓글, 후원 3종, 결제 대사, 실시간 이벤트(SSE), 순시청자 | `interaction_db`, Redis |
+| fandom-service | 종목, 리그, 구단/선수, 신청과 승인, 팬 등록, 하트, 응원 랭킹, 경기와 응원 게이지 | `fandom_db`, Redis |
 
 서비스마다 데이터베이스를 분리했고, 다른 서비스 데이터가 필요하면 API 로 조회합니다.
 예를 들어 후원 대상(방송자)은 브라우저가 보낸 값을 쓰지 않고 interaction-service 가 broadcast-service 내부 API 로 방송 소유자를 조회해서 정합니다.
@@ -347,12 +361,17 @@ LiveBroadcast
 ├── auth-service/
 ├── broadcast-service/
 ├── interaction-service/
+├── fandom-service/            # 팬파라이브: 종목, 응원 대상, 팬, 하트, 랭킹, 경기
 ├── frontend/                  # Vue 3 SPA (+ Caddy 이미지)
 ├── infra/
 │   ├── caddy/Caddyfile
 │   ├── mediamtx/mediamtx.yml, hooks/notify.sh
-│   └── postgres/init.sql
-├── docs/DEPLOY.md
+│   └── postgres/init.sql, ensure-databases.sh
+├── docs/
+│   ├── FEATURES.md            # 팬파라이브 기능 정리
+│   ├── DEPLOY.md
+│   ├── adr/0001-durability-grades.md
+│   └── k6/hearts.js
 ├── docker-compose.yml         # 전체 실행
 └── docker-compose.dev.yml     # 로컬 개발용 인프라만 실행
 ```
@@ -411,6 +430,8 @@ com.livebroadcast.broadcast
 | POST | `/api/donations/webhook` | - | 토스페이먼츠 웹훅 |
 | GET | `/api/broadcasts/{id}/donations`, `/summary` | - | 방송별 후원 내역, 합계 |
 
+팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원기금, 시청자 수)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
+
 에러 응답은 모든 서비스가 같은 형식을 씁니다.
 
 ```json
@@ -435,7 +456,9 @@ com.livebroadcast.broadcast
 | [Caddy](https://github.com/caddyserver/caddy) | HTTPS 자동 발급, 리버스 프록시 | Apache 2.0 |
 | [Spring Boot](https://spring.io/projects/spring-boot), [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway) | 백엔드 | Apache 2.0 |
 | [Vue.js](https://github.com/vuejs/core), [Pinia](https://github.com/vuejs/pinia), [Vue Router](https://github.com/vuejs/router), [axios](https://github.com/axios/axios) | 프론트엔드 | MIT |
-| [토스페이먼츠 SDK v2](https://docs.tosspayments.com/sdk/v2/js) | 테스트 결제 | 토스페이먼츠 이용약관 |
+| [토스페이먼츠 SDK v2](https://docs.tosspayments.com/sdk/v2/js), [결제 조회와 거래 조회 API](https://docs.tosspayments.com/reference) | 테스트 결제, 결과 모름 확정, 결제 대사 | 토스페이먼츠 이용약관 |
+| [Redis](https://redis.io/docs/latest/) (Lua 스크립트, Sorted Set, HyperLogLog, Streams) | 하트 한도, 랭킹, 순시청자, 후원 이벤트 | RSALv2/SSPLv1 (Redis 7 이미지) |
+| [k6](https://k6.io/) | 하트 부하 테스트 스크립트 | AGPL-3.0 |
 | [WHIP RFC 9725](https://www.rfc-editor.org/rfc/rfc9725), [WHEP draft](https://datatracker.ietf.org/doc/draft-ietf-wish-whep/) | 송출/시청 시그널링 규격 | - |
 
 WHIP/WHEP 브라우저 클라이언트(`frontend/src/lib/whip.js`, `whep.js`)는 위 규격과 MediaMTX 문서를 참고해 직접 작성했습니다.

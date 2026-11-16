@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
           </RouterLink>
           <span class="spacer"></span>
           <RouterLink v-if="broadcast.side.matchId" :to="`/matches/${broadcast.side.matchId}`" class="btn sm ghost">매치룸 응원 대결</RouterLink>
-          <HeartButton :target-id="broadcast.side.targetId" source="BROADCAST" :match-id="broadcast.side.matchId" />
+          <HeartButton :target-id="broadcast.side.targetId" source="BROADCAST" />
         </div>
         <div class="row small muted">
           <strong style="color:var(--text)">{{ broadcast.ownerNickname }}</strong>
