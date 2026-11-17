@@ -76,7 +76,7 @@ async function logout() {
     <form class="search" role="search" @submit.prevent="submitSearch">
       <label for="global-search" class="sr-only">구단, 선수 검색</label>
       <input id="global-search" v-model="q" class="search-input" type="search" name="q" autocomplete="off"
-             spellcheck="false" placeholder="구단, 선수 검색 (예: 두산)…"
+             spellcheck="false" placeholder="구단, 선수를 검색해보세요"
              @focus="searchOpen = true" @blur="closeSearchLater" />
       <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
       <div v-if="searchOpen && results.length" class="search-pop" aria-label="검색 결과">

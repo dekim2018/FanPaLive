@@ -150,7 +150,7 @@ onBeforeUnmount(() => clearInterval(timer))
       <section v-if="ranking" class="section card">
         <div class="section-head">
           <h2>이번 주 {{ ranking.league.name }} 응원 랭킹</h2>
-          <RouterLink to="/rankings" class="more">전체 랭킹</RouterLink>
+          <RouterLink to="/rankings" class="more">전체 랭킹 바로가기</RouterLink>
         </div>
         <RankingTable :rows="ranking.rows.slice(0, 5)" compact />
       </section>
