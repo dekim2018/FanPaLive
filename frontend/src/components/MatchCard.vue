@@ -7,7 +7,8 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
 </script>
 
 <template>
-  <RouterLink :to="`/matches/${match.id}`" class="mcard">
+  <RouterLink :to="`/matches/${match.id}`" class="mcard"
+              :aria-label="`${match.home.name} 대 ${match.away.name}, ${STATUS[match.status]}, 매치룸 열기`">
     <div class="row nowrap small">
       <span class="badge" :class="match.status.toLowerCase()">{{ STATUS[match.status] }}</span>
       <span class="muted ellipsis">{{ match.league.name }}</span>
@@ -28,7 +29,7 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
         <span class="ellipsis">{{ match.away.shortName || match.away.name }}</span>
       </div>
     </div>
-    <div class="mini-gauge">
+    <div class="mini-gauge" aria-hidden="true">
       <div :style="{ width: match.homePercent + '%', background: match.home.colorPrimary }"></div>
       <div :style="{ flex: 1, background: match.away.colorPrimary }"></div>
     </div>
@@ -39,9 +40,9 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
 .mcard {
   display: flex; flex-direction: column; gap: 10px; padding: 14px;
   background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
-  min-width: 240px; transition: border-color .15s;
+  min-width: 240px; transition: border-color .15s, box-shadow .15s; box-shadow: var(--shadow);
 }
-.mcard:hover { border-color: #444851; }
+.mcard:hover { border-color: var(--border-strong); box-shadow: var(--shadow-lg); }
 .teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
 .team { display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 14px; min-width: 0; }
 .score { font-size: 20px; font-weight: 900; }

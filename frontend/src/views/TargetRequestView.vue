@@ -92,37 +92,37 @@ onMounted(() => {
       <form class="card stack" @submit.prevent="submit">
         <h2 style="margin:0">새로 신청하기</h2>
         <label class="field">리그
-          <select v-model="form.leagueCode" class="input" required>
+          <select name="league-code" v-model="form.leagueCode" class="input" required>
             <option v-for="l in openLeagues" :key="l.code" :value="l.code">{{ l.sportName }} / {{ l.name }}</option>
           </select>
         </label>
         <label class="field">이름 (한글)
-          <input v-model="form.name" class="input" required minlength="2" maxlength="40" placeholder="예) LA 다저스, 손흥민" />
+          <input name="name" autocomplete="off" v-model="form.name" class="input" required minlength="2" maxlength="40" placeholder="예) LA 다저스, 손흥민…" />
         </label>
         <div class="row nowrap">
           <label class="field" style="flex:2">영문 이름
-            <input v-model="form.nameEn" class="input" maxlength="60" placeholder="Los Angeles Dodgers" />
+            <input name="name-en" autocomplete="off" v-model="form.nameEn" class="input" maxlength="60" placeholder="Los Angeles Dodgers" />
           </label>
           <label class="field" style="flex:1">약칭 (6자)
-            <input v-model="form.shortName" class="input" maxlength="6" placeholder="다저스" />
+            <input name="short-name" autocomplete="off" v-model="form.shortName" class="input" maxlength="6" placeholder="다저스" />
           </label>
         </div>
         <div class="row nowrap">
           <label class="field" style="flex:1">대표 색
-            <input v-model="form.colorPrimary" class="input color" type="color" />
+            <input name="color-primary" autocomplete="off" v-model="form.colorPrimary" class="input color" type="color" />
           </label>
           <label class="field" style="flex:1">보조 색
-            <input v-model="form.colorSecondary" class="input color" type="color" />
+            <input name="color-secondary" autocomplete="off" v-model="form.colorSecondary" class="input color" type="color" />
           </label>
           <div class="preview">
             <TeamCrest :name="form.name" :short-name="form.shortName || form.name" :color="form.colorPrimary" :color2="form.colorSecondary" :size="48" />
           </div>
         </div>
         <label class="field">소개
-          <textarea v-model="form.description" class="input" maxlength="300" placeholder="응원하는 이유, 간단한 소개"></textarea>
+          <textarea name="description" autocomplete="off" v-model="form.description" class="input" maxlength="300" placeholder="응원하는 이유, 간단한 소개…"></textarea>
         </label>
         <label class="field">참고 링크 (공식 사이트, 위키 등)
-          <input v-model="form.referenceUrl" class="input" maxlength="300" placeholder="https://" />
+          <input name="reference-url" autocomplete="off" type="url" inputmode="url" spellcheck="false" v-model="form.referenceUrl" class="input" maxlength="300" placeholder="https://…" />
         </label>
         <div v-if="error" class="error-text">{{ error }}</div>
         <button class="btn primary" :disabled="submitting">{{ auth.isLoggedIn ? '신청하기' : '로그인하고 신청하기' }}</button>
@@ -132,7 +132,7 @@ onMounted(() => {
         <div class="row">
           <h2 style="margin:0">심사 중인 신청</h2>
           <span class="spacer"></span>
-          <select v-model="filterLeague" class="input sel" @change="load">
+          <select name="filter-league" aria-label="리그로 거르기" v-model="filterLeague" class="input sel" @change="load">
             <option value="">전체 리그</option>
             <option v-for="l in openLeagues" :key="l.code" :value="l.code">{{ l.name }}</option>
           </select>

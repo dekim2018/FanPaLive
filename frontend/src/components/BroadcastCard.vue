@@ -23,7 +23,7 @@ const thumbStyle = computed(() => {
 
 <template>
   <RouterLink :to="`/broadcasts/${broadcast.id}`" class="bcard">
-    <div class="thumb" :style="thumbStyle">
+    <div class="thumb" :style="thumbStyle" aria-hidden="true">
       <div class="thumb-mark">
         <template v-if="side">
           <span class="mark-team" :style="{ color: textOn(side.targetColor) }">{{ side.targetShortName || side.targetName }}</span>
@@ -42,6 +42,7 @@ const thumbStyle = computed(() => {
       <TeamCrest v-if="side" :name="side.targetName" :short-name="side.targetShortName" :color="side.targetColor" :size="36" />
       <span v-else class="avatar">{{ broadcast.ownerNickname?.slice(0, 1) }}</span>
       <div class="meta-text">
+        <span class="sr-only">{{ live ? `방송 중${viewers ? `, 시청자 ${viewers.current}명` : ''}` : broadcast.status === 'ENDED' ? '종료된 방송' : '대기 중인 방송' }}</span>
         <div class="title ellipsis">{{ broadcast.title }}</div>
         <div class="owner small ellipsis">{{ broadcast.ownerNickname }}</div>
         <div class="chips">
@@ -60,10 +61,12 @@ const thumbStyle = computed(() => {
 .thumb {
   position: relative; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;
   background: linear-gradient(135deg, #2a2d34, #16171b);
-  display: flex; align-items: center; justify-content: center;
-  transition: transform .15s;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  transition: transform .15s, box-shadow .15s;
 }
-.bcard:hover .thumb { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+.bcard:hover .thumb { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.bcard:hover .title { color: var(--accent-text); }
+.bcard:focus-visible .thumb { box-shadow: 0 0 0 3px var(--accent); }
 .thumb-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .mark-team { font-size: 26px; font-weight: 900; letter-spacing: -.02em; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
 .mark-sub { font-size: 12px; font-weight: 800; letter-spacing: .18em; color: rgba(255,255,255,.55); }
@@ -75,6 +78,7 @@ const thumbStyle = computed(() => {
   width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--bg-elev-2); font-weight: 800; color: var(--text-sub);
+  border: 1px solid var(--border);
 }
 .meta-text { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .title { font-weight: 700; font-size: 15px; }

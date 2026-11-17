@@ -5,6 +5,7 @@ import { errorMessage } from '../api/http'
 import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, formatDuration } from '../lib/format'
 import { useFandomStore } from '../stores/fandom'
+import { textOn } from '../lib/team'
 
 const fandom = useFandomStore()
 const league = ref('')
@@ -61,7 +62,7 @@ onMounted(load)
           <span class="small muted">{{ r.status === 'READY' ? formatDuration(r.durationSeconds) : '녹화 중' }}</span>
         </div>
         <div class="title">{{ r.title }}</div>
-        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: r.side.targetColor }">{{ r.side.targetShortName || r.side.targetName }}</span><span class="xsmall muted">{{ r.side.leagueCode }} 편파중계</span></div>
+        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: r.side.targetColor, color: textOn(r.side.targetColor) }">{{ r.side.targetShortName || r.side.targetName }}</span><span class="xsmall muted">{{ r.side.leagueCode }} 편파중계</span></div>
         <div class="small muted">{{ r.ownerNickname }}, {{ formatDate(r.startedAt) }}</div>
       </RouterLink>
     </div>
@@ -74,6 +75,6 @@ onMounted(load)
 
 <style scoped>
 .rec { gap: 8px; }
-.tchip { color: #fff; font-size: 11px; font-weight: 800; padding: 0 6px; border-radius: 4px; line-height: 18px; }
+.tchip { font-size: 11px; font-weight: 800; padding: 0 6px; border-radius: 4px; line-height: 18px; }
 .title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

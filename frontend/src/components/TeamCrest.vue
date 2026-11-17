@@ -21,13 +21,13 @@ const style = computed(() => ({
 </script>
 
 <template>
-  <span class="crest" :style="style" :title="name">{{ label }}</span>
+  <span class="crest" :style="style" :title="name" aria-hidden="true">{{ label }}</span>
 </template>
 
 <style scoped>
 .crest {
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   border-radius: 50%; font-weight: 900; letter-spacing: -.02em;
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.12);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 0 0 1px rgba(17,24,39,.08);
 }
 </style>

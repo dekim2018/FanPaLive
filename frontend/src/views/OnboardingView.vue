@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
 import TeamCrest from '../components/TeamCrest.vue'
-import { readable } from '../lib/team'
+import { readable, tint } from '../lib/team'
 import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
 
@@ -85,8 +85,8 @@ onMounted(async () => {
     </div>
     <div class="teams">
       <button v-for="t in targets" :key="t.id" class="team"
-              :class="{ primary: primaryId === t.id, follow: follows.has(t.id) }"
-              :style="primaryId === t.id || follows.has(t.id) ? { borderColor: readable(t.colorPrimary, t.colorSecondary), background: t.colorPrimary + '33' } : {}"
+              :class="{ primary: primaryId === t.id, follow: follows.has(t.id) }" :aria-pressed="primaryId === t.id || follows.has(t.id)"
+              :style="primaryId === t.id || follows.has(t.id) ? { borderColor: readable(t.colorPrimary, t.colorSecondary), background: tint(t.colorPrimary, 0.12) } : {}"
               @click="toggle(t)">
         <span v-if="primaryId === t.id" class="mark">★ 주 응원</span>
         <span v-else-if="follows.has(t.id)" class="mark f">팔로우</span>
@@ -115,8 +115,8 @@ onMounted(async () => {
 }
 .team:hover { transform: translateY(-2px); }
 .team strong { max-width: 100%; font-size: 14px; }
-.mark { position: absolute; top: 6px; right: 8px; font-size: 11px; font-weight: 900; color: #ffd75e; }
+.mark { position: absolute; top: 6px; right: 8px; font-size: 11px; font-weight: 900; color: var(--gold); }
 .mark.f { color: var(--text-sub); }
 .actions { margin-top: 24px; justify-content: center; }
-.link { color: #b3a4ff; }
+.link { color: var(--accent-text); }
 </style>

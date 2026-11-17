@@ -149,14 +149,14 @@ async function submit() {
 
       <template v-if="sideMode === 'SIDE'">
         <label class="field">리그
-          <select v-model="leagueCode" class="input">
+          <select name="league-code" v-model="leagueCode" class="input">
             <option v-for="l in fandom.leagues" :key="l.code" :value="l.code">{{ l.sportName }} / {{ l.name }}</option>
           </select>
         </label>
         <div class="field">
           <span>응원팀</span>
           <div class="team-grid">
-            <button v-for="t in targets" :key="t.id" type="button" class="team" :class="{ on: targetId === t.id }"
+            <button v-for="t in targets" :key="t.id" type="button" class="team" :class="{ on: targetId === t.id }" :aria-pressed="targetId === t.id"
                     :style="targetId === t.id ? { borderColor: readable(t.colorPrimary, t.colorSecondary) } : {}" @click="targetId = t.id">
               <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="34" />
               <span class="ellipsis small">{{ t.name }}</span>
@@ -165,7 +165,7 @@ async function submit() {
           <div v-if="!targets.length" class="small muted">이 리그에 등록된 팀이 없습니다. <RouterLink to="/requests" class="link">팀/선수 신청</RouterLink></div>
         </div>
         <label v-if="selectedTarget" class="field">중계할 경기 (선택)
-          <select v-model="matchId" class="input">
+          <select name="match-id" v-model="matchId" class="input">
             <option :value="null">경기 지정 안 함</option>
             <option v-for="m in teamMatches" :key="m.id" :value="m.id">
               {{ formatDate(m.startsAt) }} {{ m.home.shortName || m.home.name }} vs {{ m.away.shortName || m.away.name }}
@@ -176,10 +176,10 @@ async function submit() {
       </template>
 
       <label class="field">방송 제목
-        <input v-model="form.title" class="input" maxlength="100" required placeholder="예) 두산 베어스 편파중계, 오늘은 잠실 직관 분위기로" />
+        <input name="title" autocomplete="off" v-model="form.title" class="input" maxlength="100" required placeholder="예) 두산 베어스 편파중계, 오늘은 잠실 직관 분위기로…" />
       </label>
       <label class="field">방송 설명
-        <textarea v-model="form.description" class="input" maxlength="1000" placeholder="시청자에게 보여줄 설명"></textarea>
+        <textarea name="description" autocomplete="off" v-model="form.description" class="input" maxlength="1000" placeholder="시청자에게 보여줄 설명…"></textarea>
       </label>
 
       <label class="check">
@@ -210,5 +210,5 @@ async function submit() {
   border: 2px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; min-width: 0;
 }
 .team.on { background: var(--bg-elev-2); }
-.link { color: #b3a4ff; }
+.link { color: var(--accent-text); }
 </style>

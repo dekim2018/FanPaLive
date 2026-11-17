@@ -74,6 +74,7 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
   <div v-else-if="match">
+    <h1 class="sr-only">{{ match.home.name }} 대 {{ match.away.name }} 매치룸</h1>
     <section class="board card">
       <div class="row small muted">
         <span>{{ match.league.name }}</span>

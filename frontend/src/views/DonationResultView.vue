@@ -47,7 +47,7 @@ onMounted(async () => {
 <template>
   <div class="result card stack">
     <template v-if="state === 'processing'">
-      <h1>후원을 확정하는 중입니다...</h1>
+      <h1>후원을 확정하는 중입니다…</h1>
       <p class="muted">서버에서 결제 승인 결과와 금액을 확인하고 있습니다.</p>
     </template>
     <template v-else-if="state === 'done'">
@@ -80,5 +80,5 @@ onMounted(async () => {
 
 <style scoped>
 .result { max-width: 560px; margin: 40px auto; }
-.accent { color: #c9bbff; }
+.accent { color: var(--accent-text); }
 </style>

@@ -113,8 +113,8 @@ onMounted(async () => {
 
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
-  <div v-else-if="t" :style="teamStyle(t.colorPrimary)">
-    <section class="banner" :style="{ background: `linear-gradient(110deg, ${t.colorPrimary} 0%, ${t.colorSecondary || '#121316'} 140%)` }">
+  <div v-else-if="t" :style="teamStyle(t.colorPrimary, t.colorSecondary)">
+    <section class="banner">
       <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="84" />
       <div class="banner-text">
         <div class="row">
@@ -221,20 +221,25 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* 팀 색 배너. 글자색은 팀 색과 대비가 큰 쪽(흰색 또는 검정)을 teamStyle() 이 정한다. */
 .banner {
   display: flex; align-items: center; gap: 20px; padding: 24px; border-radius: 14px; margin-bottom: 8px; flex-wrap: wrap;
+  background: linear-gradient(110deg, var(--team) 55%, color-mix(in srgb, var(--team) 80%, #000) 100%);
+  color: var(--team-on);
 }
-.banner .chip { background: rgba(0,0,0,.3); color: #fff; }
+.banner .chip { background: color-mix(in srgb, currentColor 16%, transparent); color: inherit; }
 .banner-text { flex: 1; min-width: 200px; }
-.name { font-size: 30px; margin: 6px 0 0; text-shadow: 0 2px 10px rgba(0,0,0,.3); }
-.en { color: rgba(255,255,255,.75); }
+.name { font-size: 30px; margin: 6px 0 0; }
+.en { opacity: .85; }
 .banner-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.banner-actions .btn.team { background: #fff; color: #111; }
-.banner-actions .btn.ghost { border-color: rgba(255,255,255,.5); color: #fff; }
-.mine { background: rgba(0,0,0,.45) !important; color: #ffd75e !important; }
+.banner-actions .btn.team { background: #fff; color: #111827; }
+.banner-actions .btn.team:hover { background: #f2f4f7; filter: none; }
+.banner-actions .btn.ghost { background: transparent; border-color: currentColor; color: inherit; }
+.banner-actions .btn.ghost:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+.mine { font-weight: 800; }
 .note { margin: 6px 0 0; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
-.stat { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.stat { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--shadow); }
 .stat .label { font-size: 12px; color: var(--text-sub); }
 .stat strong { font-size: 19px; }
 .history { display: flex; align-items: flex-end; gap: 10px; height: 180px; }

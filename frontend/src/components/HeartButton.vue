@@ -51,13 +51,14 @@ async function send() {
 </script>
 
 <template>
-  <button class="heart-btn" :class="{ compact }" :disabled="sending" @click="send">
+  <button type="button" class="heart-btn" :class="{ compact }" :disabled="sending"
+          :aria-label="compact ? '하트 보내기' : undefined" @click="send">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
       <path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4 2.1.6-1 1.9-2.1 4-2.1 3.8 0 5.6 4 4 7.2C19.5 16.4 12 21 12 21z"/>
     </svg>
     <span v-if="!compact">하트 보내기</span>
-    <span v-if="!compact && fandom.heartsLeft !== null" class="left">{{ fandom.heartsLeft }}</span>
-    <span v-for="b in bursts" :key="b" class="burst">+1</span>
+    <span v-if="!compact && fandom.heartsLeft !== null" class="left" :aria-label="`오늘 남은 하트 ${fandom.heartsLeft}개`">{{ fandom.heartsLeft }}</span>
+    <span v-for="b in bursts" :key="b" class="burst" aria-hidden="true">+1</span>
   </button>
 </template>
 
@@ -65,12 +66,12 @@ async function send() {
 .heart-btn {
   position: relative; display: inline-flex; align-items: center; gap: 6px;
   min-height: 38px; padding: 0 14px; border-radius: 999px; border: none; cursor: pointer;
-  background: rgba(255, 79, 129, .14); color: var(--heart); font-weight: 800; font-size: 14px;
-  transition: transform .1s, background .15s;
+  background: var(--heart-soft); color: var(--heart); font-weight: 800; font-size: 14px;
+  transition: transform .1s, background-color .15s; touch-action: manipulation;
 }
-.heart-btn:hover { background: rgba(255, 79, 129, .24); }
+.heart-btn:hover { background: #fbd5e3; }
 .heart-btn:active { transform: scale(.94); }
-.heart-btn.compact { min-height: 30px; padding: 0 9px; }
+.heart-btn.compact { min-height: 36px; min-width: 36px; padding: 0 9px; justify-content: center; }
 .left { background: var(--heart); color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }
 .burst {
   position: absolute; left: 50%; top: -4px; pointer-events: none;

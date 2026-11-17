@@ -38,16 +38,16 @@ async function submit() {
     <form class="card stack" @submit.prevent="submit">
       <h1>회원가입</h1>
       <label class="field">아이디 (영문 소문자, 숫자, _ 4~20자)
-        <input v-model.trim="form.username" class="input" pattern="[a-z0-9_]{4,20}" autocomplete="username" required />
+        <input name="username" v-model.trim="form.username" class="input" pattern="[a-z0-9_]{4,20}" autocomplete="username" spellcheck="false" autocapitalize="none" required />
       </label>
       <label class="field">닉네임 (20자 이하)
-        <input v-model.trim="form.nickname" class="input" maxlength="20" required />
+        <input name="nickname" autocomplete="nickname" v-model.trim="form.nickname" class="input" maxlength="20" required />
       </label>
       <label class="field">비밀번호 (8자 이상)
-        <input v-model="form.password" class="input" type="password" minlength="8" maxlength="64" autocomplete="new-password" required />
+        <input name="password" v-model="form.password" class="input" type="password" minlength="8" maxlength="64" autocomplete="new-password" required />
       </label>
       <label class="field">비밀번호 확인
-        <input v-model="form.passwordConfirm" class="input" type="password" autocomplete="new-password" required />
+        <input name="password-confirm" v-model="form.passwordConfirm" class="input" type="password" autocomplete="new-password" required />
       </label>
       <div v-if="error" class="error-text">{{ error }}</div>
       <button class="btn primary block" :disabled="submitting">가입하기</button>

@@ -59,10 +59,10 @@ onMounted(async () => {
     <form class="card stack" @submit.prevent="submit">
       <h1>로그인</h1>
       <label class="field">아이디
-        <input v-model.trim="username" class="input" autocomplete="username" required />
+        <input name="username" v-model.trim="username" class="input" autocomplete="username" spellcheck="false" autocapitalize="none" required />
       </label>
       <label class="field">비밀번호
-        <input v-model="password" class="input" type="password" autocomplete="current-password" required />
+        <input name="password" v-model="password" class="input" type="password" autocomplete="current-password" required />
       </label>
       <div v-if="error" class="error-text">{{ error }}</div>
       <button class="btn primary block" :disabled="submitting">로그인</button>

@@ -90,7 +90,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: #c9bbff; font-weight: 900; font-size: 22px; display: inline-flex; align-items: center; justify-content: center; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text); font-weight: 900; font-size: 22px; display: inline-flex; align-items: center; justify-content: center; }
 .hearts { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; }
 .hearts strong { color: var(--heart); font-size: 20px; }
 .fan { gap: 10px; padding: 8px; border-radius: 10px; background: var(--bg); }

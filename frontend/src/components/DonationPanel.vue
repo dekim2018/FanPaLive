@@ -99,17 +99,17 @@ onMounted(load)
     </div>
 
     <transition name="pop">
-      <div v-if="highlight" class="alert">
+      <div v-if="highlight" class="alert" role="status">
         <strong>{{ highlight.donorNickname }}</strong>님이 {{ formatWon(highlight.amount) }} 후원!
         <div v-if="highlight.message" class="small">"{{ highlight.message }}"</div>
       </div>
     </transition>
 
-    <div v-if="broadcast && fundTarget && auth.isLoggedIn" class="mode">
-      <button :class="{ on: mode === 'BROADCAST' }" @click="mode = 'BROADCAST'">
+    <div v-if="broadcast && fundTarget && auth.isLoggedIn" class="mode" role="group" aria-label="후원 대상 선택">
+      <button type="button" :class="{ on: mode === 'BROADCAST' }" :aria-pressed="mode === 'BROADCAST'" @click="mode = 'BROADCAST'">
         방송자 후원<span class="xsmall">{{ broadcast.ownerNickname }}</span>
       </button>
-      <button :class="{ on: mode === 'FAN_TARGET' }" @click="mode = 'FAN_TARGET'">
+      <button type="button" :class="{ on: mode === 'FAN_TARGET' }" :aria-pressed="mode === 'FAN_TARGET'" @click="mode = 'FAN_TARGET'">
         응원기금<span class="xsmall">{{ fundTarget.name }}</span>
       </button>
     </div>
@@ -125,14 +125,19 @@ onMounted(load)
         </template>
       </div>
       <div class="row">
-        <button v-for="p in PRESETS" :key="p" class="btn sm" :class="{ on: amount === p }" @click="amount = p">
+        <button v-for="p in PRESETS" :key="p" type="button" class="btn sm" :class="{ on: amount === p }" :aria-pressed="amount === p" @click="amount = p">
           {{ formatWon(p) }}
         </button>
       </div>
-      <input v-model.number="amount" class="input" type="number" :min="config.minAmount" :max="config.maxAmount" step="1000" />
-      <input v-model="message" class="input" maxlength="200" placeholder="응원 메시지 (선택)" />
-      <button class="btn primary block" :disabled="paying" @click="donate">
-        {{ paying ? '결제창 여는 중...' : `${formatWon(amount)} ${mode === 'BROADCAST' ? '후원하기' : '응원기금 보내기'} (테스트 결제)` }}
+      <label class="field">후원 금액(원)
+        <input v-model.number="amount" class="input num" type="number" name="amount" inputmode="numeric" autocomplete="off"
+               :min="config.minAmount" :max="config.maxAmount" step="1000" />
+      </label>
+      <label class="field">응원 메시지 (선택)
+        <input v-model="message" class="input" name="donation-message" autocomplete="off" maxlength="200" placeholder="오늘 꼭 이기자…" />
+      </label>
+      <button type="button" class="btn primary block" :disabled="paying" @click="donate">
+        {{ paying ? '결제창 여는 중…' : `${formatWon(amount)} ${mode === 'BROADCAST' ? '후원하기' : '응원기금 보내기'} (테스트 결제)` }}
       </button>
       <div class="xsmall muted">토스페이먼츠 테스트 모드라 실제로 결제되지 않습니다.</div>
     </div>
@@ -156,19 +161,20 @@ onMounted(load)
 </template>
 
 <style scoped>
-.total { color: #c9bbff; }
-.accent { color: #c9bbff; font-weight: 800; }
-.alert { background: linear-gradient(90deg, rgba(124,92,255,.25), rgba(124,92,255,.06)); border: 1px solid var(--accent); padding: 10px 12px; border-radius: 10px; }
+.total { color: var(--accent-text); }
+.accent { color: var(--accent-text); font-weight: 800; }
+.alert { background: var(--accent-soft); border: 1px solid var(--accent); padding: 10px 12px; border-radius: 10px; }
 .mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .mode button {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px;
-  border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text-sub);
+  border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text-sub); min-height: 44px;
   font-weight: 800; font-size: 13px; cursor: pointer; text-align: left;
 }
-.mode button.on { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+.mode button:hover { background: var(--bg-elev-2); }
+.mode button.on { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); }
 .mode .xsmall { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .list { gap: 8px; max-height: 240px; overflow-y: auto; }
 .item { padding: 8px 0; border-top: 1px solid var(--border); }
-.pop-enter-active, .pop-leave-active { transition: all .25s; }
+.pop-enter-active, .pop-leave-active { transition: opacity .25s, transform .25s; }
 .pop-enter-from, .pop-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>

@@ -26,12 +26,14 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 </script>
 
 <template>
+  <a href="#main" class="skip-link">본문으로 건너뛰기</a>
   <AppHeader @toggle-sidebar="sidebarOpen = !sidebarOpen" />
   <div class="app-body">
     <AppSidebar :open="sidebarOpen" @close="closeOnNarrow" />
-    <main class="app-main">
+    <main id="main" class="app-main" tabindex="-1">
       <div class="container">
-        <RouterView :key="$route.fullPath" />
+        <!-- 같은 화면 안에서 필터만 바뀌면(쿼리) 다시 그리지 않고, 경로가 바뀔 때만 새로 만든다 -->
+        <RouterView :key="$route.path" />
       </div>
     </main>
   </div>

@@ -23,7 +23,7 @@ const percent = computed(() => {
       <span class="spacer"></span>
       <strong :style="{ color: readable(away.colorPrimary, away.colorSecondary) }">{{ 100 - percent }}% {{ away.shortName || away.name }}</strong>
     </div>
-    <div class="bar">
+    <div class="bar" role="img" :aria-label="`응원 게이지 ${home.name} ${percent}퍼센트, ${away.name} ${100 - percent}퍼센트`">
       <div class="home" :style="{ width: percent + '%', background: home.colorPrimary }"></div>
       <div class="away" :style="{ background: away.colorPrimary }"></div>
     </div>
@@ -38,6 +38,6 @@ const percent = computed(() => {
 <style scoped>
 .gauge { display: flex; flex-direction: column; gap: 6px; }
 .bar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--bg-elev-2); }
-.home { transition: width .5s ease; border-right: 2px solid var(--bg); }
+.home { transition: width .5s ease; border-right: 2px solid var(--bg-elev); }
 .away { flex: 1; }
 </style>

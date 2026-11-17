@@ -17,22 +17,24 @@ defineProps({
 <template>
   <div class="rank-wrap">
     <table class="table">
+      <caption class="sr-only">응원 랭킹</caption>
       <thead>
         <tr>
-          <th style="width:56px">순위</th>
-          <th>구단/선수</th>
-          <th class="r">응원 점수</th>
-          <th v-if="!compact" class="r hide-sm">팬</th>
-          <th v-if="!compact" class="r hide-sm">하트</th>
-          <th v-if="!compact" class="r hide-md">후원</th>
-          <th v-if="showHeart" style="width:60px"></th>
+          <th scope="col" style="width:56px">순위</th>
+          <th scope="col">구단/선수</th>
+          <th scope="col" class="r">응원 점수</th>
+          <th v-if="!compact" scope="col" class="r hide-sm">팬</th>
+          <th v-if="!compact" scope="col" class="r hide-sm">하트</th>
+          <th v-if="!compact" scope="col" class="r hide-md">후원</th>
+          <th v-if="showHeart" scope="col" style="width:60px"><span class="sr-only">하트</span></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="r in rows" :key="r.targetId">
           <td>
             <div class="rank num" :class="{ top: r.rank <= 3 }">{{ r.rank }}</div>
-            <div v-if="r.rankChange" class="xsmall num" :class="r.rankChange > 0 ? 'up' : 'down'">
+            <div v-if="r.rankChange" class="xsmall num" :class="r.rankChange > 0 ? 'up' : 'down'"
+                 :aria-label="r.rankChange > 0 ? `${r.rankChange}계단 상승` : `${-r.rankChange}계단 하락`">
               {{ r.rankChange > 0 ? '▲' : '▼' }}{{ Math.abs(r.rankChange) }}
             </div>
           </td>
@@ -60,7 +62,7 @@ defineProps({
 .r { text-align: right; }
 .strong { font-weight: 800; }
 .rank { font-weight: 900; font-size: 16px; }
-.rank.top { color: var(--accent); }
+.rank.top { color: var(--accent-text); }
 .name { font-weight: 700; min-width: 0; }
 @media (max-width: 720px) { .hide-sm { display: none; } }
 @media (max-width: 1000px) { .hide-md { display: none; } }

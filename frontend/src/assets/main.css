@@ -4,27 +4,43 @@
  * 색과 로고는 팬파라이브 고유 값을 쓴다(보라 계열 강조색, 라이브는 빨강).
  */
 :root {
-  --bg: #121316;
-  --bg-elev: #1b1d21;
-  --bg-elev-2: #24272c;
-  --bg-hover: #2c2f35;
-  --border: #2b2e34;
-  --text: #f2f3f5;
-  --text-sub: #9a9fa8;
-  --text-dim: #6c717a;
-  --accent: #7c5cff;
-  --accent-dark: #6646f0;
-  --accent-soft: rgba(124, 92, 255, .16);
-  --heart: #ff4f81;
-  --danger: #ff4d5e;
-  --live: #ff3040;
-  --warn: #ffb547;
-  --ok: #3ddc97;
+  /* 밝은 화면. 강조색은 기본 파랑이고, 응원팀 화면에서는 --team 계열이 팀 색으로 바뀐다. */
+  --bg: #f5f6f8;
+  --bg-elev: #ffffff;
+  --bg-elev-2: #eef0f3;
+  --bg-hover: #e4e7ec;
+  --border: #e1e4e8;
+  --border-strong: #c4c9d1;
+  --text: #111827;
+  --text-sub: #4b5563;
+  --text-dim: #5f6673;
+  --accent: #0b57d0;
+  --accent-dark: #0842a0;
+  --accent-soft: #e8f0fe;
+  --accent-text: #0b57d0;
+  --on-accent: #ffffff;
+  --heart: #c2255c;
+  --heart-soft: #fdecf2;
+  --danger: #c4320a;
+  --live: #d92d20;
+  --warn: #b54708;
+  --warn-soft: #fef0c7;
+  --ok: #067647;
+  --gold: #8a4b00;
+  --overlay: rgba(17, 24, 39, .45);
+  --scrim-text: rgba(0, 0, 0, .62);
+  --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, .16);
+  --focus: 0 0 0 3px rgba(11, 87, 208, .35);
   --radius: 10px;
   --header-h: 60px;
   --sidebar-w: 232px;
+  /* 응원팀 색: teamStyle() 이 화면마다 바꾼다 */
   --team: var(--accent);
-  color-scheme: dark;
+  --team-on: var(--on-accent);
+  --team-text: var(--accent-text);
+  --team-soft: var(--accent-soft);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -37,6 +53,9 @@ html, body {
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* 한국어는 어절 단위로 줄바꿈(단어 중간에서 끊기지 않게), 긴 영문과 주소는 넘치지 않게 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -45,10 +64,13 @@ button { font-family: inherit; }
 /* ===== 앱 골격: 위 헤더 + 왼쪽 메뉴 + 본문 ===== */
 .app-body { display: flex; min-height: calc(100vh - var(--header-h)); }
 .app-main { flex: 1; min-width: 0; }
-.container { max-width: 1600px; margin: 0 auto; padding: 20px 24px 60px; }
+.container {
+  max-width: 1600px; margin: 0 auto;
+  padding: 20px max(24px, env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+}
 @media (max-width: 720px) { .container { padding: 16px 16px 60px; } }
 
-h1, h2, h3 { margin: 0 0 12px; line-height: 1.3; }
+h1, h2, h3 { margin: 0 0 12px; line-height: 1.3; text-wrap: balance; }
 h1 { font-size: 22px; }
 h2 { font-size: 18px; }
 h3 { font-size: 16px; }
@@ -69,6 +91,7 @@ h3 { font-size: 16px; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
+  box-shadow: var(--shadow);
 }
 
 .section { margin-bottom: 32px; }
@@ -83,29 +106,40 @@ h3 { font-size: 16px; }
   border-radius: 8px; border: 1px solid transparent;
   background: var(--bg-elev-2); color: var(--text);
   font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: background .15s, opacity .15s, transform .1s;
+  transition: background-color .15s, opacity .15s, transform .1s;
+  touch-action: manipulation;
   white-space: nowrap;
 }
 .btn:hover { background: var(--bg-hover); }
 .btn:active { transform: scale(.98); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
 .btn.primary:hover { background: var(--accent-dark); }
-.btn.team { background: var(--team); color: #fff; }
+.btn.team { background: var(--team); color: var(--team-on); }
+.btn.team:hover { filter: brightness(.92); }
 .btn.danger { background: var(--danger); color: #fff; }
-.btn.ghost { background: transparent; border-color: var(--border); }
+.btn.danger:hover { filter: brightness(.92); }
+.btn.ghost { background: var(--bg-elev); border-color: var(--border-strong); }
 .btn.ghost:hover { background: var(--bg-elev-2); }
-.btn.sm { min-height: 30px; padding: 0 10px; font-size: 13px; }
+.btn.sm { min-height: 32px; padding: 0 10px; font-size: 13px; }
+/* 손가락으로 누르는 기기에서는 누르는 영역을 넉넉하게 */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn.sm { min-height: 40px; }
+  .pill-tabs button, .pill-tabs a { min-height: 40px; }
+}
 .btn.block { width: 100%; }
-.btn.on { background: var(--accent-soft); color: #c9bbff; border-color: rgba(124, 92, 255, .5); }
+.btn.on { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
 
 .input, textarea.input, select.input {
   width: 100%; min-height: 40px; padding: 9px 12px;
-  border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg); color: var(--text);
-  font-size: 15px; font-family: inherit;
+  border-radius: 8px; border: 1px solid var(--border-strong);
+  background: var(--bg-elev); color: var(--text);
+  font-size: 16px; font-family: inherit;
 }
-.input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.input:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+select.input { background-color: var(--bg-elev); color: var(--text); }
+.input::placeholder { color: var(--text-dim); }
 textarea.input { resize: vertical; min-height: 90px; }
 label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--text-sub); }
 .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--text-sub); cursor: pointer; }
@@ -119,15 +153,15 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; 
   font-size: 11px; font-weight: 800; letter-spacing: .02em; line-height: 18px;
 }
 .badge.live { background: var(--live); color: #fff; }
-.badge.ready { background: #2f3542; color: #c9ced6; }
-.badge.ended { background: #3a3d44; color: #9aa0aa; }
-.badge.recording { background: var(--warn); color: #2a1a00; }
-.badge.vod { background: #2a2f3a; color: #cfd6e4; }
-.badge.failed { background: #3a3d44; color: #9aa0aa; }
-.badge.scheduled { background: #2a2f3a; color: #cfd6e4; }
-.badge.finished { background: #3a3d44; color: #9aa0aa; }
-.badge.canceled { background: #3a3d44; color: #9aa0aa; }
-.badge.unknown { background: var(--warn); color: #2a1a00; }
+.badge.ready { background: var(--bg-elev-2); color: var(--text-sub); }
+.badge.ended { background: var(--bg-elev-2); color: var(--text-sub); }
+.badge.recording { background: var(--warn-soft); color: var(--warn); }
+.badge.vod { background: var(--accent-soft); color: var(--accent-text); }
+.badge.failed { background: var(--bg-elev-2); color: var(--text-sub); }
+.badge.scheduled { background: var(--accent-soft); color: var(--accent-text); }
+.badge.finished { background: var(--bg-elev-2); color: var(--text-sub); }
+.badge.canceled { background: var(--bg-elev-2); color: var(--text-sub); }
+.badge.unknown { background: var(--warn-soft); color: var(--warn); }
 
 /* 카테고리 칩(리그, 응원팀 등) */
 .chip {
@@ -137,6 +171,7 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; 
   font-size: 12px; font-weight: 600; white-space: nowrap;
 }
 .chip:hover { color: var(--text); }
+a.chip:hover { background: var(--bg-hover); }
 
 /* 가로 탭(종목, 기간 등) */
 .pill-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -146,9 +181,13 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; 
   background: var(--bg-elev-2); color: var(--text-sub);
   font-size: 14px; font-weight: 700;
 }
-.pill-tabs .active, .pill-tabs .router-link-exact-active { background: var(--text); color: #111; }
+.pill-tabs button:hover, .pill-tabs a:hover { background: var(--bg-hover); color: var(--text); }
+.pill-tabs .active, .pill-tabs .router-link-exact-active { background: var(--text); color: #fff; }
+.pill-tabs .active:hover { background: var(--text); color: #fff; }
 
-.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.tabs button { white-space: nowrap; flex-shrink: 0; }
+.tabs button:hover { color: var(--text); }
 .tabs button {
   background: none; border: none; color: var(--text-sub);
   padding: 10px 14px; font-size: 15px; font-weight: 700; cursor: pointer;
@@ -170,6 +209,7 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; 
 }
 
 .video-box {
+  color: #fff;
   position: relative; width: 100%; aspect-ratio: 16 / 9;
   background: #000; border-radius: var(--radius); overflow: hidden;
 }
@@ -193,7 +233,33 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; 
 .table { width: 100%; border-collapse: collapse; }
 .table th { text-align: left; font-size: 12px; color: var(--text-dim); font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--border); }
 .table td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
-.table tr:hover td { background: rgba(255,255,255,.02); }
+.table tr:hover td { background: var(--bg); }
 
 .up { color: var(--live); }
-.down { color: #5aa2ff; }
+.down { color: var(--accent-text); }
+
+/* ===== 접근성 공통 ===== */
+:where(a, button, [tabindex], summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.skip-link {
+  position: absolute; left: 12px; top: -48px; z-index: 100;
+  padding: 8px 14px; border-radius: 8px; background: var(--text); color: #fff; font-weight: 700;
+}
+.skip-link:focus-visible { top: 8px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+html { -webkit-tap-highlight-color: rgba(11, 87, 208, .12); }
+@media (pointer: fine) { html { overscroll-behavior: none; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

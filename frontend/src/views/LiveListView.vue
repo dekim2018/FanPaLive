@@ -1,6 +1,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { q, syncQuery } from '../lib/query'
 import { broadcastApi } from '../api/broadcasts'
 import { errorMessage } from '../api/http'
 import BroadcastCard from '../components/BroadcastCard.vue'
@@ -10,16 +11,22 @@ import { useFandomStore } from '../stores/fandom'
 const route = useRoute()
 const fandom = useFandomStore()
 const { stats, refresh: refreshViewers } = useViewerStats()
-const tab = ref('LIVE')
-const league = ref(typeof route.query.league === 'string' ? route.query.league : '')
+const router = useRouter()
+const tab = ref(q(route, 'tab', 'LIVE', ['LIVE', 'ALL', 'ENDED']))
+const league = ref(q(route, 'league', ''))
 const items = ref([])
 const loading = ref(false)
 const error = ref('')
-const page = ref(0)
+const page = ref(Math.max(0, Number(q(route, 'page', '1')) - 1) || 0)
 const totalPages = ref(0)
 let timer = null
 
+function remember() {
+  syncQuery(router, route, { tab: tab.value, league: league.value, page: page.value + 1 }, { tab: 'LIVE', page: 1 })
+}
+
 async function load() {
+  remember()
   loading.value = true
   error.value = ''
   try {
