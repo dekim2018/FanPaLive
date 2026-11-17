@@ -5,7 +5,7 @@ import { errorMessage } from '../api/http'
 import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, formatDuration } from '../lib/format'
 import { useFandomStore } from '../stores/fandom'
-import { teamFg } from '../lib/team'
+import { solid, teamFg } from '../lib/team'
 
 const fandom = useFandomStore()
 const league = ref('')
@@ -62,7 +62,7 @@ onMounted(load)
           <span class="small muted">{{ r.status === 'READY' ? formatDuration(r.durationSeconds) : '녹화 중' }}</span>
         </div>
         <div class="title">{{ r.title }}</div>
-        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: r.side.targetColor, color: teamFg(r.side.targetColor, r.side.targetTextColor) }">{{ r.side.targetShortName || r.side.targetName }}</span><span class="xsmall muted">{{ r.side.leagueCode }} 편파중계</span></div>
+        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: solid(r.side.targetColor), color: teamFg(r.side.targetColor, r.side.targetTextColor) }">{{ r.side.targetShortName || r.side.targetName }}</span><span class="xsmall muted">{{ r.side.leagueCode }} 편파중계</span></div>
         <div class="small muted">{{ r.ownerNickname }}, {{ formatDate(r.startedAt) }}</div>
       </RouterLink>
     </div>

@@ -106,18 +106,45 @@ export function teamStyle(color, secondary) {
   }
 }
 
+/** 게이지 막대가 놓이는 바탕(--line 계열). 막대는 이 바탕과 3:1 이상(WCAG 1.4.11 그래픽 대비) */
+const TRACK = '#eef0f3'
+
+function showsOnTrack(color) {
+  return contrast(color, TRACK) >= 3
+}
+
+function farFrom(a, b) {
+  return Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i])) >= 90
+}
+
 /**
- * 응원 게이지 두 막대의 색. 두 팀 배경색이 비슷하면(두산과 롯데 남색, KIA와 SSG 빨강) 한쪽을 글자색으로 칠한다.
- * 원정 글자색이 흰 화면에서 안 보이면(흰색 등) 홈 쪽을 바꾼다.
+ * 응원 게이지 두 막대의 색. 두 막대 모두 바탕에서 보여야 하고, 서로 구분되어야 한다.
+ * 두 팀 배경색이 비슷하면(두산과 롯데 남색, KIA와 LG 빨강) 바탕에서 보이는 글자색으로 한쪽을 바꾸고,
+ * 글자색이 흰색, 연분홍, 노랑처럼 바탕에서 안 보이면 원정 쪽을 밝게(3:1 까지), 그래도 가까우면 홈 쪽을 어둡게 한다.
  */
 export function gaugeColors(home, away) {
-  const h = solid(home?.colorPrimary)
-  const a = solid(away?.colorPrimary)
-  const dist = Math.hypot(...rgb(h).map((v, i) => v - rgb(a)[i]))
-  if (dist >= 90) return { home: h, away: a }
+  const onTrack = (c) => (showsOnTrack(c) ? c : darkenUntil(c, TRACK, 3))
+  const h = onTrack(solid(home?.colorPrimary))
+  const a = onTrack(solid(away?.colorPrimary))
+  if (farFrom(h, a)) return { home: h, away: a }
+
   const awayFg = teamFg(away?.colorPrimary, away?.colorSecondary)
-  if (contrast(awayFg, WHITE) >= 1.4) return { home: h, away: awayFg }
-  return { home: teamFg(home?.colorPrimary, home?.colorSecondary), away: a }
+  if (showsOnTrack(awayFg) && farFrom(h, awayFg)) return { home: h, away: awayFg }
+  const homeFg = teamFg(home?.colorPrimary, home?.colorSecondary)
+  if (showsOnTrack(homeFg) && farFrom(homeFg, a)) return { home: homeFg, away: a }
+
+  let lighter = a
+  for (let t = 0.05; t < 1; t += 0.05) {
+    const c = mix(a, WHITE, t)
+    if (!showsOnTrack(c)) break
+    lighter = c
+    if (farFrom(h, c)) return { home: h, away: c }
+  }
+  let darker = rgb(h)
+  for (let i = 0; i < 20 && !farFrom(toHex(darker), lighter); i++) {
+    darker = darker.map((v) => v * 0.85)
+  }
+  return { home: toHex(darker), away: lighter }
 }
 
 export const KIND_LABEL = { TEAM: '구단', PLAYER: '선수' }

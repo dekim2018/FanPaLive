@@ -8,10 +8,21 @@ export function q(route, key, fallback, allowed) {
   return !allowed || allowed.includes(v) ? v : fallback
 }
 
+/** 화면이 스스로 맞춘 주소. 이 주소로의 이동은 화면을 다시 만들지 않는다(App.vue) */
+let synced = null
+
 export function syncQuery(router, route, values, defaults = {}) {
   const query = {}
   Object.entries(values).forEach(([k, v]) => {
     if (v !== '' && v !== null && v !== undefined && String(v) !== String(defaults[k] ?? '')) query[k] = String(v)
   })
+  synced = router.resolve({ query }).fullPath
   router.replace({ query }).catch(() => {})
+}
+
+/** 이번 이동이 syncQuery 로 맞춘 주소인지. 링크, 뒤로 가기처럼 바깥에서 쿼리가 바뀐 이동이면 false */
+export function consumeSynced(to) {
+  const hit = synced === to.fullPath
+  synced = null
+  return hit
 }
