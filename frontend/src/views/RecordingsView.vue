@@ -19,6 +19,8 @@ const totalPages = ref(0)
 
 async function load() {
   loading.value = true
+  // 이전 실패 문구가 남아 있으면 다시 불러와도 목록 대신 오류만 보인다.
+  error.value = ''
   try {
     const params = { page: page.value, size: 20 }
     if (league.value) params.league = league.value
