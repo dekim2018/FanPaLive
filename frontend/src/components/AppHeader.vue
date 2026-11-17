@@ -65,12 +65,13 @@ async function logout() {
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
     </button>
     <RouterLink to="/" class="logo" aria-label="팬파라이브 홈">
-      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
-        <rect x="2" y="2" width="28" height="28" rx="8" fill="#5e5ede"/>
-        <path d="M10 9h12v4h-8v3h7v4h-7v4h-4z" fill="#fff"/>
-        <circle cx="24" cy="22" r="3" fill="#ff5a4e"/>
+      <!-- 로고: 채팅 말풍선 + 한쪽으로 기운 F(편파) + LIVE 점 -->
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+        <path d="M6 4H34A4 4 0 0 1 38 8V26A4 4 0 0 1 34 30H17L9 37V30H6A4 4 0 0 1 2 26V8A4 4 0 0 1 6 4Z" fill="#5e5ede"/>
+        <g transform="skewX(-12) translate(4 0)"><path d="M14 10H27V14H18.5V16.5H25V20.5H18.5V25H14Z" fill="#fff"/></g>
+        <circle cx="31.5" cy="10.5" r="3" fill="#ff5a4e"/>
       </svg>
-      <span class="logo-text">팬파라이브</span>
+      <span class="logo-text wordmark">팬파라이브</span>
     </RouterLink>
 
     <form class="search" role="search" @submit.prevent="submitSearch">
@@ -125,7 +126,8 @@ async function logout() {
 }
 .icon-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 9px; border-radius: 8px; display: inline-flex; }
 .icon-btn:hover { background: var(--bg-elev-2); }
-.logo { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 19px; letter-spacing: -.03em; }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-text { font-size: 22px; line-height: 1; color: var(--text); padding-top: 2px; }
 .search { position: relative; flex: 0 1 440px; margin: 0 auto; }
 .search-input {
   width: 100%; height: 40px; padding: 0 40px 0 16px; border-radius: 999px;

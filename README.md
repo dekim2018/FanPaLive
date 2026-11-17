@@ -459,6 +459,7 @@ com.livebroadcast.broadcast
 | [토스페이먼츠 SDK v2](https://docs.tosspayments.com/sdk/v2/js), [결제 조회와 거래 조회 API](https://docs.tosspayments.com/reference) | 테스트 결제, 결과 모름 확정, 결제 대사 | 토스페이먼츠 이용약관 |
 | [Redis](https://redis.io/docs/latest/) (Lua 스크립트, Sorted Set, HyperLogLog, Streams) | 하트 한도, 랭킹, 순시청자, 후원 이벤트 | RSALv2/SSPLv1 (Redis 7 이미지) |
 | [k6](https://k6.io/) | 하트 부하 테스트 스크립트 | AGPL-3.0 |
+| [Black Han Sans (검은고딕)](https://github.com/zesstype/Black-Han-Sans) | 로고 글자(팬파라이브 다섯 글자만 남긴 부분 글꼴) | SIL OFL 1.1 |
 | [WHIP RFC 9725](https://www.rfc-editor.org/rfc/rfc9725), [WHEP draft](https://datatracker.ietf.org/doc/draft-ietf-wish-whep/) | 송출/시청 시그널링 규격 | - |
 
 WHIP/WHEP 브라우저 클라이언트(`frontend/src/lib/whip.js`, `whep.js`)는 위 규격과 MediaMTX 문서를 참고해 직접 작성했습니다.
