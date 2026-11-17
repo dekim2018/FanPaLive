@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
         <span v-if="match.venue">{{ match.venue }}</span>
         <span class="spacer"></span>
         <span class="badge" :class="match.status.toLowerCase()">{{ STATUS[match.status] }}</span>
-        <span class="xsmall" :style="{ color: connected ? 'var(--ok)' : 'var(--text-dim)' }">{{ connected ? tr('● 실시간') : tr('○ 연결 중') }}</span>
+        <span class="xsmall" role="status" :style="{ color: connected ? 'var(--ok)' : 'var(--text-dim)' }"><span aria-hidden="true" class="dot">{{ connected ? '●' : '○' }}</span>{{ connected ? tr('실시간') : tr('연결 중…') }}</span>
       </div>
       <div class="teams">
         <RouterLink :to="`/targets/${match.home.id}`" class="team">
@@ -140,9 +140,11 @@ onBeforeUnmount(() => {
       <RouterLink to="/broadcasts/new" class="btn primary">{{ tr('이 경기 편파중계 하기') }}</RouterLink>
     </div>
   </div>
+  <div v-else class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
 </template>
 
 <style scoped>
+.dot { margin-right: 4px; }
 .board { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
 .predict-card { margin-bottom: 24px; }
 .teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }

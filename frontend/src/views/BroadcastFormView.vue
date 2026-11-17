@@ -28,6 +28,8 @@ const leagueCode = ref('KBO')
 const targetId = ref(null)
 const matchId = ref(null)
 const targets = ref([])
+// 팀 목록을 받는 동안에는 '등록된 팀이 없습니다' 를 띄우지 않는다.
+const targetsLoading = ref(false)
 const matches = ref([])
 const originalTargetId = ref(null)
 const agreed = ref(false)
@@ -61,10 +63,13 @@ const teamMatches = computed(() => matches.value.filter((m) =>
   m.status !== 'FINISHED' && m.status !== 'CANCELED' && (m.home.id === targetId.value || m.away.id === targetId.value)))
 
 async function loadTargets() {
+  targetsLoading.value = true
   try {
     targets.value = await fandomApi.leagueTargets(leagueCode.value)
   } catch {
     targets.value = []
+  } finally {
+    targetsLoading.value = false
   }
 }
 
@@ -133,7 +138,7 @@ async function submit() {
     return
   }
   if (sideMode.value === 'SIDE' && !targetId.value) {
-    error.value = tr('응원팀을 선택해 주세요. 일반 방송이면 위에서 "일반 방송"을 고르세요.')
+    error.value = tr('응원팀을 선택해 주세요. 일반 방송이면 위에서 “일반 방송”을 고르세요.')
     // 고를 팀이 없으면 리그 선택으로 보낸다.
     focusInvalid(teamField.value?.querySelector('button') || leagueSelect.value)
     return
@@ -191,15 +196,16 @@ async function submit() {
           </select>
         </label>
         <div ref="teamField" class="field">
-          <span>{{ tr('응원팀') }}</span>
-          <div class="team-grid">
+          <span id="team-label">{{ tr('응원팀') }}</span>
+          <div class="team-grid" role="group" aria-labelledby="team-label">
             <button v-for="t in targets" :key="t.id" type="button" class="team" :class="{ on: targetId === t.id }" :aria-pressed="targetId === t.id"
                     :style="targetId === t.id ? { borderColor: readable(t.colorPrimary, t.colorSecondary) } : {}" @click="targetId = t.id">
               <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="34" />
               <span class="ellipsis small">{{ tr(t.name) }}</span>
             </button>
           </div>
-          <div v-if="!targets.length" class="small muted">{{ tr('이 리그에 등록된 팀이 없습니다.') }} <RouterLink to="/requests" class="link">{{ tr('팀/선수 신청') }}</RouterLink></div>
+          <div v-if="targetsLoading && !targets.length" class="small muted" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+          <div v-else-if="!targets.length" class="small muted">{{ tr('이 리그에 등록된 팀이 없습니다.') }} <RouterLink to="/requests" class="link">{{ tr('팀/선수 신청') }}</RouterLink></div>
         </div>
         <label v-if="selectedTarget" class="field">{{ tr('중계할 경기 (선택)') }}
           <select name="match-id" v-model="matchId" class="input">
@@ -226,7 +232,7 @@ async function submit() {
 
       <div v-if="error" class="error-text" role="alert">{{ error }}</div>
       <div class="row">
-        <button class="btn primary" :disabled="submitting">{{ isEdit ? tr('저장') : tr('만들고 스튜디오로 이동') }}</button>
+        <button class="btn primary" :disabled="submitting">{{ submitting ? (isEdit ? tr('저장 중…') : tr('만드는 중…')) : (isEdit ? tr('저장') : tr('만들고 스튜디오로 이동')) }}</button>
         <button type="button" class="btn" @click="router.back()">{{ tr('취소') }}</button>
       </div>
     </form>

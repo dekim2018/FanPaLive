@@ -7,6 +7,7 @@ import { errorMessage } from '../api/http'
 import TeamCrest from '../components/TeamCrest.vue'
 import { contrast } from '../lib/team'
 import { formatDate } from '../lib/format'
+import { q, syncQuery } from '../lib/query'
 import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
@@ -26,7 +27,8 @@ const form = ref({
   leagueCode: typeof route.query.league === 'string' ? route.query.league : '',
   name: '', nameEn: '', shortName: '', colorPrimary: '#1d428a', colorSecondary: '#ffffff', description: '', referenceUrl: ''
 })
-const filterLeague = ref('')
+// 리그 필터는 주소(?filter=)에 남겨 새로고침이나 링크 공유에도 유지한다.
+const filterLeague = ref(q(route, 'filter', ''))
 const colorRatio = computed(() => contrast(form.value.colorPrimary, form.value.colorSecondary))
 const list = ref([])
 const mine = ref([])
@@ -68,6 +70,13 @@ async function load() {
   }
 }
 
+function onFilterChange() {
+  // ?league= 는 신청 폼의 리그를 미리 고르는 링크라 그대로 둔다.
+  const league = typeof route.query.league === 'string' ? route.query.league : ''
+  syncQuery(router, route, { league, filter: filterLeague.value })
+  load()
+}
+
 async function submit() {
   if (!auth.isLoggedIn) {
     saveDraft()
@@ -78,7 +87,7 @@ async function submit() {
   submitting.value = true
   try {
     const res = await fandomApi.requestTarget(form.value)
-    toast.success(res.data.merged ? tr('같은 신청이 이미 있어 "나도 원해요"로 합쳤습니다.') : tr('신청했습니다. 운영자 승인 후 공개됩니다.'))
+    toast.success(res.data.merged ? tr('같은 신청이 이미 있어 “나도 원해요”로 합쳤습니다.') : tr('신청했습니다. 운영자 승인 후 공개됩니다.'))
     form.value = { ...form.value, name: '', nameEn: '', shortName: '', description: '', referenceUrl: '' }
     load()
   } catch (e) {
@@ -131,10 +140,10 @@ onMounted(() => {
         </label>
         <div class="row nowrap">
           <label class="field" style="flex:2">{{ tr('영문 이름') }}
-            <input name="name-en" autocomplete="off" v-model="form.nameEn" class="input" maxlength="60" placeholder="Los Angeles Dodgers" />
+            <input name="name-en" autocomplete="off" v-model="form.nameEn" class="input" maxlength="60" spellcheck="false" :placeholder="tr('예) Los Angeles Dodgers…')" />
           </label>
           <label class="field" style="flex:1">{{ tr('약칭 (6자)') }}
-            <input name="short-name" autocomplete="off" v-model="form.shortName" class="input" maxlength="6" :placeholder="tr('다저스')" />
+            <input name="short-name" autocomplete="off" v-model="form.shortName" class="input" maxlength="6" :placeholder="tr('예) 다저스…')" />
           </label>
         </div>
         <div class="row nowrap">
@@ -159,14 +168,14 @@ onMounted(() => {
           <input name="reference-url" autocomplete="off" type="url" inputmode="url" spellcheck="false" v-model="form.referenceUrl" class="input" maxlength="300" placeholder="https://…" />
         </label>
         <div v-if="error" class="error-text" role="alert">{{ error }}</div>
-        <button class="btn primary" :disabled="submitting">{{ auth.isLoggedIn ? tr('신청하기') : tr('로그인하고 신청하기') }}</button>
+        <button class="btn primary" :disabled="submitting">{{ submitting ? tr('신청하는 중…') : auth.isLoggedIn ? tr('신청하기') : tr('로그인하고 신청하기') }}</button>
       </form>
 
       <div class="stack">
         <div class="row">
           <h2 style="margin:0">{{ tr('심사 중인 신청') }}</h2>
           <span class="spacer"></span>
-          <select name="filter-league" :aria-label="tr('리그로 거르기')" v-model="filterLeague" class="input sel" @change="load">
+          <select name="filter-league" :aria-label="tr('리그로 거르기')" v-model="filterLeague" class="input sel" @change="onFilterChange">
             <option value="">{{ tr('전체 리그') }}</option>
             <option v-for="l in openLeagues" :key="l.code" :value="l.code">{{ tr(l.name) }}</option>
           </select>

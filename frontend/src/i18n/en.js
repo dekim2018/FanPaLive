@@ -3,7 +3,7 @@
  * 화면 문구, 서버 오류 문구, 시드 데이터(종목, 리그, KBO 구단 이름) 순서로 둔다.
  */
 export default {
-  "\"{0}\" 방송을 삭제할까요?": "Delete the broadcast \"{0}\"?",
+  "“{0}” 방송을 삭제할까요?": "Delete the broadcast “{0}”?",
   "({0} 응원 점수에도 반영)": "(also counts toward {0} cheer score)",
   "(수정됨)": "(edited)",
   "2026-04-01,18:30,두산 베어스,LG 트윈스,잠실…": "2026-04-01,18:30,Doosan Bears,LG Twins,Jamsil…",
@@ -69,8 +69,6 @@ export default {
   "{0}점": "{0} pts",
   "{0}초": "{0}s",
   "{0}하면 예측에 참여할 수 있어요.": "{0} to make a pick.",
-  "○ 연결 중": "○ Connecting",
-  "● 실시간": "● Live",
   "★ 내 주 응원팀": "★ My main team",
   "★ 주 응원": "★ Main team",
   "★ 주 응원팀": "★ Main team",
@@ -78,7 +76,7 @@ export default {
   "가입하기": "Sign up",
   "같은 대상 신고 {0}건": "{0} reports on this",
   "같은 말 반복, 외부 홍보": "Repeated messages, outside promotion",
-  "같은 신청이 이미 있어 \"나도 원해요\"로 합쳤습니다.": "The same request already exists, so we added your vote to it.",
+  "같은 신청이 이미 있어 “나도 원해요”로 합쳤습니다.": "The same request already exists, so we added your vote to it.",
   "개근 응원단": "Daily cheerer",
   "개인 종목": "Individual sports",
   "검색 결과": "Search results",
@@ -519,7 +517,7 @@ export default {
   "응원팀 편파방이 시작됐어요": "Your team is live",
   "응원팀을 골라 보세요": "Pick your teams",
   "응원팀을 골라 주세요.": "Pick a team.",
-  "응원팀을 선택해 주세요. 일반 방송이면 위에서 \"일반 방송\"을 고르세요.": "Pick a team. For a regular stream, choose \"Regular stream\" above.",
+  "응원팀을 선택해 주세요. 일반 방송이면 위에서 “일반 방송”을 고르세요.": "Pick a team. For a regular stream, choose “Regular stream” above.",
   "응원팀을 저장했습니다.": "Teams saved.",
   "응원팀을 정하고 한쪽만 응원하는 방송": "Pick a side and cheer for one team",
   "응원팀을 찾을 수 없거나 운영이 중단된 대상입니다.": "The team was not found or is no longer active.",
@@ -771,7 +769,20 @@ export default {
   "구단/선수 목록을 불러오지 못했습니다.": "Could not load teams and players.",
   "후원 내역을 불러오지 못했습니다.": "Could not load donation history.",
   "종목 정보를 불러오지 못했습니다.": "Could not load sports.",
-  "등록된 종목이 없습니다.": "No sports yet."
+  "등록된 종목이 없습니다.": "No sports yet.",
+  "기록하는 중…": "Saving…",
+  "가입하는 중…": "Signing up…",
+  "연결 끊김": "disconnected",
+  "연결 종료": "closed",
+  "만드는 중…": "Creating…",
+  "신청하는 중…": "Submitting…",
+  "로그인하는 중…": "Logging in…",
+  "예) Los Angeles Dodgers…": "e.g. Los Angeles Dodgers…",
+  "예) 다저스…": "e.g. Dodgers…",
+  "{0} 스튜디오": "Studio: {0}",
+  "{0} 수정": "Edit: {0}",
+  "{0} 삭제": "Delete: {0}",
+  "{0} 대 {1}": "{0} vs {1}"
 }
 
 /** 서버가 값을 이어 붙여 만드는 문구. 사전에 없을 때만 차례로 맞춰 본다. */

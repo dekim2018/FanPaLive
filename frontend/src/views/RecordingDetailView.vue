@@ -105,7 +105,7 @@ onMounted(() => {
       <div class="small muted">
         {{ tr('{0}, {1} ~ {2}, 길이 {3}', recording.ownerNickname, formatDate(recording.startedAt), formatDate(recording.endedAt), formatDuration(recording.durationSeconds)) }}
       </div>
-      <div class="small muted"><TrText :text="tr('저장 위치: {0}')"><template #p0><code>{{ recording.storageLocation }}</code></template></TrText></div>
+      <div class="small muted"><TrText :text="tr('저장 위치: {0}')"><template #p0><code class="path" translate="no">{{ recording.storageLocation }}</code></template></TrText></div>
       <div v-if="segments.length > 1" class="row">
         <button v-for="(s, i) in segments" :key="s.start" type="button" class="btn sm" :class="{ primary: i === current }"
                 :aria-pressed="i === current" @click="playSegment(i)">
@@ -126,4 +126,10 @@ onMounted(() => {
       </div>
     </section>
   </div>
+  <div v-else class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
 </template>
+
+<style scoped>
+/* 공백 없는 긴 경로가 좁은 화면에서 카드 밖으로 넘치지 않게 아무 곳에서나 줄을 바꾼다 */
+.path { overflow-wrap: anywhere; }
+</style>

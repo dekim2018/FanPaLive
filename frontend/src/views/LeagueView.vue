@@ -1,7 +1,7 @@
 <script setup>
 import { tr } from '../i18n'
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { broadcastApi } from '../api/broadcasts'
 import { fandomApi } from '../api/fandom'
 import BroadcastCard from '../components/BroadcastCard.vue'
@@ -10,9 +10,11 @@ import TeamCrest from '../components/TeamCrest.vue'
 import { useViewerStats } from '../composables/useViewerStats'
 import { formatCount } from '../lib/format'
 import { latestOnly } from '../lib/latest'
+import { q, syncQuery } from '../lib/query'
 import { useFandomStore } from '../stores/fandom'
 
 const route = useRoute()
+const router = useRouter()
 const fandom = useFandomStore()
 const code = route.params.code
 const { stats, refresh: refreshViewers } = useViewerStats()
@@ -22,7 +24,8 @@ const targetsError = ref(false)
 const lives = ref([])
 const livesLoading = ref(true)
 const livesError = ref(false)
-const sort = ref('fans')
+// 정렬을 주소에 남겨 새로고침/공유해도 같은 정렬로 열린다
+const sort = ref(q(route, 'sort', 'fans', ['fans', 'name']))
 const league = computed(() => fandom.leagueByCode(code))
 // 정렬을 빠르게 바꾸면 늦게 온 이전 정렬 결과가 덮어쓰지 않게 한다.
 const latestTargets = latestOnly()
@@ -42,6 +45,7 @@ async function loadTargets() {
 
 function changeSort(s) {
   sort.value = s
+  syncQuery(router, route, { sort: s }, { sort: 'fans' })
   loadTargets()
 }
 
@@ -67,7 +71,7 @@ onMounted(() => {
 <template>
   <div>
     <div class="row head">
-      <h1 style="margin:0">{{ league?.name || code }}</h1>
+      <h1 style="margin:0">{{ league ? tr(league.name) : code }}</h1>
       <span v-if="league" class="chip">{{ tr(league.sportName) }}</span>
       <span class="spacer"></span>
       <RouterLink :to="{ path: '/rankings', query: { league: code } }" class="btn sm ghost">{{ tr('응원 랭킹') }}</RouterLink>

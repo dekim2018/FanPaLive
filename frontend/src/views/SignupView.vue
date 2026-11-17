@@ -59,7 +59,7 @@ async function submit() {
       </label>
       <div v-if="mismatch" id="password-confirm-error" class="error-text" role="alert">{{ mismatch }}</div>
       <div v-if="error" class="error-text" role="alert">{{ error }}</div>
-      <button class="btn primary block" :disabled="submitting">{{ tr('가입하기') }}</button>
+      <button class="btn primary block" :disabled="submitting">{{ submitting ? tr('가입하는 중…') : tr('가입하기') }}</button>
       <div class="small muted">{{ tr('이미 계정이 있나요?') }} <RouterLink to="/login" class="text-link">{{ tr('로그인') }}</RouterLink></div>
     </form>
   </div>

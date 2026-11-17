@@ -6,6 +6,7 @@ import { recordingApi } from '../api/broadcasts'
 import { errorMessage } from '../api/http'
 import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, formatDuration } from '../lib/format'
+import { latestOnly } from '../lib/latest'
 import { q, syncQuery } from '../lib/query'
 import { useFandomStore } from '../stores/fandom'
 import { solid, teamFg } from '../lib/team'
@@ -25,6 +26,9 @@ const totalPages = ref(0)
 watch([league, page], () => syncQuery(router, route,
   { league: league.value, page: page.value + 1 }, { page: 1 }))
 
+// 리그나 페이지를 빠르게 바꿔도 마지막 요청의 응답만 쓴다
+const latest = latestOnly()
+
 async function load() {
   loading.value = true
   // 이전 실패 문구가 남아 있으면 다시 불러와도 목록 대신 오류만 보인다.
@@ -32,12 +36,13 @@ async function load() {
   try {
     const params = { page: page.value, size: 20 }
     if (league.value) params.league = league.value
-    const res = await recordingApi.list(params)
-    items.value = res.content
-    totalPages.value = res.totalPages
+    const { value, stale } = await latest(recordingApi.list(params))
+    if (stale) return
+    items.value = value.content
+    totalPages.value = value.totalPages
+    loading.value = false
   } catch (e) {
     error.value = errorMessage(e)
-  } finally {
     loading.value = false
   }
 }
@@ -50,6 +55,8 @@ function changeLeague(code) {
 
 function move(delta) {
   page.value += delta
+  // 아래쪽 페이지 버튼을 누른 채로 새 목록의 끝이 보이지 않도록 맨 위로 올린다.
+  window.scrollTo({ top: 0 })
   load()
 }
 
@@ -64,9 +71,11 @@ onMounted(load)
       <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }"
               :aria-pressed="league === l.code" @click="changeLeague(l.code)">{{ tr(l.name) }}</button>
     </div>
-    <div v-if="error" class="empty">{{ error }}</div>
-    <div v-else-if="!loading && !items.length" class="empty">{{ tr('아직 녹화된 방송이 없습니다. 방송을 하면 자동으로 녹화됩니다.') }}</div>
-    <div v-else class="grid">
+    <div v-if="error" class="empty">{{ error }} <button type="button" class="btn sm" @click="load">{{ tr('다시 시도') }}</button></div>
+    <div v-else-if="loading && !items.length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+    <div v-else-if="!items.length" class="empty">{{ tr('아직 녹화된 방송이 없습니다. 방송을 하면 자동으로 녹화됩니다.') }}</div>
+    <!-- 다시 불러오는 동안에는 이전 목록을 두고 aria-busy 로만 알린다 -->
+    <div v-else class="grid" :aria-busy="loading">
       <RouterLink v-for="r in items" :key="r.id" :to="`/recordings/${r.id}`" class="card stack rec">
         <div class="row">
           <StatusBadge :status="r.status === 'READY' ? 'VOD' : r.status" />

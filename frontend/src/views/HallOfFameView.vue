@@ -1,11 +1,13 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { tr } from '../i18n'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
 import TeamCrest from '../components/TeamCrest.vue'
 import { formatCount } from '../lib/format'
 import { latestOnly } from '../lib/latest'
+import { q, syncQuery } from '../lib/query'
 import { readable, teamFg, solid } from '../lib/team'
 import { useFandomStore } from '../stores/fandom'
 
@@ -14,7 +16,10 @@ import { useFandomStore } from '../stores/fandom'
  * 새 시즌 첫날 자동으로 기록되고, 시즌 중에는 응원 랭킹 화면에서 실시간 순위를 본다.
  */
 const fandom = useFandomStore()
-const league = ref('KBO')
+const route = useRoute()
+const router = useRouter()
+// 선택한 리그를 주소에 남겨 새로고침/공유해도 같은 리그로 열린다
+const league = ref(q(route, 'league', 'KBO'))
 const seasons = ref([])
 const loading = ref(true)
 const error = ref('')
@@ -35,6 +40,12 @@ async function load() {
   }
 }
 
+function changeLeague(code) {
+  league.value = code
+  syncQuery(router, route, { league: code }, { league: 'KBO' })
+  load()
+}
+
 function seasonLabel(key) {
   return tr('{0} 시즌', key.replace(/^S/, ''))
 }
@@ -49,34 +60,39 @@ onMounted(load)
       <p class="muted small" style="margin:0">{{ tr('시즌이 끝나면 응원 점수 최종 순위와 우승팀에 가장 많이 기여한 MVP 팬을 기록합니다.') }}</p>
     </div>
     <div class="pill-tabs" style="margin:0">
-      <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }" :aria-pressed="league === l.code" @click="league = l.code; load()">{{ tr(l.name) }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }" :aria-pressed="league === l.code" @click="changeLeague(l.code)">{{ tr(l.name) }}</button>
     </div>
-    <div v-if="error" class="empty">{{ error }}</div>
-    <div v-else-if="!loading && !seasons.length" class="empty">{{ tr('아직 마감된 시즌이 없습니다. 첫 시즌이 끝나면 이곳에 기록됩니다.') }}</div>
-    <section v-for="s in seasons" :key="s.seasonKey" class="card season" :aria-labelledby="`season-${s.seasonKey}`">
-      <div class="champion" :style="{ background: solid(s.rows[0]?.colorPrimary), color: teamFg(s.rows[0]?.colorPrimary, s.rows[0]?.colorSecondary) }">
-        <div class="xsmall label">{{ seasonLabel(s.seasonKey) }}</div>
-        <h2 :id="`season-${s.seasonKey}`" class="champ-name">{{ tr('응원 1위 {0}', tr(s.rows[0]?.name)) }}</h2>
-        <div v-if="s.mvp" class="mvp">
-          <span class="xsmall label">{{ tr('MVP 팬') }}</span>
-          <strong>{{ s.mvp.nickname }}</strong>
-          <span class="xsmall">{{ tr('기여 점수 {0}', formatCount(s.mvp.points)) }}</span>
+    <div v-if="error" class="empty">{{ error }} <button type="button" class="btn sm" @click="load">{{ tr('다시 시도') }}</button></div>
+    <div v-else-if="loading && !seasons.length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+    <div v-else-if="!seasons.length" class="empty">{{ tr('아직 마감된 시즌이 없습니다. 첫 시즌이 끝나면 이곳에 기록됩니다.') }}</div>
+    <!-- 리그를 바꾸는 동안 이전 리그 기록이 남아 있으면 흐리게 하고 aria-busy 로 알린다 -->
+    <div v-else class="stack seasons" :class="{ busy: loading }" :aria-busy="loading">
+      <section v-for="s in seasons" :key="s.seasonKey" class="card season" :aria-labelledby="`season-${s.seasonKey}`">
+        <div class="champion" :style="{ background: solid(s.rows[0]?.colorPrimary), color: teamFg(s.rows[0]?.colorPrimary, s.rows[0]?.colorSecondary) }">
+          <div class="xsmall label">{{ seasonLabel(s.seasonKey) }}</div>
+          <h2 :id="`season-${s.seasonKey}`" class="champ-name">{{ tr('응원 1위 {0}', tr(s.rows[0]?.name)) }}</h2>
+          <div v-if="s.mvp" class="mvp">
+            <span class="xsmall label">{{ tr('MVP 팬') }}</span>
+            <strong>{{ s.mvp.nickname }}</strong>
+            <span class="xsmall">{{ tr('기여 점수 {0}', formatCount(s.mvp.points)) }}</span>
+          </div>
         </div>
-      </div>
-      <ol class="rows">
-        <li v-for="r in s.rows" :key="r.targetId" class="row nowrap">
-          <span class="rank num" :style="{ color: r.rank === 1 ? readable(r.colorPrimary, r.colorSecondary) : undefined }">{{ r.rank }}</span>
-          <TeamCrest :name="r.name" :short-name="r.shortName" :color="r.colorPrimary" :color2="r.colorSecondary" :size="30" />
-          <RouterLink :to="`/targets/${r.targetId}`" class="ellipsis name">{{ tr(r.name) }}</RouterLink>
-          <span class="spacer"></span>
-          <span class="num small muted">{{ tr('{0}점', formatCount(r.score)) }}</span>
-        </li>
-      </ol>
-    </section>
+        <ol class="rows">
+          <li v-for="r in s.rows" :key="r.targetId" class="row nowrap">
+            <span class="rank num" :style="{ color: r.rank === 1 ? readable(r.colorPrimary, r.colorSecondary) : undefined }">{{ r.rank }}</span>
+            <TeamCrest :name="r.name" :short-name="r.shortName" :color="r.colorPrimary" :color2="r.colorSecondary" :size="30" />
+            <RouterLink :to="`/targets/${r.targetId}`" class="ellipsis name">{{ tr(r.name) }}</RouterLink>
+            <span class="spacer"></span>
+            <span class="num small muted">{{ tr('{0}점', formatCount(r.score)) }}</span>
+          </li>
+        </ol>
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.seasons.busy { opacity: .6; transition: opacity .15s; }
 .season { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 16px; padding: 0; overflow: hidden; }
 .champion { padding: 20px; display: flex; flex-direction: column; gap: 8px; }
 .label { opacity: .9; font-weight: 700; letter-spacing: .04em; }

@@ -1,5 +1,5 @@
 <script setup>
-import { tr } from '../i18n'
+import { intlLocale, tr } from '../i18n'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { q, syncQuery } from '../lib/query'
@@ -22,10 +22,12 @@ const loading = ref(true)
 const error = ref('')
 // 날짜/리그를 빠르게 바꿔도 마지막 요청의 응답만 쓴다
 const latest = latestOnly()
+// 날짜 탭은 화면 언어에 맞춘 형식으로 쓴다(한국어 "11. 17. (화)", 영어 "Tue, 11/17")
+const dayFormatter = new Intl.DateTimeFormat(intlLocale, { month: 'numeric', day: 'numeric', weekday: 'short' })
 const days = Array.from({ length: 7 }, (_, i) => {
   const d = new Date(today)
   d.setDate(d.getDate() + i - 1)
-  return { iso: toIso(d), label: i === 1 ? tr('오늘') : `${d.getMonth() + 1}/${d.getDate()}` }
+  return { iso: toIso(d), label: i === 1 ? tr('오늘') : dayFormatter.format(d) }
 })
 
 async function load() {

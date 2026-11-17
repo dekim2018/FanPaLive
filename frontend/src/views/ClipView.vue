@@ -37,14 +37,21 @@ async function copyLink() {
   }
 }
 
+// 삭제 요청 중 또 누르면 이미 지운 클립을 다시 지우려다 오류 토스트가 뜬다.
+const removing = ref(false)
+
 async function remove() {
+  if (removing.value) return
   if (!confirm(tr('클립을 삭제할까요?'))) return
+  removing.value = true
   try {
     await clipApi.remove(clip.value.id)
     toast.success(tr('삭제했습니다.'))
     router.replace('/clips')
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    removing.value = false
   }
 }
 
@@ -71,7 +78,7 @@ onMounted(load)
       <div class="row">
         <RouterLink :to="`/recordings/${clip.recordingId}`" class="btn sm">{{ tr('전체 다시보기') }}</RouterLink>
         <button type="button" class="btn sm" @click="copyLink">{{ tr('링크 복사') }}</button>
-        <button v-if="canDelete" type="button" class="btn sm danger" @click="remove">{{ tr('삭제') }}</button>
+        <button v-if="canDelete" type="button" class="btn sm danger" :disabled="removing" @click="remove">{{ removing ? tr('삭제 중…') : tr('삭제') }}</button>
       </div>
     </div>
   </div>

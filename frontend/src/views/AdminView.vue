@@ -1,6 +1,7 @@
 <script setup>
-import { tr } from '../i18n'
-import { onMounted, ref } from 'vue'
+import { intlLocale, tr } from '../i18n'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { adminApi, fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
 import MatchCard from '../components/MatchCard.vue'
@@ -8,14 +9,25 @@ import ImportPanel from '../components/admin/ImportPanel.vue'
 import ReportsPanel from '../components/admin/ReportsPanel.vue'
 import TeamCrest from '../components/TeamCrest.vue'
 import { formatDate } from '../lib/format'
+import { q, syncQuery } from '../lib/query'
 import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
 
 /** 운영자 화면: 신청 승인/반려, 경기 등록과 점수 입력, 운영 지표. 권한은 서버가 다시 확인한다. */
 const fandom = useFandomStore()
+
+// 운영 지표는 '1.2만'처럼 줄이지 않고 정확한 값에 천 단위 구분만 넣는다.
+function exact(n) {
+  return Number(n || 0).toLocaleString(intlLocale, { maximumFractionDigits: 1 })
+}
 const toast = useToastStore()
-const tab = ref('requests')
-const status = ref('PENDING')
+const route = useRoute()
+const router = useRouter()
+// 탭과 신청 상태를 주소에 남겨 새로고침이나 링크 공유 뒤에도 같은 화면이 열리게 한다.
+const tab = ref(q(route, 'tab', 'requests', ['requests', 'reports', 'matches', 'import', 'seasons', 'ops']))
+const status = ref(q(route, 'status', 'PENDING', ['PENDING', 'APPROVED', 'REJECTED']))
+watch([tab, status], () => syncQuery(router, route,
+  { tab: tab.value, status: status.value }, { tab: 'requests', status: 'PENDING' }))
 const requests = ref([])
 const ops = ref(null)
 const matches = ref([])
@@ -150,8 +162,20 @@ async function closeSeason() {
   }
 }
 
+// 지표를 불러오는 동안이나 실패했을 때 탭이 통째로 비어 보이지 않도록 상태를 둔다.
+const opsLoading = ref(false)
+const opsError = ref('')
+
 async function loadOps() {
-  try { ops.value = await adminApi.ops() } catch (e) { toast.error(errorMessage(e)) }
+  opsLoading.value = true
+  opsError.value = ''
+  try {
+    ops.value = await adminApi.ops()
+  } catch (e) {
+    opsError.value = errorMessage(e)
+  } finally {
+    opsLoading.value = false
+  }
 }
 
 function changeTab(next) {
@@ -161,7 +185,7 @@ function changeTab(next) {
   if (next === 'ops') loadOps()
 }
 
-onMounted(loadRequests)
+onMounted(() => changeTab(tab.value))
 </script>
 
 <template>
@@ -202,7 +226,7 @@ onMounted(loadRequests)
 
     <template v-else-if="tab === 'matches'">
       <form class="card stack" @submit.prevent="createMatch">
-        <h3 style="margin:0">{{ tr('경기 등록') }}</h3>
+        <h2 style="margin:0; font-size:16px">{{ tr('경기 등록') }}</h2>
         <div class="row">
           <select name="league-code" :aria-label="tr('리그')" v-model="matchForm.leagueCode" class="input w" @change="changeLeague">
             <option v-for="l in fandom.leagues" :key="l.code" :value="l.code">{{ tr(l.name) }}</option>
@@ -240,27 +264,32 @@ onMounted(loadRequests)
     <ImportPanel v-else-if="tab === 'import'" />
 
     <form v-else-if="tab === 'seasons'" class="card stack" style="max-width:560px" @submit.prevent="closeSeason">
-      <h3 style="margin:0">{{ tr('시즌 마감') }}</h3>
+      <h2 style="margin:0; font-size:16px">{{ tr('시즌 마감') }}</h2>
       <p class="small muted" style="margin:0">{{ tr('새 시즌 첫날 0시 20분에 지난 시즌을 자동으로 마감합니다. 개막일이 바뀌었거나 다시 기록해야 할 때 여기서 직접 실행하세요.') }}</p>
       <label class="field">{{ tr('기준 날짜 (비우면 오늘)') }}
         <input v-model="seasonDate" name="season-date" type="date" class="input" />
       </label>
       <div class="row">
-        <button class="btn primary" :disabled="seasonBusy">{{ tr('시즌 기록 남기기') }}</button>
+        <button class="btn primary" :disabled="seasonBusy">{{ seasonBusy ? tr('기록하는 중…') : tr('시즌 기록 남기기') }}</button>
         <RouterLink to="/hall-of-fame" class="btn ghost">{{ tr('명예의 전당 보기') }}</RouterLink>
       </div>
     </form>
 
-    <template v-else-if="tab === 'ops' && ops">
-      <div class="ops">
-        <div class="card"><span class="small muted">{{ tr('반영된 하트') }}</span><strong class="num">{{ ops.flushedHearts }}</strong></div>
-        <div class="card"><span class="small muted">{{ tr('DB 반영 횟수') }}</span><strong class="num">{{ ops.flushCount }}</strong></div>
-        <div class="card"><span class="small muted">{{ tr('반영 1번당 하트 수 (쓰기 병합 효과)') }}</span><strong class="num">{{ ops.heartsPerFlush }}</strong></div>
-        <div class="card"><span class="small muted">{{ tr('대기 중 하트') }}</span><strong class="num">{{ ops.pendingHearts }}</strong></div>
-        <div class="card"><span class="small muted">{{ tr('유실된 하트') }}</span><strong class="num">{{ ops.droppedHearts }}</strong></div>
-        <div class="card"><span class="small muted">{{ tr('매치룸 실시간 구독') }}</span><strong class="num">{{ ops.matchSubscribers }}</strong></div>
-      </div>
-      <button class="btn sm" style="margin-top:12px" @click="loadOps">{{ tr('새로고침') }}</button>
+    <template v-else-if="tab === 'ops'">
+      <div v-if="!ops && opsLoading" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+      <div v-else-if="!ops && opsError" class="empty">{{ opsError }} <button type="button" class="btn sm" @click="loadOps">{{ tr('다시 시도') }}</button></div>
+      <template v-else-if="ops">
+        <div v-if="opsError" class="error-text" role="alert">{{ opsError }}</div>
+        <div class="ops" :aria-busy="opsLoading">
+          <div class="card"><span class="small muted">{{ tr('반영된 하트') }}</span><strong class="num">{{ exact(ops.flushedHearts) }}</strong></div>
+          <div class="card"><span class="small muted">{{ tr('DB 반영 횟수') }}</span><strong class="num">{{ exact(ops.flushCount) }}</strong></div>
+          <div class="card"><span class="small muted">{{ tr('반영 1번당 하트 수 (쓰기 병합 효과)') }}</span><strong class="num">{{ exact(ops.heartsPerFlush) }}</strong></div>
+          <div class="card"><span class="small muted">{{ tr('대기 중 하트') }}</span><strong class="num">{{ exact(ops.pendingHearts) }}</strong></div>
+          <div class="card"><span class="small muted">{{ tr('유실된 하트') }}</span><strong class="num">{{ exact(ops.droppedHearts) }}</strong></div>
+          <div class="card"><span class="small muted">{{ tr('매치룸 실시간 구독') }}</span><strong class="num">{{ exact(ops.matchSubscribers) }}</strong></div>
+        </div>
+        <button type="button" class="btn sm" style="margin-top:12px" :disabled="opsLoading" @click="loadOps">{{ opsLoading ? tr('불러오는 중…') : tr('새로고침') }}</button>
+      </template>
     </template>
   </div>
 </template>

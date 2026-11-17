@@ -1,6 +1,7 @@
 <script setup>
 import { tr } from '../i18n'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { broadcastApi } from '../api/broadcasts'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
@@ -11,15 +12,19 @@ import TeamCrest from '../components/TeamCrest.vue'
 import { useViewerStats } from '../composables/useViewerStats'
 import { formatCount } from '../lib/format'
 import { latestOnly } from '../lib/latest'
+import { q, syncQuery } from '../lib/query'
 import { teamFg } from '../lib/team'
 import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
 
+const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const fandom = useFandomStore()
 const { stats, refresh: refreshViewers } = useViewerStats()
 
-const league = ref('')
+// 새로고침이나 링크 공유를 해도 같은 리그 필터가 열리도록 주소에서 읽고 주소에 남긴다.
+const league = ref(q(route, 'league', ''))
 const lives = ref([])
 const matches = ref([])
 const ranking = ref(null)
@@ -61,6 +66,7 @@ async function loadSide() {
 
 function pickLeague(code) {
   league.value = code
+  syncQuery(router, route, { league: code })
   loadLives()
 }
 
