@@ -41,10 +41,10 @@ Render, Railway, Vercel 같은 PaaS 는 보통 HTTP 포트 하나만 열어 주�
 
 | 항목 | 값 |
 | --- | --- |
-| 이름 | `live-broadcast` |
+| 이름 | `FanPa Live` (콘솔 목록에 보이는 표시용 이름이라 띄어쓰기 가능) |
 | AMI | **Ubuntu Server 24.04 LTS** (64비트 x86) |
 | 인스턴스 유형 | `c7i-flex.large` (2 vCPU, 4GB) 권장, 여유 있게 하려면 `m7i-flex.large` (8GB) |
-| 키 페어 | **새 키 페어 생성** → 이름 `live-key`, 유형 RSA, 형식 `.pem` → 자동 다운로드된 파일 잘 보관 |
+| 키 페어 | **새 키 페어 생성** → 이름 `fanpa-live-key`, 유형 RSA, 형식 `.pem` → 자동 다운로드된 `fanpa-live-key.pem` 잘 보관(한 번만 다운로드됨, Git 저장소 폴더 밖에 둘 것) |
 | 스토리지 | 30GiB, gp3 |
 
 > 무료 플랜 계정은 "프리 티어 사용 가능" 표시가 붙은 유형만 고를 수 있습니다. 목록에서 표시를 확인하고 그중 메모리가 4GB 이상인 유형을 고르세요. 2GB 유형(t3.small)도 스왑을 넉넉히 주면 동작은 하지만 빌드가 매우 느립니다.
@@ -69,7 +69,7 @@ Render, Railway, Vercel 같은 PaaS 는 보통 HTTP 포트 하나만 열어 주�
 서버를 재시작해도 IP 가 바뀌지 않도록 고정합니다.
 
 1. EC2 왼쪽 메뉴 **탄력적 IP** → **탄력적 IP 주소 할당** → 할당
-2. 만든 IP 선택 → 작업 → **탄력적 IP 주소 연결** → 인스턴스 `live-broadcast` 선택
+2. 만든 IP 선택 → 작업 → **탄력적 IP 주소 연결** → 인스턴스 `FanPa Live` 선택
 3. 이 IP 를 메모해 둡니다. 이하 `3.35.10.20` 이라고 가정합니다.
 
 > 공인 IPv4 주소는 시간당 소액 요금이 붙고 크레딧에서 차감됩니다. 평가가 끝나면 아래 "정리" 단계에서 해제하세요.
@@ -92,19 +92,19 @@ nslookup mylive.duckdns.org
 
 ## 4. 서버 접속
 
-다운로드한 키 파일(`live-key.pem`)이 있는 폴더에서 실행합니다.
+다운로드한 키 파일(`fanpa-live-key.pem`)이 있는 폴더에서 실행합니다. 키 페어 이름에 띄어쓰기를 넣지 않은 이유는 파일 이름을 따옴표 없이 쓰기 위해서입니다.
 
 **macOS / Linux**
 
 ```bash
-chmod 400 live-key.pem
-ssh -i live-key.pem ubuntu@3.35.10.20
+chmod 400 fanpa-live-key.pem
+ssh -i fanpa-live-key.pem ubuntu@3.35.10.20
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-ssh -i .\live-key.pem ubuntu@3.35.10.20
+ssh -i .\fanpa-live-key.pem ubuntu@3.35.10.20
 ```
 
 > Windows 에서 권한 오류가 나면 파일 속성 → 보안 → 고급에서 상속을 끄고 본인 계정만 읽기 권한을 남기세요.
