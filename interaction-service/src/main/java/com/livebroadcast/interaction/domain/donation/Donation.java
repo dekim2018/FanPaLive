@@ -29,7 +29,7 @@ public class Donation {
     private final Instant createdAt;
     private Instant updatedAt;
     private final DonationTargetType targetType;
-    /** 응원 대상(구단/선수). 응원기금이면 필수, 방송 후원이면 편파방일 때만 있다. */
+    /** 응원 대상(구단/선수). 응원금이면 필수, 방송 후원이면 편파방일 때만 있다. */
     private final Long targetId;
     private final String targetName;
 
@@ -86,7 +86,7 @@ public class Donation {
                 DonationTargetType.BROADCAST, targetId, targetName);
     }
 
-    /** 구단/선수 응원기금. 방송자가 없고, 실제로 구단에 전달되지 않는 가상 기금이다. */
+    /** 구단/선수 응원금. 방송자가 없고, 실제로 구단에 전달되지 않는 가상 기금이다. */
     public static Donation orderForTarget(String orderId, Long targetId, String targetName, Long donorId,
                                           String donorNickname, long amount, String message, long minAmount,
                                           long maxAmount, Instant now) {
@@ -229,7 +229,7 @@ public class Donation {
     }
 
     public String orderName() {
-        return isForBroadcast() ? streamerNickname + "님 후원" : targetName + " 응원기금";
+        return isForBroadcast() ? streamerNickname + "님 후원" : targetName + " 응원금";
     }
 
     public Long getId() { return id; }

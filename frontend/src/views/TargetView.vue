@@ -15,7 +15,7 @@ import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
 
-/** 구단/선수 채널: 팬 등록, 하트, 응원기금, 편파방, 서포터 순위, 순위 변화 */
+/** 구단/선수 채널: 팬 등록, 하트, 응원금, 편파방, 서포터 순위, 순위 변화 */
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -147,7 +147,7 @@ onMounted(async () => {
       <div class="stat"><span class="label">주 응원 팬</span><strong class="num">{{ formatCount(t.primaryFans) }}</strong></div>
       <div class="stat"><span class="label">팔로워</span><strong class="num">{{ formatCount(t.followFans) }}</strong></div>
       <div class="stat"><span class="label">누적 하트</span><strong class="num">{{ formatCount(t.hearts) }}</strong></div>
-      <div class="stat"><span class="label">응원기금 현황</span><strong class="num">{{ formatWon(t.donationTotal) }}</strong></div>
+      <div class="stat"><span class="label">응원금 현황</span><strong class="num">{{ formatWon(t.donationTotal) }}</strong></div>
       <div class="stat"><span class="label">이번 달 편파방 시청자</span><strong class="num">약 {{ formatCount(monthlyViewers) }}명</strong></div>
     </section>
     <p v-if="t.description" class="muted">{{ t.description }}</p>

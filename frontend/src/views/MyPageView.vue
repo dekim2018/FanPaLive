@@ -76,7 +76,7 @@ onMounted(async () => {
             <td class="small">{{ formatDate(d.approvedAt) }}</td>
             <td>
               <template v-if="tab === 'received'">{{ d.donorNickname }}</template>
-              <template v-else-if="d.targetType === 'FAN_TARGET'"><span class="chip">응원기금</span> {{ d.targetName }}</template>
+              <template v-else-if="d.targetType === 'FAN_TARGET'"><span class="chip">응원금</span> {{ d.targetName }}</template>
               <template v-else>{{ d.streamerNickname }}<span v-if="d.targetName" class="xsmall muted"> ({{ d.targetName }})</span></template>
             </td>
             <td class="small muted">{{ d.message }}</td>

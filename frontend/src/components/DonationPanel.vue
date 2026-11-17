@@ -10,7 +10,7 @@ import { useToastStore } from '../stores/toast'
 /**
  * 후원 패널. 두 가지 후원을 지원한다.
  * - 방송자 후원: 방송 화면에서. 편파방이면 응원팀 랭킹 점수에도 들어간다.
- * - 응원기금: 구단/선수 페이지 또는 편파방에서 그 팀 앞으로. 실제로 구단에 전달되지 않는 가상 기금이다.
+ * - 응원금: 구단/선수 페이지 또는 편파방에서 그 팀 앞으로. 실제로 구단에 전달되지 않는 가상 기금이다.
  * 후원 대상은 서버가 방송 소유자/응원 대상 기준으로 다시 정하므로 화면 값은 신뢰하지 않는다.
  */
 const props = defineProps({
@@ -92,7 +92,7 @@ onMounted(load)
 <template>
   <section class="card stack">
     <div class="row">
-      <h3 style="margin:0">{{ broadcast ? '후원' : '응원기금' }}</h3>
+      <h3 style="margin:0">{{ broadcast ? '후원' : '응원금' }}</h3>
       <span class="spacer"></span>
       <span class="small muted">총 {{ summary.count }}건</span>
       <strong class="total num">{{ formatWon(summary.totalAmount) }}</strong>
@@ -110,7 +110,7 @@ onMounted(load)
         방송자 후원<span class="xsmall">{{ broadcast.ownerNickname }}</span>
       </button>
       <button type="button" :class="{ on: mode === 'FAN_TARGET' }" :aria-pressed="mode === 'FAN_TARGET'" @click="mode = 'FAN_TARGET'">
-        응원기금<span class="xsmall">{{ fundTarget.name }}</span>
+        응원금<span class="xsmall">{{ fundTarget.name }}</span>
       </button>
     </div>
 
@@ -121,7 +121,7 @@ onMounted(load)
           <span v-if="fundTarget"> ({{ fundTarget.name }} 응원 점수에도 반영)</span>
         </template>
         <template v-else>
-          <strong>{{ fundTarget.name }}</strong> 응원기금. 랭킹 점수(후원금 100원당 1점)에 반영되는 팬 활동 기록이며 실제 구단에 전달되지 않습니다.
+          <strong>{{ fundTarget.name }}</strong> 응원금. 랭킹 점수(후원금 100원당 1점)에 반영되는 팬 활동 기록이며 실제 구단에 전달되지 않습니다.
         </template>
       </div>
       <div class="row">
@@ -137,7 +137,7 @@ onMounted(load)
         <input v-model="message" class="input" name="donation-message" autocomplete="off" maxlength="200" placeholder="오늘 꼭 이기자…" />
       </label>
       <button type="button" class="btn primary block" :disabled="paying" @click="donate">
-        {{ paying ? '결제창 여는 중…' : `${formatWon(amount)} ${mode === 'BROADCAST' ? '후원하기' : '응원기금 보내기'} (테스트 결제)` }}
+        {{ paying ? '결제창 여는 중…' : `${formatWon(amount)} ${mode === 'BROADCAST' ? '후원하기' : '응원금 보내기'} (테스트 결제)` }}
       </button>
       <div class="xsmall muted">토스페이먼츠 테스트 모드라 실제로 결제되지 않습니다.</div>
     </div>
@@ -150,7 +150,7 @@ onMounted(load)
         <div class="row">
           <strong>{{ d.donorNickname }}</strong>
           <span class="accent num">{{ formatWon(d.amount) }}</span>
-          <span v-if="d.targetType === 'FAN_TARGET'" class="chip">응원기금</span>
+          <span v-if="d.targetType === 'FAN_TARGET'" class="chip">응원금</span>
           <span class="spacer"></span>
           <span class="muted">{{ formatDate(d.approvedAt) }}</span>
         </div>

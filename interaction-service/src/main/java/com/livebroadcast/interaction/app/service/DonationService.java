@@ -81,7 +81,7 @@ public class DonationService implements DonationUseCase {
 
     /**
      * 후원 대상은 클라이언트가 보낸 값이 아니라 서버가 조회한 값으로 정한다.
-     * 방송 후원은 broadcast-service 의 방송 소유자, 응원기금은 fandom-service 의 공개 중인 응원 대상이다.
+     * 방송 후원은 broadcast-service 의 방송 소유자, 응원금은 fandom-service 의 공개 중인 응원 대상이다.
      */
     @Override
     @Transactional

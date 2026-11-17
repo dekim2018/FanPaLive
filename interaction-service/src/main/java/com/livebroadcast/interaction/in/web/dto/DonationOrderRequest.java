@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 /**
- * @param targetType 비우면 BROADCAST(방송자 후원). FAN_TARGET 이면 targetId 의 구단/선수 응원기금
+ * @param targetType 비우면 BROADCAST(방송자 후원). FAN_TARGET 이면 targetId 의 구단/선수 응원금
  */
 public record DonationOrderRequest(
         DonationTargetType targetType,

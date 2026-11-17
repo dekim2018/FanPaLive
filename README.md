@@ -2,7 +2,7 @@
 
 팬이 직접 하는 스포츠 **편파중계** 라이브 플랫폼입니다.
 브라우저만으로 PC 화면 공유 방송과 모바일 카메라 방송을 송출하고 다른 기기에서 실시간으로 시청하는 과제 기능 위에,
-종목과 구단/선수, 팬 등록, 하트 응원, 응원 랭킹, 후원 3종(방송자, 편파방, 구단 응원기금), 경기 매치룸을 더했습니다.
+종목과 구단/선수, 팬 등록, 하트 응원, 응원 랭킹, 후원 3종(방송자, 편파방, 구단 응원금), 경기 매치룸을 더했습니다.
 
 백엔드는 Spring Boot 기반 MSA(Gateway + 4개 서비스), 각 서비스 내부는 헥사고날 구조(app / in / out / domain)로 구성했습니다.
 **전체 기능 목록과 확인 방법은 [docs/FEATURES.md](docs/FEATURES.md) 에 정리했습니다.**
@@ -430,7 +430,7 @@ com.livebroadcast.broadcast
 | POST | `/api/donations/webhook` | - | 토스페이먼츠 웹훅 |
 | GET | `/api/broadcasts/{id}/donations`, `/summary` | - | 방송별 후원 내역, 합계 |
 
-팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원기금, 시청자 수)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
+팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원금, 시청자 수)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
 
 에러 응답은 모든 서비스가 같은 형식을 씁니다.
 

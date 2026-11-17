@@ -53,7 +53,7 @@ onMounted(async () => {
     <template v-else-if="state === 'done'">
       <h1>후원이 완료되었습니다</h1>
       <p v-if="donation.targetType === 'FAN_TARGET'">
-        <strong>{{ donation.targetName }}</strong> 응원기금으로 <strong class="accent">{{ formatWon(donation.amount) }}</strong>을 보냈습니다.
+        <strong>{{ donation.targetName }}</strong> 응원금으로 <strong class="accent">{{ formatWon(donation.amount) }}</strong>을 보냈습니다.
       </p>
       <p v-else>
         <strong>{{ donation.streamerNickname }}</strong>님에게 <strong class="accent">{{ formatWon(donation.amount) }}</strong>을 후원했습니다.
