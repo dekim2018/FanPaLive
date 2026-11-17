@@ -1,0 +1,18 @@
+name: 접근성/화면 품질
+description: web-design-guidelines, axe 검사에서 나온 문제
+labels: ["a11y"]
+body:
+  - type: input
+    id: location
+    attributes: { label: 위치, placeholder: "frontend/src/components/ChatPanel.vue:162" }
+    validations: { required: true }
+  - type: textarea
+    id: problem
+    attributes: { label: 문제, description: 검사 결과 원문과 실제로 어떤 사용자가 불편한지 }
+    validations: { required: true }
+  - type: dropdown
+    id: priority
+    attributes: { label: 우선순위, options: [높음, 보통, 낮음] }
+  - type: textarea
+    id: check
+    attributes: { label: 확인 방법, placeholder: "Tab 으로 이동해 신고 버튼에 포커스가 보이는지" }
