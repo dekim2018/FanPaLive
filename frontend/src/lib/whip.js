@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 import { ICE_SERVERS, deleteResource, preferH264, resolveResourceUrl, waitIceGathering } from './webrtc'
 
 /**
@@ -32,7 +33,7 @@ export async function startWhipPublish({ url, token, stream, contentHint = 'moti
   })
   if (res.status !== 201) {
     pc.close()
-    const reason = res.status === 401 ? '송출 권한이 없습니다(토큰 만료 또는 방송 종료).' : `미디어 서버 응답 오류(${res.status})`
+    const reason = res.status === 401 ? tr('송출 권한이 없습니다(토큰 만료 또는 방송 종료).') : tr('미디어 서버 응답 오류({0})', res.status)
     throw new Error(reason)
   }
   const resourceUrl = resolveResourceUrl(url, res.headers.get('Location'))
@@ -45,7 +46,7 @@ export async function startWhipPublish({ url, token, stream, contentHint = 'moti
       params.encodings[0].maxBitrate = maxBitrate
       await videoSender.setParameters(params)
     } catch (e) {
-      console.warn('비트레이트 설정 실패', e)
+      console.warn(tr('비트레이트 설정 실패'), e)
     }
   }
 

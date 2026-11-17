@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { q, syncQuery } from '../lib/query'
@@ -22,14 +23,14 @@ watch([league, period, sort], () => syncQuery(router, route,
   { league: league.value, period: period.value, sort: sort.value }, { league: 'KBO', period: 'WEEKLY', sort: 'SCORE' }))
 const data = ref(null)
 const error = ref('')
-const SORTS = { SCORE: '응원 점수', FANS: '팬 수', HEARTS: '하트', DONATIONS: '후원' }
+const SORTS = { SCORE: tr('응원 점수'), FANS: tr('팬 수'), HEARTS: tr('하트'), DONATIONS: tr('후원') }
 
 async function load() {
   error.value = ''
   try {
     data.value = await fandomApi.ranking(league.value, period.value, sort.value)
   } catch (e) {
-    error.value = errorMessage(e, '랭킹을 불러오지 못했습니다.')
+    error.value = errorMessage(e, tr('랭킹을 불러오지 못했습니다.'))
   }
 }
 
@@ -38,9 +39,9 @@ onMounted(load)
 
 <template>
   <div>
-    <h1>응원 랭킹</h1>
+    <h1>{{ tr('응원 랭킹') }}</h1>
     <div class="pill-tabs">
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="league = l.code; load()">{{ l.name }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="league = l.code; load()">{{ tr(l.name) }}</button>
     </div>
     <div class="row filters">
       <div class="seg">
@@ -57,8 +58,7 @@ onMounted(load)
       <RankingTable :rows="data.rows" :show-heart="fandom.feature('hearts')" />
     </section>
     <p class="xsmall dim">
-      응원 점수는 주 응원 팬 1명당 100점, 팔로우 1명당 20점, 하트 점수, 후원금 100원당 1점을 더한 값입니다.
-      점수가 같으면 그 점수에 먼저 도달한 대상이 위에 옵니다. 같은 기기나 네트워크에서 몰아준 하트는 점수에서 빠질 수 있습니다.
+      {{ tr('응원 점수는 주 응원 팬 1명당 100점, 팔로우 1명당 20점, 하트 점수, 후원금 100원당 1점을 더한 값입니다. 점수가 같으면 그 점수에 먼저 도달한 대상이 위에 옵니다. 같은 기기나 네트워크에서 몰아준 하트는 점수에서 빠질 수 있습니다.') }}
     </p>
   </div>
 </template>

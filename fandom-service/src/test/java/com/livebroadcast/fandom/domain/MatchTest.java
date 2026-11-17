@@ -32,6 +32,19 @@ class MatchTest {
     }
 
     @Test
+    void 끝난_경기는_승부_예측이_정산된_점수에서_바꿀_수_없다() {
+        Match m = Match.schedule(1L, 9L, 3L, now, "잠실", 1L, now);
+        m.changeStatus(MatchStatus.LIVE, now);
+        m.updateScore(5, 3, now);
+        m.changeStatus(MatchStatus.FINISHED, now);
+
+        m.updateScore(5, 3, now);
+        assertThatThrownBy(() -> m.updateScore(5, 6, now)).hasMessageContaining("점수를 바꿀 수 없습니다");
+        assertThat(m.getHomeScore()).isEqualTo(5);
+        assertThat(m.getAwayScore()).isEqualTo(3);
+    }
+
+    @Test
     void 경기에_나오는_팀만_홈_원정을_알려준다() {
         Match m = Match.schedule(1L, 9L, 3L, now, "잠실", 1L, now);
 

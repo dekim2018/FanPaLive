@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { fandomApi } from '../api/fandom'
@@ -7,6 +8,7 @@ import TeamCrest from '../components/TeamCrest.vue'
 import { readable, tint } from '../lib/team'
 import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
+import TrText from '../components/TrText.vue'
 
 /**
  * 가입 직후 응원팀 고르기. 리그마다 주 응원팀은 하나, 팔로우는 여러 개 가능하다.
@@ -57,7 +59,7 @@ async function save() {
       if (!fandom.isFan(id)) await fandomApi.joinFan(id, false)
     }
     await fandom.loadMyFans(true)
-    toast.success('응원팀을 저장했습니다.')
+    toast.success(tr('응원팀을 저장했습니다.'))
     router.replace('/')
   } catch (e) {
     toast.error(errorMessage(e))
@@ -74,32 +76,32 @@ onMounted(async () => {
 
 <template>
   <div class="onb">
-    <h1>어느 팀을 응원하세요?</h1>
-    <p class="muted">처음 누른 팀이 <strong>주 응원팀</strong>(★), 그다음부터는 팔로우가 됩니다. 다시 누르면 해제돼요.</p>
+    <h1>{{ tr('어느 팀을 응원하세요?') }}</h1>
+    <p class="muted"><TrText :text="tr('처음 누른 팀이 {0}(★), 그다음부터는 팔로우가 됩니다. 다시 누르면 해제돼요.')"><template #p0><strong>{{ tr('주 응원팀') }}</strong></template></TrText></p>
     <div class="pill-tabs">
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="league = l.code; loadTargets()">{{ l.name }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="league = l.code; loadTargets()">{{ tr(l.name) }}</button>
     </div>
     <div v-if="currentPrimary" class="small muted note">
-      이 리그의 주 응원팀은 <strong>{{ currentPrimary.target.name }}</strong>입니다.
-      <span v-if="currentPrimary.primaryChangeAvailableAt">바꾸려면 30일이 지나야 합니다.</span>
+      <TrText :text="tr('이 리그의 주 응원팀은 {0}입니다.')"><template #p0><strong>{{ tr(currentPrimary.target.name) }}</strong></template></TrText>
+      <span v-if="currentPrimary.primaryChangeAvailableAt">{{ tr('바꾸려면 30일이 지나야 합니다.') }}</span>
     </div>
     <div class="teams">
       <button v-for="t in targets" :key="t.id" class="team"
               :class="{ primary: primaryId === t.id, follow: follows.has(t.id) }" :aria-pressed="primaryId === t.id || follows.has(t.id)"
               :style="primaryId === t.id || follows.has(t.id) ? { borderColor: readable(t.colorPrimary, t.colorSecondary), background: tint(t.colorPrimary, 0.12) } : {}"
               @click="toggle(t)">
-        <span v-if="primaryId === t.id" class="mark">★ 주 응원</span>
-        <span v-else-if="follows.has(t.id)" class="mark f">팔로우</span>
+        <span v-if="primaryId === t.id" class="mark">{{ tr('★ 주 응원') }}</span>
+        <span v-else-if="follows.has(t.id)" class="mark f">{{ tr('팔로우') }}</span>
         <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="64" />
-        <strong class="ellipsis">{{ t.name }}</strong>
+        <strong class="ellipsis">{{ tr(t.name) }}</strong>
       </button>
     </div>
     <div v-if="!targets.length" class="empty">
-      이 리그에는 아직 등록된 팀이 없어요. <RouterLink :to="{ path: '/requests', query: { league } }" class="link">신청하기</RouterLink>
+      {{ tr('이 리그에는 아직 등록된 팀이 없어요.') }} <RouterLink :to="{ path: '/requests', query: { league } }" class="link">{{ tr('신청하기') }}</RouterLink>
     </div>
     <div class="row actions">
-      <button class="btn primary" :disabled="saving" @click="save">저장하고 시작하기</button>
-      <RouterLink to="/" class="btn ghost">나중에</RouterLink>
+      <button class="btn primary" :disabled="saving" @click="save">{{ tr('저장하고 시작하기') }}</button>
+      <RouterLink to="/" class="btn ghost">{{ tr('나중에') }}</RouterLink>
     </div>
   </div>
 </template>

@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authApi } from '../api/auth'
@@ -27,10 +28,10 @@ async function submit() {
   submitting.value = true
   try {
     await auth.login(username.value, password.value)
-    toast.success(`${auth.user.nickname}님 환영합니다.`)
+    toast.success(tr('{0}님 환영합니다.', auth.user.nickname))
     goNext()
   } catch (e) {
-    error.value = errorMessage(e, '로그인에 실패했습니다.')
+    error.value = errorMessage(e, tr('로그인에 실패했습니다.'))
   } finally {
     submitting.value = false
   }
@@ -40,7 +41,7 @@ async function quickLogin(account) {
   submitting.value = true
   try {
     await auth.testLogin(account.username)
-    toast.success(`테스트 계정 ${account.nickname}(으)로 로그인했습니다.`)
+    toast.success(tr('테스트 계정 {0}(으)로 로그인했습니다.', account.nickname))
     goNext()
   } catch (e) {
     error.value = errorMessage(e)
@@ -57,22 +58,22 @@ onMounted(async () => {
 <template>
   <div class="auth-page">
     <form class="card stack" @submit.prevent="submit">
-      <h1>로그인</h1>
-      <label class="field">아이디
+      <h1>{{ tr('로그인') }}</h1>
+      <label class="field">{{ tr('아이디') }}
         <input name="username" v-model.trim="username" class="input" autocomplete="username" spellcheck="false" autocapitalize="none" required />
       </label>
-      <label class="field">비밀번호
+      <label class="field">{{ tr('비밀번호') }}
         <input name="password" v-model="password" class="input" type="password" autocomplete="current-password" required />
       </label>
       <div v-if="error" class="error-text">{{ error }}</div>
-      <button class="btn primary block" :disabled="submitting">로그인</button>
-      <div class="small muted">계정이 없나요? <RouterLink to="/signup" class="accent">회원가입</RouterLink></div>
+      <button class="btn primary block" :disabled="submitting">{{ tr('로그인') }}</button>
+      <div class="small muted">{{ tr('계정이 없나요?') }} <RouterLink to="/signup" class="accent">{{ tr('회원가입') }}</RouterLink></div>
     </form>
 
     <div v-if="testAccounts.length" class="card stack">
-      <h3>평가용 테스트 계정으로 바로 로그인</h3>
+      <h3>{{ tr('평가용 테스트 계정으로 바로 로그인') }}</h3>
       <p class="small muted" style="margin:0">
-        방송 소유자와 다른 사용자의 권한 차이를 확인할 수 있도록 두 개의 계정을 준비했습니다.
+        {{ tr('방송 소유자와 다른 사용자의 권한 차이를 확인할 수 있도록 두 개의 계정을 준비했습니다.') }}
       </p>
       <div class="row">
         <button v-for="a in testAccounts" :key="a.username" class="btn" :disabled="submitting" @click="quickLogin(a)">

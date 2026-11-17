@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { broadcastApi } from '../api/broadcasts'
@@ -67,7 +68,7 @@ onMounted(async () => {
   if (isEdit.value) {
     try {
       const b = await broadcastApi.get(route.params.id)
-      if (b.ownerId !== auth.user?.id) error.value = '방송 소유자만 수정할 수 있습니다.'
+      if (b.ownerId !== auth.user?.id) error.value = tr('방송 소유자만 수정할 수 있습니다.')
       form.value = { title: b.title, description: b.description }
       if (b.side) {
         leagueCode.value = b.side.leagueCode
@@ -96,11 +97,11 @@ onMounted(async () => {
 async function submit() {
   error.value = ''
   if (!agreed.value) {
-    error.value = '중계권 안내를 확인해 주세요.'
+    error.value = tr('중계권 안내를 확인해 주세요.')
     return
   }
   if (sideMode.value === 'SIDE' && !targetId.value) {
-    error.value = '응원팀을 선택해 주세요. 일반 방송이면 위에서 "일반 방송"을 고르세요.'
+    error.value = tr('응원팀을 선택해 주세요. 일반 방송이면 위에서 "일반 방송"을 고르세요.')
     return
   }
   const body = { title: form.value.title, description: form.value.description }
@@ -114,14 +115,14 @@ async function submit() {
   try {
     if (isEdit.value) {
       await broadcastApi.update(route.params.id, body)
-      toast.success('방송 정보를 수정했습니다.')
+      toast.success(tr('방송 정보를 수정했습니다.'))
       router.replace(`/broadcasts/${route.params.id}`)
     } else {
       const created = await broadcastApi.create(body)
       if (sideMode.value === 'SIDE' && !created.side) {
-        toast.show('응원팀 정보를 확인하지 못해 일반 방송으로 만들었습니다. 잠시 후 정보 수정에서 다시 지정해 주세요.')
+        toast.show(tr('응원팀 정보를 확인하지 못해 일반 방송으로 만들었습니다. 잠시 후 정보 수정에서 다시 지정해 주세요.'))
       } else {
-        toast.success('방송을 만들었습니다. 송출 방식을 선택해 방송을 시작하세요.')
+        toast.success(tr('방송을 만들었습니다. 송출 방식을 선택해 방송을 시작하세요.'))
       }
       router.replace(`/studio/${created.id}`)
     }
@@ -136,61 +137,61 @@ async function submit() {
 <template>
   <div class="form-page">
     <form class="card stack" @submit.prevent="submit">
-      <h1>{{ isEdit ? '방송 정보 수정' : '편파중계 만들기' }}</h1>
+      <h1>{{ isEdit ? tr('방송 정보 수정') : tr('편파중계 만들기') }}</h1>
 
       <div class="mode">
         <button type="button" :class="{ on: sideMode === 'SIDE' }" @click="sideMode = 'SIDE'">
-          <strong>편파중계</strong><span class="xsmall muted">응원팀을 정하고 한쪽만 응원하는 방송</span>
+          <strong>{{ tr('편파중계') }}</strong><span class="xsmall muted">{{ tr('응원팀을 정하고 한쪽만 응원하는 방송') }}</span>
         </button>
         <button type="button" :class="{ on: sideMode === 'NONE' }" @click="sideMode = 'NONE'">
-          <strong>일반 방송</strong><span class="xsmall muted">응원팀 없이 자유 주제</span>
+          <strong>{{ tr('일반 방송') }}</strong><span class="xsmall muted">{{ tr('응원팀 없이 자유 주제') }}</span>
         </button>
       </div>
 
       <template v-if="sideMode === 'SIDE'">
-        <label class="field">리그
+        <label class="field">{{ tr('리그') }}
           <select name="league-code" v-model="leagueCode" class="input">
-            <option v-for="l in fandom.leagues" :key="l.code" :value="l.code">{{ l.sportName }} / {{ l.name }}</option>
+            <option v-for="l in fandom.leagues" :key="l.code" :value="l.code">{{ tr(l.sportName) }} / {{ tr(l.name) }}</option>
           </select>
         </label>
         <div class="field">
-          <span>응원팀</span>
+          <span>{{ tr('응원팀') }}</span>
           <div class="team-grid">
             <button v-for="t in targets" :key="t.id" type="button" class="team" :class="{ on: targetId === t.id }" :aria-pressed="targetId === t.id"
                     :style="targetId === t.id ? { borderColor: readable(t.colorPrimary, t.colorSecondary) } : {}" @click="targetId = t.id">
               <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="34" />
-              <span class="ellipsis small">{{ t.name }}</span>
+              <span class="ellipsis small">{{ tr(t.name) }}</span>
             </button>
           </div>
-          <div v-if="!targets.length" class="small muted">이 리그에 등록된 팀이 없습니다. <RouterLink to="/requests" class="link">팀/선수 신청</RouterLink></div>
+          <div v-if="!targets.length" class="small muted">{{ tr('이 리그에 등록된 팀이 없습니다.') }} <RouterLink to="/requests" class="link">{{ tr('팀/선수 신청') }}</RouterLink></div>
         </div>
-        <label v-if="selectedTarget" class="field">중계할 경기 (선택)
+        <label v-if="selectedTarget" class="field">{{ tr('중계할 경기 (선택)') }}
           <select name="match-id" v-model="matchId" class="input">
-            <option :value="null">경기 지정 안 함</option>
+            <option :value="null">{{ tr('경기 지정 안 함') }}</option>
             <option v-for="m in teamMatches" :key="m.id" :value="m.id">
-              {{ formatDate(m.startsAt) }} {{ m.home.shortName || m.home.name }} vs {{ m.away.shortName || m.away.name }}
+              {{ formatDate(m.startsAt) }} {{ tr(m.home.shortName || m.home.name) }} vs {{ tr(m.away.shortName || m.away.name) }}
             </option>
           </select>
-          <span class="xsmall dim">경기를 지정하면 매치룸에 이 방송이 응원 방송으로 소개됩니다.</span>
+          <span class="xsmall dim">{{ tr('경기를 지정하면 매치룸에 이 방송이 응원 방송으로 소개됩니다.') }}</span>
         </label>
       </template>
 
-      <label class="field">방송 제목
-        <input name="title" autocomplete="off" v-model="form.title" class="input" maxlength="100" required placeholder="예) 두산 베어스 편파중계, 오늘은 잠실 직관 분위기로…" />
+      <label class="field">{{ tr('방송 제목') }}
+        <input name="title" autocomplete="off" v-model="form.title" class="input" maxlength="100" required :placeholder="tr('예) 두산 베어스 편파중계, 오늘은 잠실 직관 분위기로…')" />
       </label>
-      <label class="field">방송 설명
-        <textarea name="description" autocomplete="off" v-model="form.description" class="input" maxlength="1000" placeholder="시청자에게 보여줄 설명…"></textarea>
+      <label class="field">{{ tr('방송 설명') }}
+        <textarea name="description" autocomplete="off" v-model="form.description" class="input" maxlength="1000" :placeholder="tr('시청자에게 보여줄 설명…')"></textarea>
       </label>
 
       <label class="check">
         <input v-model="agreed" type="checkbox" />
-        <span>경기 영상(TV 중계 화면 등)을 그대로 송출하지 않고, 내 화면과 목소리로 진행하는 응원 방송임을 확인했습니다. 중계권이 있는 영상의 재송출은 금지됩니다.</span>
+        <span>{{ tr('경기 영상(TV 중계 화면 등)을 그대로 송출하지 않고, 내 화면과 목소리로 진행하는 응원 방송임을 확인했습니다. 중계권이 있는 영상의 재송출은 금지됩니다.') }}</span>
       </label>
 
       <div v-if="error" class="error-text">{{ error }}</div>
       <div class="row">
-        <button class="btn primary" :disabled="submitting">{{ isEdit ? '저장' : '만들고 스튜디오로 이동' }}</button>
-        <button type="button" class="btn" @click="router.back()">취소</button>
+        <button class="btn primary" :disabled="submitting">{{ isEdit ? tr('저장') : tr('만들고 스튜디오로 이동') }}</button>
+        <button type="button" class="btn" @click="router.back()">{{ tr('취소') }}</button>
       </div>
     </form>
   </div>

@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { q, syncQuery } from '../lib/query'
@@ -38,7 +39,7 @@ async function load() {
     totalPages.value = res.totalPages
     refreshViewers(items.value)
   } catch (e) {
-    error.value = errorMessage(e, '방송 목록을 불러오지 못했습니다.')
+    error.value = errorMessage(e, tr('방송 목록을 불러오지 못했습니다.'))
   } finally {
     loading.value = false
   }
@@ -70,30 +71,30 @@ onBeforeUnmount(() => clearInterval(timer))
 
 <template>
   <div>
-    <h1>전체 방송</h1>
+    <h1>{{ tr('전체 방송') }}</h1>
     <div class="tabs">
-      <button :class="{ active: tab === 'LIVE' }" @click="changeTab('LIVE')">방송 중</button>
-      <button :class="{ active: tab === 'ALL' }" @click="changeTab('ALL')">전체</button>
-      <button :class="{ active: tab === 'ENDED' }" @click="changeTab('ENDED')">종료된 방송</button>
+      <button :class="{ active: tab === 'LIVE' }" @click="changeTab('LIVE')">{{ tr('방송 중') }}</button>
+      <button :class="{ active: tab === 'ALL' }" @click="changeTab('ALL')">{{ tr('전체') }}</button>
+      <button :class="{ active: tab === 'ENDED' }" @click="changeTab('ENDED')">{{ tr('종료된 방송') }}</button>
     </div>
     <div class="pill-tabs">
-      <button :class="{ active: !league }" @click="changeLeague('')">전체 리그</button>
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="changeLeague(l.code)">{{ l.name }}</button>
+      <button :class="{ active: !league }" @click="changeLeague('')">{{ tr('전체 리그') }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="changeLeague(l.code)">{{ tr(l.name) }}</button>
     </div>
 
     <div v-if="error" class="empty">{{ error }}</div>
     <div v-else-if="!loading && !items.length" class="empty">
-      {{ tab === 'LIVE' ? '지금 방송 중인 채널이 없습니다.' : '방송이 없습니다.' }}
-      <div style="margin-top:12px"><RouterLink to="/broadcasts/new" class="btn primary sm">방송 만들기</RouterLink></div>
+      {{ tab === 'LIVE' ? tr('지금 방송 중인 채널이 없습니다.') : tr('방송이 없습니다.') }}
+      <div style="margin-top:12px"><RouterLink to="/broadcasts/new" class="btn primary sm">{{ tr('방송 만들기') }}</RouterLink></div>
     </div>
     <div v-else class="grid">
       <BroadcastCard v-for="b in items" :key="b.id" :broadcast="b" :viewers="stats[b.id]" />
     </div>
 
     <div v-if="totalPages > 1" class="pagination">
-      <button class="btn sm" :disabled="page === 0" @click="move(-1)">이전</button>
+      <button class="btn sm" :disabled="page === 0" @click="move(-1)">{{ tr('이전') }}</button>
       <span class="muted small" style="align-self:center">{{ page + 1 }} / {{ totalPages }}</span>
-      <button class="btn sm" :disabled="page + 1 >= totalPages" @click="move(1)">다음</button>
+      <button class="btn sm" :disabled="page + 1 >= totalPages" @click="move(1)">{{ tr('다음') }}</button>
     </div>
   </div>
 </template>

@@ -27,6 +27,10 @@ public final class MatchErrors {
         return DomainException.badRequest("INVALID_SCORE", "점수는 0 이상이어야 합니다.");
     }
 
+    public static DomainException scoreLocked() {
+        return DomainException.conflict("MATCH_SCORE_LOCKED", "끝났거나 취소된 경기는 점수를 바꿀 수 없습니다. 승부 예측이 이미 정산되었습니다.");
+    }
+
     public static DomainException closed() {
         return DomainException.conflict("MATCH_CLOSED", "끝났거나 취소된 경기에는 응원할 수 없습니다.");
     }

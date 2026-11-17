@@ -250,6 +250,8 @@ docker compose restart
 | 선택 | 도네이션 | 토스페이먼츠 테스트 결제, 서버 승인 및 금액/주문/대상 검증, 행 잠금 + 유니크 제약 + 멱등키로 중복 적립 방지, 방송별 내역과 합계, 웹훅 처리 |
 | 선택 | 녹화 및 다시보기 | MediaMTX 자동 녹화(fMP4), 녹화 메타데이터와 저장 위치 DB 저장, 목록/상세/재생 |
 | 추가 | 팬파라이브 | 편파중계(방송 응원팀), 종목/리그/구단/선수, 팬 등록, 하트와 응원 랭킹, 후원 3종, 결제 결과 모름(UNKNOWN) 처리와 결제 대사, 순시청자(HyperLogLog), 매치룸 응원 게이지, 신청과 운영자 승인. [docs/FEATURES.md](docs/FEATURES.md) |
+| 추가 | 기획안 6장 | 응원팀 방송 알림(SSE), 팬 등급과 업적 배지, 승부 예측(무료 포인트), 하이라이트 클립, 시즌 명예의 전당, 스트리머 순위, 경기 일정 가져오기(CSV), 신고와 운영 제재, 영어 화면 |
+| 추가 | 운영 | 장애 실험 스크립트 4종, 2GB 서버 메모리 예산(`docker-compose.small.yml`) |
 
 ## 아키텍처
 
@@ -361,7 +363,7 @@ LiveBroadcast
 ├── auth-service/
 ├── broadcast-service/
 ├── interaction-service/
-├── fandom-service/            # 팬파라이브: 종목, 응원 대상, 팬, 하트, 랭킹, 경기
+├── fandom-service/            # 팬파라이브: 종목, 응원 대상, 팬, 하트, 랭킹, 경기, 알림, 팬 등급, 승부 예측, 명예의 전당
 ├── frontend/                  # Vue 3 SPA (+ Caddy 이미지)
 ├── infra/
 │   ├── caddy/Caddyfile
@@ -370,9 +372,16 @@ LiveBroadcast
 ├── docs/
 │   ├── FEATURES.md            # 팬파라이브 기능 정리
 │   ├── DEPLOY.md
+│   ├── CHAOS.md               # 장애 실험
+│   ├── RESOURCE-BUDGET.md     # 2GB 서버 메모리 예산
 │   ├── adr/0001-durability-grades.md
 │   └── k6/hearts.js
+├── scripts/
+│   ├── generate-env.sh
+│   ├── measure-memory.sh      # 컨테이너별 메모리 측정(CSV)
+│   └── chaos/                 # 장애 실험 4종
 ├── docker-compose.yml         # 전체 실행
+├── docker-compose.small.yml   # 2GB 서버용 메모리 상한(겹쳐 쓰기)
 └── docker-compose.dev.yml     # 로컬 개발용 인프라만 실행
 ```
 
@@ -430,7 +439,9 @@ com.livebroadcast.broadcast
 | POST | `/api/donations/webhook` | - | 토스페이먼츠 웹훅 |
 | GET | `/api/broadcasts/{id}/donations`, `/summary` | - | 방송별 후원 내역, 합계 |
 
-팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원금, 시청자 수)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
+팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원금, 시청자 수, 알림, 팬 등급, 승부 예측, 명예의 전당, 일정 가져오기, 하이라이트 클립, 신고와 운영 조치, 스트리머 순위)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
+
+장애 실험 스크립트는 [docs/CHAOS.md](docs/CHAOS.md), 2GB 서버용 메모리 상한과 측정 방법은 [docs/RESOURCE-BUDGET.md](docs/RESOURCE-BUDGET.md)에 있습니다.
 
 에러 응답은 모든 서비스가 같은 형식을 씁니다.
 
@@ -457,7 +468,9 @@ com.livebroadcast.broadcast
 | [Spring Boot](https://spring.io/projects/spring-boot), [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway) | 백엔드 | Apache 2.0 |
 | [Vue.js](https://github.com/vuejs/core), [Pinia](https://github.com/vuejs/pinia), [Vue Router](https://github.com/vuejs/router), [axios](https://github.com/axios/axios) | 프론트엔드 | MIT |
 | [토스페이먼츠 SDK v2](https://docs.tosspayments.com/sdk/v2/js), [결제 조회와 거래 조회 API](https://docs.tosspayments.com/reference) | 테스트 결제, 결과 모름 확정, 결제 대사 | 토스페이먼츠 이용약관 |
-| [Redis](https://redis.io/docs/latest/) (Lua 스크립트, Sorted Set, HyperLogLog, Streams) | 하트 한도, 랭킹, 순시청자, 후원 이벤트 | RSALv2/SSPLv1 (Redis 7 이미지) |
+| [Redis](https://redis.io/docs/latest/) (Lua 스크립트, Sorted Set, HyperLogLog, Streams) | 하트 한도, 랭킹, 순시청자, 스트리머 순위, 후원과 편파방 시작 이벤트, 알림 구독 티켓 | RSALv2/SSPLv1 (Redis 7 이미지) |
+| [MediaMTX Playback 서버](https://github.com/bluenviron/mediamtx#playback-server) (`/get?start=&duration=`) | 하이라이트 클립 구간 재생(파일을 새로 자르지 않음) | MIT |
+| [axe-core](https://github.com/dequelabs/axe-core) | 화면 접근성 자동 검사(개발 중에만 사용, 배포물에 포함 안 됨) | MPL-2.0 |
 | [k6](https://k6.io/) | 하트 부하 테스트 스크립트 | AGPL-3.0 |
 | [Black Han Sans (검은고딕)](https://github.com/zesstype/Black-Han-Sans) | 로고 글자(팬파라이브 다섯 글자만 남긴 부분 글꼴) | SIL OFL 1.1 |
 | [WHIP RFC 9725](https://www.rfc-editor.org/rfc/rfc9725), [WHEP draft](https://datatracker.ietf.org/doc/draft-ietf-wish-whep/) | 송출/시청 시그널링 규격 | - |

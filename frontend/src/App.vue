@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from './i18n'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
@@ -37,7 +38,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 </script>
 
 <template>
-  <a href="#main" class="skip-link">본문으로 건너뛰기</a>
+  <a href="#main" class="skip-link">{{ tr('본문으로 건너뛰기') }}</a>
   <AppHeader @toggle-sidebar="sidebarOpen = !sidebarOpen" />
   <div class="app-body">
     <AppSidebar :open="sidebarOpen" @close="closeOnNarrow" />

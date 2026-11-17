@@ -29,14 +29,18 @@ public class RouteConfig {
                                 "/api/comments/**",
                                 "/api/donations/**",
                                 "/api/targets/*/donations/**",
-                                "/api/viewers", "/api/viewers/**")
+                                "/api/viewers", "/api/viewers/**",
+                                "/api/reports", "/api/reports/**",
+                                "/api/moderation/**",
+                                "/api/streamers/**")
                         .uri(interactionUrl))
                 .route("auth-service", r -> r.order(1)
                         .path("/api/auth/**")
                         .uri(authUrl))
                 .route("broadcast-service", r -> r.order(2)
                         .path("/api/broadcasts", "/api/broadcasts/**",
-                                "/api/recordings", "/api/recordings/**")
+                                "/api/recordings", "/api/recordings/**",
+                                "/api/clips", "/api/clips/**")
                         .uri(broadcastUrl))
                 .route("fandom-service", r -> r.order(3)
                         .path("/api/sports/**", "/api/sports",
@@ -48,7 +52,10 @@ public class RouteConfig {
                                 "/api/rankings", "/api/rankings/**",
                                 "/api/matches", "/api/matches/**",
                                 "/api/admin/**",
-                                "/api/fandom/**")
+                                "/api/fandom/**",
+                                "/api/notifications", "/api/notifications/**",
+                                "/api/predictions/**",
+                                "/api/hall-of-fame")
                         .uri(fandomUrl))
                 .build();
     }

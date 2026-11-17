@@ -58,6 +58,8 @@ public class DonationEventService implements DonationEventUseCase {
             return false;
         }
         stats.addDonation(event.targetId(), keys.dateOf(event.approvedAt()), event.amount(), event.approvedAt());
+        events.publish(new com.livebroadcast.fandom.app.event.DonationCredited(event.eventId(), event.donorId(),
+                event.donorNickname(), event.targetId(), event.amount()));
         events.publish(new DonationApplied(target.get().getLeagueId(), event.targetId(),
                 ScoreFormula.donationPoints(event.amount()), event.approvedAt()));
         return true;

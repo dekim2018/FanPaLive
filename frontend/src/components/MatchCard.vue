@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import TeamCrest from './TeamCrest.vue'
 import { computed } from 'vue'
 import { formatDate } from '../lib/format'
@@ -6,22 +7,22 @@ import { gaugeColors } from '../lib/team'
 
 const props = defineProps({ match: { type: Object, required: true } })
 const gauge = computed(() => gaugeColors(props.match.home, props.match.away))
-const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED: '취소' }
+const STATUS = { SCHEDULED: tr('예정'), LIVE: 'LIVE', FINISHED: tr('종료'), CANCELED: tr('취소') }
 </script>
 
 <template>
   <RouterLink :to="`/matches/${match.id}`" class="mcard"
-              :aria-label="`${match.home.name} 대 ${match.away.name}, ${STATUS[match.status]}, 매치룸 열기`">
+              :aria-label="tr('{0} 대 {1}, {2}, 매치룸 열기', tr(match.home.name), tr(match.away.name), STATUS[match.status])">
     <div class="row nowrap small">
       <span class="badge" :class="match.status.toLowerCase()">{{ STATUS[match.status] }}</span>
-      <span class="muted ellipsis">{{ match.league.name }}</span>
+      <span class="muted ellipsis">{{ tr(match.league.name) }}</span>
       <span class="spacer"></span>
       <span class="muted">{{ formatDate(match.startsAt) }}</span>
     </div>
     <div class="teams">
       <div class="team">
         <TeamCrest :name="match.home.name" :short-name="match.home.shortName" :color="match.home.colorPrimary" :color2="match.home.colorSecondary" :size="40" />
-        <span class="ellipsis">{{ match.home.shortName || match.home.name }}</span>
+        <span class="ellipsis">{{ tr(match.home.shortName || match.home.name) }}</span>
       </div>
       <div class="score num">
         <template v-if="match.status === 'SCHEDULED'">VS</template>
@@ -29,7 +30,7 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
       </div>
       <div class="team">
         <TeamCrest :name="match.away.name" :short-name="match.away.shortName" :color="match.away.colorPrimary" :color2="match.away.colorSecondary" :size="40" />
-        <span class="ellipsis">{{ match.away.shortName || match.away.name }}</span>
+        <span class="ellipsis">{{ tr(match.away.shortName || match.away.name) }}</span>
       </div>
     </div>
     <div class="mini-gauge" aria-hidden="true">

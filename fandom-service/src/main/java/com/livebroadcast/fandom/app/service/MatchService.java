@@ -9,19 +9,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.livebroadcast.fandom.app.FandomProperties;
 import com.livebroadcast.fandom.app.FeatureGuard;
+import com.livebroadcast.fandom.app.event.MatchClosed;
 import com.livebroadcast.fandom.app.port.in.MatchUseCase;
 import com.livebroadcast.fandom.app.port.out.CatalogRepositoryPort;
+import com.livebroadcast.fandom.app.port.out.DomainEventPublisherPort;
 import com.livebroadcast.fandom.app.port.out.MatchGaugePort;
 import com.livebroadcast.fandom.app.port.out.MatchRepositoryPort;
 import com.livebroadcast.fandom.domain.catalog.League;
 import com.livebroadcast.fandom.domain.match.Match;
 import com.livebroadcast.fandom.domain.match.MatchErrors;
 import com.livebroadcast.fandom.domain.match.MatchGauge;
+import com.livebroadcast.fandom.domain.match.MatchStatus;
 import com.livebroadcast.fandom.domain.target.FanTarget;
 import com.livebroadcast.fandom.domain.target.TargetErrors;
 
@@ -35,12 +39,21 @@ public class MatchService implements MatchUseCase {
     private final CatalogRepositoryPort catalog;
     private final TargetLookup lookup;
     private final FeatureGuard features;
+    private final DomainEventPublisherPort events;
     private final ZoneId zone;
     private final Clock clock;
     private final Map<Long, CachedMatch> cheerCache = new ConcurrentHashMap<>();
 
     public MatchService(MatchRepositoryPort matches, MatchGaugePort gauges, CatalogRepositoryPort catalog,
                         TargetLookup lookup, FeatureGuard features, FandomProperties properties, Clock clock) {
+        this(matches, gauges, catalog, lookup, features, event -> { }, properties, clock);
+    }
+
+    @Autowired
+    public MatchService(MatchRepositoryPort matches, MatchGaugePort gauges, CatalogRepositoryPort catalog,
+                        TargetLookup lookup, FeatureGuard features, DomainEventPublisherPort events,
+                        FandomProperties properties, Clock clock) {
+        this.events = events;
         this.matches = matches;
         this.gauges = gauges;
         this.catalog = catalog;
@@ -76,9 +89,15 @@ public class MatchService implements MatchUseCase {
             match.updateScore(command.homeScore() == null ? match.getHomeScore() : command.homeScore(),
                     command.awayScore() == null ? match.getAwayScore() : command.awayScore(), now);
         }
+        MatchStatus before = match.getStatus();
         match.changeStatus(command.status(), now);
         Match saved = matches.save(match);
         cheerCache.remove(matchId);
+        if (before != saved.getStatus()
+                && (saved.getStatus() == MatchStatus.FINISHED || saved.getStatus() == MatchStatus.CANCELED)) {
+            // 승부 예측 정산(같은 트랜잭션)
+            events.publish(new MatchClosed(matchId));
+        }
         return view(saved);
     }
 

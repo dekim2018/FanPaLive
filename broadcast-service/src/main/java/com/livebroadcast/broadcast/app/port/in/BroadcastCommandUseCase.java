@@ -33,4 +33,11 @@ public interface BroadcastCommandUseCase {
             this(broadcastId, requesterId, title, description, null, null, false);
         }
     }
+
+    /**
+     * 운영 제재(관리자). 방송 중이면 종료하고 목록에서 숨긴다. 이미 제재된 방송이면 사유만 바꾼다.
+     *
+     * @return 이번에 방송을 종료했으면 true
+     */
+    boolean moderate(Long broadcastId, String reason);
 }
