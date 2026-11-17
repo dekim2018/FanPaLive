@@ -10,6 +10,7 @@ services:
   auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
   broadcast-url: ${BROADCAST_SERVICE_URL:http://localhost:8082}
   interaction-url: ${INTERACTION_SERVICE_URL:http://localhost:8083}
+  fandom-url: ${FANDOM_SERVICE_URL:http://localhost:8084}
 
 management:
   endpoints:

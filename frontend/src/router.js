@@ -3,6 +3,17 @@ import { useAuthStore } from './stores/auth'
 
 const routes = [
   { path: '/', name: 'home', component: () => import('./views/HomeView.vue') },
+  { path: '/live', name: 'live', component: () => import('./views/LiveListView.vue') },
+  { path: '/sports', name: 'sports', component: () => import('./views/SportsView.vue') },
+  { path: '/leagues/:code', name: 'league', component: () => import('./views/LeagueView.vue') },
+  { path: '/targets/:id', name: 'target', component: () => import('./views/TargetView.vue') },
+  { path: '/rankings', name: 'rankings', component: () => import('./views/RankingsView.vue') },
+  { path: '/matches', name: 'matches', component: () => import('./views/MatchesView.vue') },
+  { path: '/matches/:id', name: 'match', component: () => import('./views/MatchRoomView.vue') },
+  { path: '/requests', name: 'requests', component: () => import('./views/TargetRequestView.vue') },
+  { path: '/onboarding', name: 'onboarding', component: () => import('./views/OnboardingView.vue'), meta: { auth: true } },
+  { path: '/me', name: 'me', component: () => import('./views/MyPageView.vue'), meta: { auth: true } },
+  { path: '/admin', name: 'admin', component: () => import('./views/AdminView.vue'), meta: { auth: true, admin: true } },
   { path: '/login', name: 'login', component: () => import('./views/LoginView.vue') },
   { path: '/signup', name: 'signup', component: () => import('./views/SignupView.vue') },
   { path: '/broadcasts/new', name: 'broadcast-new', component: () => import('./views/BroadcastFormView.vue'), meta: { auth: true } },
@@ -28,6 +39,9 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.auth && !auth.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+  if (to.meta.admin && auth.user?.role !== 'ADMIN') {
+    return { name: 'home' }
   }
   return true
 })

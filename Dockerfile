@@ -10,12 +10,14 @@ COPY gateway/build.gradle ./gateway/
 COPY auth-service/build.gradle ./auth-service/
 COPY broadcast-service/build.gradle ./broadcast-service/
 COPY interaction-service/build.gradle ./interaction-service/
+COPY fandom-service/build.gradle ./fandom-service/
 RUN chmod +x gradlew && ./gradlew --no-daemon help > /dev/null
 COPY common ./common
 COPY gateway ./gateway
 COPY auth-service ./auth-service
 COPY broadcast-service ./broadcast-service
 COPY interaction-service ./interaction-service
+COPY fandom-service ./fandom-service
 ARG MODULE
 RUN ./gradlew --no-daemon :${MODULE}:bootJar -x test
 

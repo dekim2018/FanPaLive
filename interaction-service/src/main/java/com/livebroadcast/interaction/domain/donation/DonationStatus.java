@@ -4,9 +4,12 @@ package com.livebroadcast.interaction.domain.donation;
  * 후원 주문 상태와 상태별 규칙. 상태를 추가할 때(예: 환불)는 이 enum 의 규칙부터 정한다.
  *
  * <pre>
- * PENDING -> DONE    (결제 승인)
- * PENDING -> FAILED  (결제 거절, 사용자 취소)
- * FAILED  -> DONE    (결제사가 결제 완료를 알려온 경우에만)
+ * PENDING -> DONE     (결제 승인)
+ * PENDING -> FAILED   (결제 거절, 사용자 취소)
+ * PENDING -> UNKNOWN  (승인 요청이 타임아웃 등으로 결과를 모름)
+ * UNKNOWN -> DONE     (결제 조회, 웹훅, 재승인 요청으로 승인 확인)
+ * UNKNOWN -> FAILED   (결제 조회 결과 취소/만료 확인)
+ * FAILED  -> DONE     (결제사가 결제 완료를 알려온 경우에만)
  * </pre>
  */
 public enum DonationStatus {
@@ -15,11 +18,17 @@ public enum DonationStatus {
     /** 결제 승인 완료, 후원 확정 */
     DONE,
     /** 결제 실패 또는 사용자가 취소 */
-    FAILED;
+    FAILED,
+    /**
+     * 승인 요청을 보냈지만 응답을 받지 못해 결과를 모르는 상태.
+     * 재시도하면 이중 결제 위험이 있고, 실패 처리하면 돈만 빠져나간 후원이 생길 수 있어 별도 상태로 두고
+     * 결제 조회 API 로 확정한다.
+     */
+    UNKNOWN;
 
-    /** 브라우저의 승인 요청을 받아 결제사에 승인을 요청할 수 있는 상태 */
+    /** 브라우저의 승인 요청을 받아 결제사에 승인을 요청할 수 있는 상태 (같은 멱등키로 다시 보내므로 UNKNOWN 도 허용) */
     public boolean acceptsConfirmRequest() {
-        return this == PENDING;
+        return this == PENDING || this == UNKNOWN;
     }
 
     /**
@@ -27,15 +36,19 @@ public enum DonationStatus {
      * 결제사 기준으로 돈이 실제로 빠져나갔으므로 실패/취소 처리한 주문도 적립한다.
      */
     public boolean acceptsGatewayApproval() {
-        return this == PENDING || this == FAILED;
+        return this == PENDING || this == FAILED || this == UNKNOWN;
     }
 
-    /** 실패/취소로 닫을 수 있는 상태 */
+    /** 사용자 취소, 결제 거절로 닫을 수 있는 상태 (결과를 모르는 주문은 사용자가 닫을 수 없다) */
     public boolean canFail() {
         return this == PENDING;
     }
 
     public boolean isCompleted() {
         return this == DONE;
+    }
+
+    public boolean isUnknown() {
+        return this == UNKNOWN;
     }
 }

@@ -19,7 +19,8 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Override
     public User save(User user) {
         UserJpaEntity saved = repository.save(new UserJpaEntity(
-                user.getId(), user.getUsername(), user.getPasswordHash(), user.getNickname(), user.getCreatedAt()));
+                user.getId(), user.getUsername(), user.getPasswordHash(), user.getNickname(), user.getRole(),
+                user.getCreatedAt()));
         return toDomain(saved);
     }
 
@@ -44,6 +45,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     }
 
     private User toDomain(UserJpaEntity e) {
-        return new User(e.getId(), e.getUsername(), e.getPasswordHash(), e.getNickname(), e.getCreatedAt());
+        return new User(e.getId(), e.getUsername(), e.getPasswordHash(), e.getNickname(), e.getRole(),
+                e.getCreatedAt());
     }
 }

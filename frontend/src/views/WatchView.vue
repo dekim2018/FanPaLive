@@ -7,6 +7,11 @@ import LivePlayer from '../components/LivePlayer.vue'
 import ChatPanel from '../components/ChatPanel.vue'
 import DonationPanel from '../components/DonationPanel.vue'
 import StatusBadge from '../components/StatusBadge.vue'
+import TeamCrest from '../components/TeamCrest.vue'
+import HeartButton from '../components/HeartButton.vue'
+import { viewerApi } from '../api/fandom'
+import { teamStyle } from '../lib/team'
+import { formatCount } from '../lib/format'
 import { useLiveEvents } from '../composables/useLiveEvents'
 import { elapsedSince, formatDate, formatDuration } from '../lib/format'
 import { useAuthStore } from '../stores/auth'
@@ -22,6 +27,7 @@ const events = useLiveEvents(broadcastId)
 const broadcast = ref(null)
 const error = ref('')
 const recordings = ref([])
+const viewers = ref(null)
 const tick = ref(0)
 let pollTimer = null
 let tickTimer = null
@@ -35,6 +41,15 @@ async function load() {
     error.value = ''
   } catch (e) {
     error.value = e?.response?.status === 404 ? '존재하지 않거나 삭제된 방송입니다.' : errorMessage(e)
+  }
+}
+
+async function loadViewers() {
+  if (!isLive.value) return
+  try {
+    viewers.value = (await viewerApi.stats([broadcast.value.id]))[broadcast.value.id] || null
+  } catch {
+    viewers.value = null
   }
 }
 
@@ -60,11 +75,13 @@ async function remove() {
 onMounted(async () => {
   await load()
   loadRecordings()
+  setTimeout(loadViewers, 800)
   events.connect()
   // 방송 시작/종료 상태 변화를 감지해서 플레이어를 켜고 끈다.
   pollTimer = setInterval(async () => {
     const wasLive = isLive.value
     await load()
+    loadViewers()
     if (wasLive && !isLive.value) {
       toast.show('방송이 종료되었습니다.')
       loadRecordings()
@@ -81,7 +98,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
-  <div v-else-if="broadcast" class="layout-watch">
+  <div v-else-if="broadcast" class="layout-watch" :style="teamStyle(broadcast.side?.targetColor)">
     <div class="stack">
       <LivePlayer :url="broadcast.watchUrl" :active="isLive">
         <template #overlay="{ state }">
@@ -95,13 +112,26 @@ onBeforeUnmount(() => {
         </template>
       </LivePlayer>
 
-      <div class="card stack">
+      <div class="card stack info" :class="{ side: broadcast.side }">
         <div class="row">
           <StatusBadge :status="broadcast.status" :online="broadcast.streamOnline" />
           <h1 style="margin:0; font-size:20px">{{ broadcast.title }}</h1>
         </div>
+        <div v-if="broadcast.side" class="row side-row">
+          <RouterLink :to="`/targets/${broadcast.side.targetId}`" class="row nowrap">
+            <TeamCrest :name="broadcast.side.targetName" :short-name="broadcast.side.targetShortName" :color="broadcast.side.targetColor" :size="40" />
+            <div>
+              <div class="xsmall muted">{{ broadcast.side.leagueCode }} 편파중계</div>
+              <strong>{{ broadcast.side.targetName }}</strong>
+            </div>
+          </RouterLink>
+          <span class="spacer"></span>
+          <RouterLink v-if="broadcast.side.matchId" :to="`/matches/${broadcast.side.matchId}`" class="btn sm ghost">매치룸 응원 대결</RouterLink>
+          <HeartButton :target-id="broadcast.side.targetId" source="BROADCAST" />
+        </div>
         <div class="row small muted">
           <strong style="color:var(--text)">{{ broadcast.ownerNickname }}</strong>
+          <span v-if="isLive && viewers" class="num">{{ formatCount(viewers.current) }}명 시청 중, 누적 약 {{ formatCount(viewers.unique) }}명</span>
           <span v-if="isLive" :data-tick="tick">방송 시간 {{ elapsedSince(broadcast.startedAt) }}</span>
           <span v-else-if="broadcast.endedAt">종료 {{ formatDate(broadcast.endedAt) }}</span>
           <span v-if="broadcast.sourceType">{{ broadcast.sourceType === 'PC_SCREEN' ? 'PC 화면 송출' : '모바일 카메라 송출' }}</span>
@@ -132,6 +162,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.info.side { border-top: 3px solid var(--team); }
+.side-row { padding: 10px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .desc { white-space: pre-wrap; margin: 0; color: #cfd3da; }
 .rec { padding: 6px 0; border-top: 1px solid var(--border); }
 </style>

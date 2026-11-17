@@ -44,6 +44,14 @@ public final class DonationErrors {
                 "후원 금액은 " + min + "원 이상 " + max + "원 이하여야 합니다.");
     }
 
+    public static DomainException targetRequired() {
+        return DomainException.badRequest("TARGET_REQUIRED", "응원기금을 보낼 팀이나 선수를 선택해 주세요.");
+    }
+
+    public static DomainException invalidFanTarget() {
+        return DomainException.badRequest("INVALID_FAN_TARGET", "응원 대상을 찾을 수 없거나 운영이 중단된 대상입니다.");
+    }
+
     public static DomainException invalidMessage() {
         return DomainException.badRequest("INVALID_MESSAGE", "후원 메시지는 200자 이하여야 합니다.");
     }

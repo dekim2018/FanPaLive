@@ -23,8 +23,8 @@ async function submit() {
   try {
     await authApi.signup({ username: form.value.username, password: form.value.password, nickname: form.value.nickname })
     await auth.login(form.value.username, form.value.password)
-    toast.success('가입을 환영합니다.')
-    router.replace('/')
+    toast.success('가입을 환영합니다. 응원할 팀을 골라 주세요.')
+    router.replace('/onboarding')
   } catch (e) {
     error.value = errorMessage(e, '회원가입에 실패했습니다.')
   } finally {

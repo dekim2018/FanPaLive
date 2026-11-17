@@ -21,7 +21,7 @@ public class FakeRecordingRepository implements RecordingRepositoryPort {
         Recording saved = new Recording(r.getId() == null ? ++seq : r.getId(), r.getBroadcastId(), r.getOwnerId(),
                 r.getOwnerNickname(), r.getTitle(), r.getMediaPath(), r.getStorageLocation(), r.getStatus(),
                 r.getStartedAt(), r.getEndedAt(), r.getDurationSeconds(), r.getSegmentCount(),
-                r.getLastSegmentPath(), r.getCreatedAt());
+                r.getLastSegmentPath(), r.getCreatedAt(), r.getSide());
         byId.put(saved.getId(), saved);
         return saved;
     }
@@ -47,6 +47,11 @@ public class FakeRecordingRepository implements RecordingRepositoryPort {
 
     @Override
     public PageResult<Recording> findVisible(Long broadcastId, int page, int size) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PageResult<Recording> findVisible(Long broadcastId, Long targetId, String leagueCode, int page, int size) {
         throw new UnsupportedOperationException();
     }
 

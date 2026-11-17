@@ -1,5 +1,7 @@
 package com.livebroadcast.common.security;
 
+import java.time.Instant;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,9 +26,14 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof JwtAuthenticationToken token) {
+            var jwt = token.getToken();
+            Object joined = jwt.getClaims().get(JwtClaims.JOINED_AT);
+            Instant joinedAt = joined instanceof Number n ? Instant.ofEpochSecond(n.longValue()) : null;
             return new AuthUser(
-                    Long.valueOf(token.getToken().getSubject()),
-                    token.getToken().getClaimAsString(JwtClaims.NICKNAME)
+                    Long.valueOf(jwt.getSubject()),
+                    jwt.getClaimAsString(JwtClaims.NICKNAME),
+                    jwt.getClaimAsString(JwtClaims.ROLE),
+                    joinedAt
             );
         }
         LoginUser annotation = parameter.getParameterAnnotation(LoginUser.class);

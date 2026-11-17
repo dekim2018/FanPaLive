@@ -1,0 +1,92 @@
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { broadcastApi } from '../api/broadcasts'
+import { fandomApi } from '../api/fandom'
+import BroadcastCard from '../components/BroadcastCard.vue'
+import HeartButton from '../components/HeartButton.vue'
+import TeamCrest from '../components/TeamCrest.vue'
+import { useViewerStats } from '../composables/useViewerStats'
+import { formatCount } from '../lib/format'
+import { useFandomStore } from '../stores/fandom'
+
+const route = useRoute()
+const fandom = useFandomStore()
+const code = route.params.code
+const { stats, refresh: refreshViewers } = useViewerStats()
+const targets = ref([])
+const lives = ref([])
+const sort = ref('fans')
+const league = computed(() => fandom.leagueByCode(code))
+
+async function loadTargets() {
+  try {
+    targets.value = await fandomApi.leagueTargets(code, sort.value)
+  } catch {
+    targets.value = []
+  }
+}
+
+onMounted(async () => {
+  loadTargets()
+  try {
+    lives.value = (await broadcastApi.list({ league: code, status: 'LIVE', size: 12 })).content
+    refreshViewers(lives.value)
+  } catch {
+    lives.value = []
+  }
+})
+</script>
+
+<template>
+  <div>
+    <div class="row head">
+      <h1 style="margin:0">{{ league?.name || code }}</h1>
+      <span v-if="league" class="chip">{{ league.sportName }}</span>
+      <span class="spacer"></span>
+      <RouterLink :to="{ path: '/rankings', query: { league: code } }" class="btn sm ghost">응원 랭킹</RouterLink>
+      <RouterLink v-if="league?.openForRequest" :to="{ path: '/requests', query: { league: code } }" class="btn sm">팀/선수 신청</RouterLink>
+    </div>
+
+    <section class="section">
+      <div class="section-head"><h2>편파방 LIVE</h2></div>
+      <div v-if="!lives.length" class="empty">이 리그에서 방송 중인 편파방이 없습니다.</div>
+      <div v-else class="grid">
+        <BroadcastCard v-for="b in lives" :key="b.id" :broadcast="b" :viewers="stats[b.id]" />
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>구단과 선수</h2>
+        <div class="pill-tabs" style="margin:0 0 0 auto">
+          <button :class="{ active: sort === 'fans' }" @click="sort = 'fans'; loadTargets()">팬 많은 순</button>
+          <button :class="{ active: sort === 'name' }" @click="sort = 'name'; loadTargets()">이름순</button>
+        </div>
+      </div>
+      <div class="grid dense">
+        <div v-for="t in targets" :key="t.id" class="tcard card" :style="{ borderTopColor: t.colorPrimary }">
+          <RouterLink :to="`/targets/${t.id}`" class="row nowrap">
+            <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="44" />
+            <div style="min-width:0">
+              <strong class="ellipsis" style="display:block">{{ t.name }}</strong>
+              <span class="xsmall muted">{{ t.kind === 'PLAYER' ? '선수' : '구단' }}</span>
+            </div>
+          </RouterLink>
+          <div class="row xsmall muted num">
+            <span>팬 {{ formatCount(t.primaryFans + t.followFans) }}</span>
+            <span>하트 {{ formatCount(t.hearts) }}</span>
+            <span class="spacer"></span>
+            <HeartButton v-if="fandom.feature('hearts')" :target-id="t.id" compact />
+          </div>
+        </div>
+      </div>
+      <div v-if="!targets.length" class="empty">아직 등록된 구단/선수가 없습니다.</div>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+.head { margin-bottom: 20px; }
+.tcard { display: flex; flex-direction: column; gap: 10px; border-top: 3px solid; }
+</style>

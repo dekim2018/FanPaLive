@@ -19,6 +19,8 @@ public interface RecordingRepositoryPort {
 
     PageResult<Recording> findVisible(Long broadcastId, int page, int size);
 
+    PageResult<Recording> findVisible(Long broadcastId, Long targetId, String leagueCode, int page, int size);
+
     boolean existsReadyByMediaPath(String mediaPath);
 
     void delete(Long id);

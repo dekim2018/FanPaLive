@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.livebroadcast.broadcast.app.BroadcastFilter;
 import com.livebroadcast.broadcast.app.MediaProperties;
 import com.livebroadcast.broadcast.app.port.in.BroadcastCommandUseCase;
 import com.livebroadcast.broadcast.app.port.in.BroadcastCommandUseCase.CreateCommand;
@@ -41,12 +42,21 @@ public class BroadcastController {
         this.media = media;
     }
 
-    /** 방송 목록 (비로그인 허용). status 를 주지 않으면 전체 */
+    /**
+     * 방송 목록 (비로그인 허용). status 를 주지 않으면 전체.
+     * league(리그 코드), target(응원팀), match(경기)로 편파방을 거를 수 있다.
+     */
     @GetMapping
     public PageResponse<BroadcastResponse> list(@RequestParam(required = false) BroadcastStatus status,
+                                                @RequestParam(name = "league", required = false) String leagueCode,
+                                                @RequestParam(name = "target", required = false) Long targetId,
+                                                @RequestParam(name = "match", required = false) Long matchId,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "20") int size) {
-        return PageResponse.from(queryUseCase.list(status, page, size).map(b -> BroadcastResponse.of(b, media)));
+        var filter = new BroadcastFilter(status,
+                leagueCode == null || leagueCode.isBlank() ? null : leagueCode.strip().toUpperCase(),
+                targetId, matchId);
+        return PageResponse.from(queryUseCase.list(filter, page, size).map(b -> BroadcastResponse.of(b, media)));
     }
 
     /** 내 방송 목록 */
@@ -68,7 +78,8 @@ public class BroadcastController {
     public ResponseEntity<BroadcastResponse> create(@LoginUser AuthUser user,
                                                     @Valid @RequestBody BroadcastRequest request) {
         var created = commandUseCase.create(
-                new CreateCommand(user.id(), user.nickname(), request.title(), request.description()));
+                new CreateCommand(user.id(), user.nickname(), request.title(), request.description(),
+                        request.targetId(), request.matchId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(BroadcastResponse.of(created, media));
     }
 
@@ -76,7 +87,8 @@ public class BroadcastController {
     public BroadcastResponse update(@LoginUser AuthUser user, @PathVariable Long broadcastId,
                                     @Valid @RequestBody BroadcastRequest request) {
         var updated = commandUseCase.update(
-                new UpdateCommand(broadcastId, user.id(), request.title(), request.description()));
+                new UpdateCommand(broadcastId, user.id(), request.title(), request.description(),
+                        request.targetId(), request.matchId(), Boolean.TRUE.equals(request.clearTarget())));
         return BroadcastResponse.of(updated, media);
     }
 

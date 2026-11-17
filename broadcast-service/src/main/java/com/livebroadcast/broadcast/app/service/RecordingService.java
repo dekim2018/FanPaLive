@@ -44,6 +44,17 @@ public class RecordingService implements RecordingUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    public PageResult<Recording> list(RecordingFilter filter, int page, int size) {
+        int safeSize = size <= 0 ? 20 : Math.min(size, 50);
+        if (filter.targetId() == null && filter.leagueCode() == null) {
+            return recordingRepository.findVisible(filter.broadcastId(), Math.max(page, 0), safeSize);
+        }
+        return recordingRepository.findVisible(filter.broadcastId(), filter.targetId(), filter.leagueCode(),
+                Math.max(page, 0), safeSize);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RecordingDetail get(Long recordingId) {
         Recording recording = recordingRepository.findById(recordingId)
                 .orElseThrow(BroadcastErrors::recordingNotFound);

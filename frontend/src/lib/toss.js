@@ -21,7 +21,10 @@ function loadSdk() {
   return loading
 }
 
-export async function requestCardPayment({ clientKey, customerKey, order, broadcastId }) {
+/**
+ * @param returnTo 결제 후 돌아갈 화면 경로(방송 또는 구단 페이지). 결과 페이지에 그대로 넘긴다.
+ */
+export async function requestCardPayment({ clientKey, customerKey, order, returnTo }) {
   const TossPayments = await loadSdk()
   const tossPayments = TossPayments(clientKey)
   const payment = tossPayments.payment({ customerKey })
@@ -32,7 +35,7 @@ export async function requestCardPayment({ clientKey, customerKey, order, broadc
     orderId: order.orderId,
     orderName: order.orderName,
     customerName: order.donorNickname,
-    successUrl: `${origin}/donations/success?broadcastId=${broadcastId}`,
-    failUrl: `${origin}/donations/fail?broadcastId=${broadcastId}`
+    successUrl: `${origin}/donations/success?returnTo=${encodeURIComponent(returnTo)}`,
+    failUrl: `${origin}/donations/fail?returnTo=${encodeURIComponent(returnTo)}`
   })
 }

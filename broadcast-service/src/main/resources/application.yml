@@ -26,6 +26,9 @@ management:
       exposure:
         include: health
 
+services:
+  fandom-url: ${FANDOM_SERVICE_URL:http://localhost:8084}
+
 app:
   jwt:
     secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789abcdef}

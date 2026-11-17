@@ -2,8 +2,12 @@ package com.livebroadcast.auth.out.persistence;
 
 import java.time.Instant;
 
+import com.livebroadcast.auth.domain.Role;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,17 +30,23 @@ public class UserJpaEntity {
     @Column(nullable = false, unique = true, length = 20)
     private String nickname;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Role role;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     protected UserJpaEntity() {
     }
 
-    public UserJpaEntity(Long id, String username, String passwordHash, String nickname, Instant createdAt) {
+    public UserJpaEntity(Long id, String username, String passwordHash, String nickname, Role role,
+                         Instant createdAt) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
         this.nickname = nickname;
+        this.role = role;
         this.createdAt = createdAt;
     }
 
@@ -54,6 +64,10 @@ public class UserJpaEntity {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public Role getRole() {
+        return role;
     }
 
     public Instant getCreatedAt() {

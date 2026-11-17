@@ -3,6 +3,7 @@ package com.livebroadcast.interaction.out.persistence;
 import java.time.Instant;
 
 import com.livebroadcast.interaction.domain.donation.DonationStatus;
+import com.livebroadcast.interaction.domain.donation.DonationTargetType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,14 +25,24 @@ public class DonationJpaEntity {
     @Column(name = "order_id", nullable = false, unique = true, length = 64)
     private String orderId;
 
-    @Column(name = "broadcast_id", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_type", nullable = false, length = 12)
+    private DonationTargetType targetType;
+
+    @Column(name = "broadcast_id")
     private Long broadcastId;
 
-    @Column(name = "streamer_id", nullable = false)
+    @Column(name = "streamer_id")
     private Long streamerId;
 
-    @Column(name = "streamer_nickname", nullable = false, length = 20)
+    @Column(name = "streamer_nickname", length = 20)
     private String streamerNickname;
+
+    @Column(name = "target_id")
+    private Long targetId;
+
+    @Column(name = "target_name", length = 40)
+    private String targetName;
 
     @Column(name = "donor_id", nullable = false)
     private Long donorId;
@@ -70,8 +81,11 @@ public class DonationJpaEntity {
     DonationJpaEntity(Long id, String orderId, Long broadcastId, Long streamerId, String streamerNickname,
                       Long donorId, String donorNickname, long amount, String message, DonationStatus status,
                       String paymentKey, Instant approvedAt, String failureReason, Instant createdAt,
-                      Instant updatedAt) {
+                      Instant updatedAt, DonationTargetType targetType, Long targetId, String targetName) {
         this.id = id;
+        this.targetType = targetType;
+        this.targetId = targetId;
+        this.targetName = targetName;
         this.orderId = orderId;
         this.broadcastId = broadcastId;
         this.streamerId = streamerId;
@@ -103,4 +117,7 @@ public class DonationJpaEntity {
     String getFailureReason() { return failureReason; }
     Instant getCreatedAt() { return createdAt; }
     Instant getUpdatedAt() { return updatedAt; }
+    DonationTargetType getTargetType() { return targetType; }
+    Long getTargetId() { return targetId; }
+    String getTargetName() { return targetName; }
 }

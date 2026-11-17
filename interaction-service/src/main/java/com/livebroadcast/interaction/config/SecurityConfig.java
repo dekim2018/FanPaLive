@@ -27,7 +27,11 @@ public class SecurityConfig {
                                 "/api/broadcasts/*/donations",
                                 "/api/broadcasts/*/donations/summary",
                                 "/api/broadcasts/*/events",
-                                "/api/donations/config").permitAll()
+                                "/api/donations/config",
+                                "/api/targets/*/donations",
+                                "/api/targets/*/donations/summary",
+                                "/api/viewers",
+                                "/api/viewers/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/donations/webhook").permitAll()
                         .anyRequest().authenticated());
         return http.build();
