@@ -59,7 +59,7 @@ async function send() {
   <button type="button" class="heart-btn" :class="{ compact, 'team-look': !!teamLook }" :style="teamLook" :disabled="sending"
           :aria-label="compact ? '하트 보내기' : undefined" @click="send">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4 2.1.6-1 1.9-2.1 4-2.1 3.8 0 5.6 4 4 7.2C19.5 16.4 12 21 12 21z"/>
+      <path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
     </svg>
     <span v-if="!compact">하트 보내기</span>
     <span v-if="!compact && fandom.heartsLeft !== null" class="left" :aria-label="`오늘 남은 하트 ${fandom.heartsLeft}개`">{{ fandom.heartsLeft }}</span>
@@ -77,7 +77,8 @@ async function send() {
 .heart-btn:hover { background: #fbd5e3; }
 .heart-btn.team-look:hover { filter: brightness(1.12); }
 .heart-btn:active { transform: scale(.94); }
-.heart-btn.compact { min-height: 36px; min-width: 36px; padding: 0 9px; justify-content: center; }
+.heart-btn svg { flex-shrink: 0; display: block; }
+.heart-btn.compact { width: 36px; height: 36px; padding: 0; justify-content: center; }
 .left { background: var(--heart); color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }
 .burst {
   position: absolute; left: 50%; top: -4px; pointer-events: none;

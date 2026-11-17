@@ -70,7 +70,7 @@ onMounted(async () => {
         <button :class="{ active: tab === 'received' }" @click="tab = 'received'; loadDonations()">받은 후원</button>
       </div>
       <table class="table">
-        <thead><tr><th>일시</th><th>대상</th><th>메시지</th><th style="text-align:right">금액</th></tr></thead>
+        <thead><tr><th>일시</th><th>대상</th><th>메시지</th><th>금액</th></tr></thead>
         <tbody>
           <tr v-for="d in (tab === 'given' ? given : received)" :key="d.id">
             <td class="small">{{ formatDate(d.approvedAt) }}</td>
@@ -80,7 +80,7 @@ onMounted(async () => {
               <template v-else>{{ d.streamerNickname }}<span v-if="d.targetName" class="xsmall muted"> ({{ d.targetName }})</span></template>
             </td>
             <td class="small muted">{{ d.message }}</td>
-            <td class="num" style="text-align:right">{{ formatWon(d.amount) }}</td>
+            <td class="num">{{ formatWon(d.amount) }}</td>
           </tr>
         </tbody>
       </table>

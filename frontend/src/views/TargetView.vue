@@ -147,7 +147,7 @@ onMounted(async () => {
       <div class="stat"><span class="label">주 응원 팬</span><strong class="num">{{ formatCount(t.primaryFans) }}</strong></div>
       <div class="stat"><span class="label">팔로워</span><strong class="num">{{ formatCount(t.followFans) }}</strong></div>
       <div class="stat"><span class="label">누적 하트</span><strong class="num">{{ formatCount(t.hearts) }}</strong></div>
-      <div class="stat"><span class="label">응원기금</span><strong class="num">{{ formatWon(t.donationTotal) }}</strong></div>
+      <div class="stat"><span class="label">응원기금 현황</span><strong class="num">{{ formatWon(t.donationTotal) }}</strong></div>
       <div class="stat"><span class="label">이번 달 편파방 시청자</span><strong class="num">약 {{ formatCount(monthlyViewers) }}명</strong></div>
     </section>
     <p v-if="t.description" class="muted">{{ t.description }}</p>
@@ -177,14 +177,14 @@ onMounted(async () => {
                     @click="supporterPeriod = p; loadTab()">{{ PERIOD_LABEL[p] }}</button>
           </div>
           <table v-if="supporters.length" class="table">
-            <thead><tr><th>순위</th><th>팬</th><th style="text-align:right">기여 점수</th><th style="text-align:right">하트</th><th style="text-align:right">후원</th></tr></thead>
+            <thead><tr><th>순위</th><th>팬</th><th>기여 점수</th><th>하트</th><th>후원</th></tr></thead>
             <tbody>
               <tr v-for="(s, i) in supporters" :key="s.userId">
                 <td class="num"><strong>{{ i + 1 }}</strong></td>
                 <td>{{ s.nickname }}</td>
-                <td class="num" style="text-align:right">{{ formatCount(s.points) }}</td>
-                <td class="num" style="text-align:right">{{ formatCount(s.hearts) }}</td>
-                <td class="num" style="text-align:right">{{ formatWon(s.donationAmount) }}</td>
+                <td class="num">{{ formatCount(s.points) }}</td>
+                <td class="num">{{ formatCount(s.hearts) }}</td>
+                <td class="num">{{ formatWon(s.donationAmount) }}</td>
               </tr>
             </tbody>
           </table>

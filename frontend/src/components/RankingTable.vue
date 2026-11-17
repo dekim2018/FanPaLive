@@ -21,12 +21,12 @@ defineProps({
       <thead>
         <tr>
           <th scope="col" style="width:56px">순위</th>
-          <th scope="col">구단/선수</th>
-          <th scope="col" class="r">응원 점수</th>
-          <th v-if="!compact" scope="col" class="r hide-sm">팬</th>
-          <th v-if="!compact" scope="col" class="r hide-sm">하트</th>
-          <th v-if="!compact" scope="col" class="r hide-md">후원</th>
-          <th v-if="showHeart" scope="col" style="width:60px"><span class="sr-only">하트</span></th>
+          <th scope="col" class="l">구단/선수</th>
+          <th scope="col">응원 점수</th>
+          <th v-if="!compact" scope="col" class="hide-sm">팬</th>
+          <th v-if="!compact" scope="col" class="hide-sm">하트</th>
+          <th v-if="!compact" scope="col" class="hide-md">후원</th>
+          <th v-if="showHeart" scope="col" style="width:72px">응원 하기</th>
         </tr>
       </thead>
       <tbody>
@@ -38,17 +38,17 @@ defineProps({
               {{ r.rankChange > 0 ? '▲' : '▼' }}{{ Math.abs(r.rankChange) }}
             </div>
           </td>
-          <td>
+          <td class="l">
             <RouterLink :to="`/targets/${r.targetId}`" class="row nowrap name">
               <TeamCrest :name="r.name" :short-name="r.shortName" :color="r.colorPrimary" :color2="r.colorSecondary" :size="32" />
               <span class="ellipsis">{{ r.name }}</span>
               <span v-if="r.kind === 'PLAYER'" class="chip">선수</span>
             </RouterLink>
           </td>
-          <td class="r num strong">{{ Number(r.score).toLocaleString('ko-KR') }}</td>
-          <td v-if="!compact" class="r num hide-sm">{{ formatCount(r.primaryFans + r.followFans) }}</td>
-          <td v-if="!compact" class="r num hide-sm">{{ formatCount(r.hearts) }}</td>
-          <td v-if="!compact" class="r num hide-md">{{ formatWon(r.donationAmount) }}</td>
+          <td class="num strong">{{ Number(r.score).toLocaleString('ko-KR') }}</td>
+          <td v-if="!compact" class="num hide-sm">{{ formatCount(r.primaryFans + r.followFans) }}</td>
+          <td v-if="!compact" class="num hide-sm">{{ formatCount(r.hearts) }}</td>
+          <td v-if="!compact" class="num hide-md">{{ formatWon(r.donationAmount) }}</td>
           <td v-if="showHeart"><HeartButton :target-id="r.targetId" source="RANKING" compact /></td>
         </tr>
       </tbody>
@@ -59,10 +59,11 @@ defineProps({
 
 <style scoped>
 .rank-wrap { overflow-x: auto; }
-.r { text-align: right; }
 .strong { font-weight: 800; }
 .rank { font-weight: 900; font-size: 16px; }
 .rank.top { color: var(--accent-text); }
+th { white-space: nowrap; }
+.l { text-align: left; }
 .name { font-weight: 700; min-width: 0; }
 @media (max-width: 720px) { .hide-sm { display: none; } }
 @media (max-width: 1000px) { .hide-md { display: none; } }
