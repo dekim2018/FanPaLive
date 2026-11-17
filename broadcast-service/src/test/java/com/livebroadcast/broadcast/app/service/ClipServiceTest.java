@@ -58,6 +58,19 @@ class ClipServiceTest {
     }
 
     @Test
+    void 운영자가_중단한_방송의_녹화로는_클립을_만들_수_없고_기존_클립도_보이지_않는다() {
+        Recording r = recording(RecordingStatus.READY);
+        Clip before = service.create(new CreateClip(r.getId(), 3L, "곰돌", null, 0, 30));
+
+        recordings.moderatedBroadcasts.add(r.getBroadcastId());
+
+        assertThatThrownBy(() -> service.create(new CreateClip(r.getId(), 3L, "곰돌", null, 60, 30)))
+                .hasMessageContaining("녹화 영상을 찾을 수 없습니다");
+        assertThatThrownBy(() -> service.get(before.getId())).hasMessageContaining("클립을 찾을 수 없습니다");
+        assertThat(service.byRecording(r.getId())).isEmpty();
+    }
+
+    @Test
     void 만든_사람과_녹화_소유자와_관리자만_지울_수_있다() {
         Recording r = recording(RecordingStatus.READY);
         Clip a = service.create(new CreateClip(r.getId(), 3L, "곰돌", null, 0, 10));

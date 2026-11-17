@@ -34,7 +34,10 @@ public class ClipService implements ClipUseCase {
     @Override
     @Transactional
     public Clip create(CreateClip c) {
-        Recording recording = recordings.findById(c.recordingId()).orElseThrow(BroadcastErrors::recordingNotFound);
+        // 운영자가 중단한 방송의 녹화로는 클립을 만들 수 없다(녹화 자체가 비공개).
+        Recording recording = recordings.findById(c.recordingId())
+                .filter(r -> !recordings.isBroadcastModerated(r.getBroadcastId()))
+                .orElseThrow(BroadcastErrors::recordingNotFound);
         if (clips.countByRecordingAndCreator(c.recordingId(), c.creatorId()) >= MAX_PER_RECORDING) {
             throw DomainException.conflict("TOO_MANY_CLIPS",
                     "녹화 하나에서 클립은 " + MAX_PER_RECORDING + "개까지 만들 수 있습니다.");
@@ -53,13 +56,16 @@ public class ClipService implements ClipUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<Clip> byRecording(Long recordingId) {
-        return clips.findByRecording(recordingId);
+        boolean hidden = recordings.findById(recordingId)
+                .map(r -> recordings.isBroadcastModerated(r.getBroadcastId())).orElse(false);
+        return hidden ? List.of() : clips.findByRecording(recordingId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Clip get(Long clipId) {
-        return clips.findById(clipId).orElseThrow(BroadcastErrors::clipNotFound);
+        return clips.findById(clipId).filter(c -> !recordings.isBroadcastModerated(c.getBroadcastId()))
+                .orElseThrow(BroadcastErrors::clipNotFound);
     }
 
     @Override

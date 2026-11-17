@@ -35,7 +35,7 @@ public class JdbcReportRepository implements ReportRepositoryPort {
                 INSERT INTO reports (type, ref_id, broadcast_id, reporter_id, reporter_nickname, reason, detail,
                                      snapshot, subject_user_id, status, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?)
-                ON CONFLICT (reporter_id, type, ref_id) DO NOTHING
+                ON CONFLICT (reporter_id, type, ref_id) WHERE status = 'OPEN' DO NOTHING
                 RETURNING *
                 """, MAPPER, r.type().name(), r.refId(), r.broadcastId(), r.reporterId(), r.reporterNickname(),
                 r.reason().name(), r.detail(), r.snapshot(), r.subjectUserId(), Timestamp.from(r.createdAt()))

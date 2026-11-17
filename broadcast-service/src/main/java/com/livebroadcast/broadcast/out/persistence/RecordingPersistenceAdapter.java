@@ -57,12 +57,12 @@ public class RecordingPersistenceAdapter implements RecordingRepositoryPort {
 
     @Override
     public PageResult<Recording> findVisible(Long broadcastId, int page, int size) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startedAt"));
-        Page<RecordingJpaEntity> result = broadcastId == null
-                ? repository.findByStatusIn(VISIBLE, pageable)
-                : repository.findByBroadcastIdAndStatusIn(broadcastId, VISIBLE, pageable);
-        return new PageResult<>(result.getContent().stream().map(RecordingPersistenceAdapter::toDomain).toList(),
-                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
+        return findVisible(broadcastId, null, null, page, size);
+    }
+
+    @Override
+    public boolean isBroadcastModerated(Long broadcastId) {
+        return broadcastId != null && repository.isBroadcastModerated(broadcastId);
     }
 
     @Override
@@ -71,6 +71,7 @@ public class RecordingPersistenceAdapter implements RecordingRepositoryPort {
         Specification<RecordingJpaEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(root.get("status").in(VISIBLE));
+            predicates.add(ModerationFilter.notModerated(root, query, cb));
             if (broadcastId != null) {
                 predicates.add(cb.equal(root.get("broadcastId"), broadcastId));
             }

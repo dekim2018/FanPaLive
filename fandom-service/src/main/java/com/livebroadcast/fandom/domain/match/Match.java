@@ -62,9 +62,14 @@ public class Match {
         this.updatedAt = now;
     }
 
+    /** 끝났거나 취소된 경기는 승부 예측이 그 점수로 정산됐으므로 점수를 바꿀 수 없다(같은 점수는 그대로 통과). */
     public void updateScore(int home, int away, Instant now) {
         if (home < 0 || away < 0) {
             throw MatchErrors.invalidScore();
+        }
+        if ((status == MatchStatus.FINISHED || status == MatchStatus.CANCELED)
+                && (home != homeScore || away != awayScore)) {
+            throw MatchErrors.scoreLocked();
         }
         this.homeScore = home;
         this.awayScore = away;

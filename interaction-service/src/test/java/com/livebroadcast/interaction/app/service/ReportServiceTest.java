@@ -51,6 +51,17 @@ class ReportServiceTest {
     }
 
     @Test
+    void 기각된_뒤에는_같은_대상을_다시_신고할_수_있다() {
+        Report first = service.report(2L, "곰돌", ReportType.BROADCAST, 1L, ReportReason.SPAM, "");
+        service.resolve(1L, first.id(), ModerationAction.DISMISS, null);
+
+        Report again = service.report(2L, "곰돌", ReportType.BROADCAST, 1L, ReportReason.RIGHTS_VIOLATION, "또 송출");
+
+        assertThat(again.id()).isNotEqualTo(first.id());
+        assertThat(again.status()).isEqualTo(ReportStatus.OPEN);
+    }
+
+    @Test
     void 내_방송은_신고할_수_없다() {
         assertThatThrownBy(() -> service.report(7L, "방장", ReportType.BROADCAST, 1L, ReportReason.ETC, ""))
                 .hasMessageContaining("신고할 수 없습니다");
@@ -116,8 +127,9 @@ class ReportServiceTest {
 
         @Override
         public Optional<Report> insert(Report r) {
-            boolean dup = rows.values().stream().anyMatch(x -> x.reporterId().equals(r.reporterId())
-                    && x.type() == r.type() && x.refId().equals(r.refId()));
+            // DB 의 부분 유일 인덱스와 같다: 처리 대기(OPEN) 중인 같은 신고만 막는다.
+            boolean dup = rows.values().stream().anyMatch(x -> x.status() == ReportStatus.OPEN
+                    && x.reporterId().equals(r.reporterId()) && x.type() == r.type() && x.refId().equals(r.refId()));
             if (dup) {
                 return Optional.empty();
             }

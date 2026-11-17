@@ -80,6 +80,12 @@ async function updateMatch(m, patch) {
   }
 }
 
+// 종료하면 승부 예측이 그 점수로 정산되고 점수를 바꿀 수 없으므로 최종 점수를 한 번 더 확인한다.
+function finishMatch(m) {
+  if (!confirm(tr('최종 점수 {0}:{1}로 종료할까요? 종료하면 점수를 바꿀 수 없고 승부 예측이 정산됩니다.', m.homeScore, m.awayScore))) return
+  updateMatch(m, { status: 'FINISHED' })
+}
+
 const seasonDate = ref('')
 const seasonBusy = ref(false)
 
@@ -174,7 +180,7 @@ onMounted(loadRequests)
             <template v-if="m.status === 'LIVE'">
               <button class="btn sm" @click="updateMatch(m, { homeScore: m.homeScore + 1 })">{{ tr('홈 +1') }}</button>
               <button class="btn sm" @click="updateMatch(m, { awayScore: m.awayScore + 1 })">{{ tr('원정 +1') }}</button>
-              <button class="btn sm" @click="updateMatch(m, { status: 'FINISHED' })">{{ tr('종료') }}</button>
+              <button class="btn sm" @click="finishMatch(m)">{{ tr('종료') }}</button>
             </template>
             <button v-if="m.status === 'SCHEDULED'" class="btn sm ghost" @click="updateMatch(m, { status: 'CANCELED' })">{{ tr('취소') }}</button>
           </div>

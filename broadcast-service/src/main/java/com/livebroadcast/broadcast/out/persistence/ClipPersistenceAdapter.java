@@ -42,6 +42,7 @@ public class ClipPersistenceAdapter implements ClipRepositoryPort {
     public PageResult<Clip> findRecent(Long targetId, String leagueCode, int page, int size) {
         Specification<ClipJpaEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(ModerationFilter.notModerated(root, query, cb));
             if (targetId != null) {
                 predicates.add(cb.equal(root.get("side").get("targetId"), targetId));
             }

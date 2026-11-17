@@ -25,7 +25,9 @@ import com.livebroadcast.fandom.domain.notification.BroadcastLiveEvent;
  * broadcast-service 가 남긴 "편파방 시작" 이벤트를 읽어 응원팀 팬에게 알림을 만든다.
  * 후원 이벤트 소비자와 같은 방식(소비 그룹, 성공한 것만 ACK, 실패하면 대기 목록에서 다시 읽기)이고,
  * 알림 테이블의 (user_id, event_id) 유일 제약이 중복 처리를 막는다.
- * 시작한 지 10분이 지난 이벤트는 알려도 의미가 적어서 건너뛴다(장애 뒤 밀린 메시지 폭주 방지).
+ * 발행된 지 10분이 지난 이벤트는 알려도 의미가 적어서 건너뛴다(장애 뒤 밀린 메시지 폭주 방지).
+ * 기준은 방송 시작 버튼을 누른 시각(startedAt)이 아니라 이벤트 발행 시각(스트림 레코드 ID)이다.
+ * 이벤트는 첫 영상이 들어올 때 발행되므로, OBS 연결이 늦어도 알림이 버려지지 않는다.
  */
 @Component
 public class BroadcastLiveConsumer {
@@ -89,7 +91,7 @@ public class BroadcastLiveConsumer {
                         Long.valueOf(String.valueOf(v.get("ownerId"))),
                         String.valueOf(v.getOrDefault("ownerNickname", "")),
                         Instant.parse(String.valueOf(v.get("startedAt"))));
-                if (event.startedAt().isAfter(Instant.now().minusSeconds(STALE_SECONDS))) {
+                if (isFresh(record, event, Instant.now())) {
                     notifications.onBroadcastLive(event);
                 }
             } catch (NumberFormatException | java.time.format.DateTimeParseException e) {
@@ -97,6 +99,13 @@ public class BroadcastLiveConsumer {
             }
             redis.opsForStream().acknowledge(stream, DonationStreamConsumer.GROUP, record.getId());
         }
+    }
+
+    /** 스트림 레코드 ID 의 앞부분은 발행 시각(밀리초)이다. 직접 지정한 ID 라 시각이 없으면 startedAt 으로 대신한다. */
+    static boolean isFresh(MapRecord<String, Object, Object> record, BroadcastLiveEvent event, Instant now) {
+        Long millis = record.getId().getTimestamp();
+        Instant publishedAt = millis != null ? Instant.ofEpochMilli(millis) : event.startedAt();
+        return publishedAt.isAfter(now.minusSeconds(STALE_SECONDS));
     }
 
     private void ensureGroup() {

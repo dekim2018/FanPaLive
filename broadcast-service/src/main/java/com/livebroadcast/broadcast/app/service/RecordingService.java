@@ -60,6 +60,7 @@ public class RecordingService implements RecordingUseCase {
     @Transactional(readOnly = true)
     public RecordingDetail get(Long recordingId) {
         Recording recording = recordingRepository.findById(recordingId)
+                .filter(r -> !recordingRepository.isBroadcastModerated(r.getBroadcastId()))
                 .orElseThrow(BroadcastErrors::recordingNotFound);
         if (!recording.getStatus().isPlayable()) {
             return new RecordingDetail(recording, List.of());

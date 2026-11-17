@@ -52,6 +52,13 @@ class RecordingServiceTest {
     }
 
     @Test
+    void 운영자가_중단한_방송의_녹화는_다시보기로_열리지_않는다() {
+        repository.moderatedBroadcasts.add(first.getBroadcastId());
+
+        assertThatThrownBy(() -> service.get(first.getId())).hasMessageContaining("녹화 영상을 찾을 수 없습니다");
+    }
+
+    @Test
     void 녹화를_지우면_그_녹화의_파일만_미디어_서버에서_지운다() {
         service.delete(first.getId(), OWNER);
 
