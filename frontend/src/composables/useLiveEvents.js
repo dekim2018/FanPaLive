@@ -7,15 +7,21 @@ import { deviceId } from '../lib/device'
 export function useLiveEvents(broadcastId) {
   const connected = ref(false)
   const handlers = new Map()
+  const attached = new Set()
   let source = null
 
+  /** 핸들러를 등록하고, 해제 함수를 돌려준다. 컴포넌트가 먼저 사라지면 해제해야 같은 이벤트가 중복 처리되지 않는다. */
   function on(eventName, handler) {
     if (!handlers.has(eventName)) handlers.set(eventName, new Set())
     handlers.get(eventName).add(handler)
     if (source) attach(eventName)
+    return () => handlers.get(eventName)?.delete(handler)
   }
 
+  // 이벤트 이름마다 리스너는 하나만 붙인다(연결 뒤에 on 을 다시 불러도 중복으로 붙지 않게).
   function attach(eventName) {
+    if (attached.has(eventName)) return
+    attached.add(eventName)
     source.addEventListener(eventName, (e) => {
       let data = null
       try { data = JSON.parse(e.data) } catch { data = e.data }
@@ -36,6 +42,7 @@ export function useLiveEvents(broadcastId) {
   function close() {
     source?.close()
     source = null
+    attached.clear()
     connected.value = false
   }
 

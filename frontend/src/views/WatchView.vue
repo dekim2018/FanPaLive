@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
 
     <div class="stack">
       <DonationPanel :broadcast="broadcast" :events="events" />
-      <ChatPanel :broadcast-id="broadcastId" :events="events" height="360px" />
+      <ChatPanel :broadcast-id="broadcastId" :events="events" height="360px" :team-name="broadcast.side?.targetShortName || broadcast.side?.targetName || ''" />
     </div>
     <ReportDialog :open="reportOpen" type="BROADCAST" :target-id="broadcast.id"
                   :summary="`${broadcast.ownerNickname}: ${broadcast.title}`" @close="reportOpen = false" />

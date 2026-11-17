@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <ChatPanel :broadcast-id="broadcastId" :events="events" height="420px" />
+    <ChatPanel :broadcast-id="broadcastId" :events="events" height="420px" :team-name="broadcast?.side?.targetShortName || broadcast?.side?.targetName || ''" />
   </div>
 </template>
 
