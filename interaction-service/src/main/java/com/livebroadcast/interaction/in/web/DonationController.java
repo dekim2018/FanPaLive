@@ -19,7 +19,10 @@ import com.livebroadcast.interaction.app.PaymentProperties;
 import com.livebroadcast.interaction.app.port.in.DonationUseCase;
 import com.livebroadcast.interaction.app.port.in.DonationUseCase.ConfirmCommand;
 import com.livebroadcast.interaction.app.port.in.DonationUseCase.CreateOrderCommand;
+import com.livebroadcast.interaction.domain.donation.Donation;
+import com.livebroadcast.interaction.domain.donation.DonationStatus;
 import com.livebroadcast.interaction.domain.donation.DonationSummary;
+import com.livebroadcast.interaction.domain.donation.DonationTargetSummary;
 import com.livebroadcast.interaction.in.web.dto.DonationConfirmRequest;
 import com.livebroadcast.interaction.in.web.dto.DonationOrderRequest;
 import com.livebroadcast.interaction.in.web.dto.DonationOrderResponse;
@@ -55,16 +58,24 @@ public class DonationController {
     @PostMapping("/api/donations/orders")
     public ResponseEntity<DonationOrderResponse> createOrder(@LoginUser AuthUser user,
                                                              @Valid @RequestBody DonationOrderRequest request) {
-        var donation = donationUseCase.createOrder(new CreateOrderCommand(
-                request.broadcastId(), user.id(), user.nickname(), request.amount(), request.message()));
+        var donation = donationUseCase.createOrder(new CreateOrderCommand(request.typeOrDefault(),
+                request.broadcastId(), request.targetId(), user.id(), user.nickname(), request.amount(),
+                request.message()));
         return ResponseEntity.status(HttpStatus.CREATED).body(DonationOrderResponse.from(donation));
     }
 
-    /** 결제 성공 페이지에서 호출. 서버가 토스에 직접 승인을 요청하고 결과를 검증한다. */
+    /**
+     * 결제 성공 페이지에서 호출. 서버가 토스에 직접 승인을 요청하고 결과를 검증한다.
+     * 결제사 응답을 받지 못하면 202 와 status=UNKNOWN 을 돌려준다. 화면은 "결제 확인 중"을 보여 주고,
+     * 서버는 1분마다 결제 조회로 확정한다.
+     */
     @PostMapping("/api/donations/confirm")
-    public DonationResponse confirm(@LoginUser AuthUser user, @Valid @RequestBody DonationConfirmRequest request) {
-        return DonationResponse.from(donationUseCase.confirm(
-                new ConfirmCommand(user.id(), request.paymentKey(), request.orderId(), request.amount())));
+    public ResponseEntity<DonationResponse> confirm(@LoginUser AuthUser user,
+                                                    @Valid @RequestBody DonationConfirmRequest request) {
+        Donation donation = donationUseCase.confirm(
+                new ConfirmCommand(user.id(), request.paymentKey(), request.orderId(), request.amount()));
+        HttpStatus status = donation.getStatus() == DonationStatus.UNKNOWN ? HttpStatus.ACCEPTED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(DonationResponse.from(donation));
     }
 
     @PostMapping("/api/donations/orders/{orderId}/cancel")
@@ -97,5 +108,34 @@ public class DonationController {
     @GetMapping("/api/broadcasts/{broadcastId}/donations/summary")
     public DonationSummary summary(@PathVariable Long broadcastId) {
         return donationUseCase.summary(broadcastId);
+    }
+
+    /** 내가 한 후원(확정된 것) */
+    @GetMapping("/api/donations/mine")
+    public PageResponse<DonationResponse> mine(@LoginUser AuthUser user,
+                                               @RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "20") int size) {
+        return PageResponse.from(donationUseCase.listMine(user.id(), page, size).map(DonationResponse::from));
+    }
+
+    /** 방송자로서 받은 후원 */
+    @GetMapping("/api/donations/received")
+    public PageResponse<DonationResponse> received(@LoginUser AuthUser user,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "20") int size) {
+        return PageResponse.from(donationUseCase.listReceived(user.id(), page, size).map(DonationResponse::from));
+    }
+
+    /** 구단/선수가 받은 응원금과 편파방 후원 */
+    @GetMapping("/api/targets/{targetId}/donations")
+    public PageResponse<DonationResponse> forTarget(@PathVariable Long targetId,
+                                                    @RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "20") int size) {
+        return PageResponse.from(donationUseCase.listForTarget(targetId, page, size).map(DonationResponse::from));
+    }
+
+    @GetMapping("/api/targets/{targetId}/donations/summary")
+    public DonationTargetSummary targetSummary(@PathVariable Long targetId) {
+        return donationUseCase.targetSummary(targetId);
     }
 }

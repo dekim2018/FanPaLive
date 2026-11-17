@@ -28,10 +28,25 @@ public class Donation {
     private String failureReason;
     private final Instant createdAt;
     private Instant updatedAt;
+    private final DonationTargetType targetType;
+    /** 응원 대상(구단/선수). 응원금이면 필수, 방송 후원이면 편파방일 때만 있다. */
+    private final Long targetId;
+    private final String targetName;
 
     public Donation(Long id, String orderId, Long broadcastId, Long streamerId, String streamerNickname,
                     Long donorId, String donorNickname, long amount, String message, DonationStatus status,
                     String paymentKey, Instant approvedAt, String failureReason, Instant createdAt, Instant updatedAt) {
+        this(id, orderId, broadcastId, streamerId, streamerNickname, donorId, donorNickname, amount, message, status,
+                paymentKey, approvedAt, failureReason, createdAt, updatedAt, DonationTargetType.BROADCAST, null, null);
+    }
+
+    public Donation(Long id, String orderId, Long broadcastId, Long streamerId, String streamerNickname,
+                    Long donorId, String donorNickname, long amount, String message, DonationStatus status,
+                    String paymentKey, Instant approvedAt, String failureReason, Instant createdAt, Instant updatedAt,
+                    DonationTargetType targetType, Long targetId, String targetName) {
+        this.targetType = targetType == null ? DonationTargetType.BROADCAST : targetType;
+        this.targetId = targetId;
+        this.targetName = targetName;
         this.id = id;
         this.orderId = orderId;
         this.broadcastId = broadcastId;
@@ -52,9 +67,39 @@ public class Donation {
     public static Donation order(String orderId, Long broadcastId, Long streamerId, String streamerNickname,
                                  Long donorId, String donorNickname, long amount, String message,
                                  long minAmount, long maxAmount, Instant now) {
+        return order(orderId, broadcastId, streamerId, streamerNickname, null, null, donorId, donorNickname, amount,
+                message, minAmount, maxAmount, now);
+    }
+
+    /**
+     * 방송자 후원. 방송이 편파방이면(targetId 있음) 그 응원팀의 랭킹 점수에도 들어간다.
+     */
+    public static Donation order(String orderId, Long broadcastId, Long streamerId, String streamerNickname,
+                                 Long targetId, String targetName, Long donorId, String donorNickname, long amount,
+                                 String message, long minAmount, long maxAmount, Instant now) {
         if (Objects.equals(streamerId, donorId)) {
             throw DonationErrors.selfDonation();
         }
+        String safeMessage = validate(amount, message, minAmount, maxAmount);
+        return new Donation(null, orderId, broadcastId, streamerId, streamerNickname, donorId, donorNickname,
+                amount, safeMessage, DonationStatus.PENDING, null, null, null, now, now,
+                DonationTargetType.BROADCAST, targetId, targetName);
+    }
+
+    /** 구단/선수 응원금. 방송자가 없고, 실제로 구단에 전달되지 않는 가상 기금이다. */
+    public static Donation orderForTarget(String orderId, Long targetId, String targetName, Long donorId,
+                                          String donorNickname, long amount, String message, long minAmount,
+                                          long maxAmount, Instant now) {
+        if (targetId == null) {
+            throw DonationErrors.targetRequired();
+        }
+        String safeMessage = validate(amount, message, minAmount, maxAmount);
+        return new Donation(null, orderId, null, null, null, donorId, donorNickname, amount, safeMessage,
+                DonationStatus.PENDING, null, null, null, now, now, DonationTargetType.FAN_TARGET, targetId,
+                targetName);
+    }
+
+    private static String validate(long amount, String message, long minAmount, long maxAmount) {
         if (amount < minAmount || amount > maxAmount) {
             throw DonationErrors.invalidAmount(minAmount, maxAmount);
         }
@@ -62,8 +107,7 @@ public class Donation {
         if (safeMessage.length() > MAX_MESSAGE) {
             throw DonationErrors.invalidMessage();
         }
-        return new Donation(null, orderId, broadcastId, streamerId, streamerNickname, donorId, donorNickname,
-                amount, safeMessage, DonationStatus.PENDING, null, null, null, now, now);
+        return safeMessage;
     }
 
     public void ensureDonor(Long userId) {
@@ -146,13 +190,46 @@ public class Donation {
         if (!status.canFail()) {
             return;
         }
+        close(reason, now);
+    }
+
+    /**
+     * 승인 요청을 보냈지만 결과를 모른다(타임아웃, 결제사 5xx). 결제 키를 남겨 두고 나중에 결제 조회로 확정한다.
+     */
+    public void markUnknown(String paymentKey, Instant now) {
+        if (status != DonationStatus.PENDING && status != DonationStatus.UNKNOWN) {
+            return;
+        }
+        this.status = DonationStatus.UNKNOWN;
+        this.paymentKey = paymentKey;
+        this.updatedAt = now;
+    }
+
+    /** 결제 조회 결과 결제가 되지 않은 것으로 확인됨(취소, 만료, 중단) */
+    public void resolveAsFailed(String reason, Instant now) {
+        if (!status.isUnknown()) {
+            return;
+        }
+        close(reason, now);
+    }
+
+    private void close(String reason, Instant now) {
         this.status = DonationStatus.FAILED;
         this.failureReason = reason == null ? null : reason.substring(0, Math.min(reason.length(), 200));
         this.updatedAt = now;
     }
 
+    public boolean isForBroadcast() {
+        return targetType == DonationTargetType.BROADCAST;
+    }
+
+    /** 확정됐고 응원 대상(구단/선수)이 있어 랭킹 점수에 반영할 후원인지 */
+    public boolean countsForFanTarget() {
+        return targetId != null && status == DonationStatus.DONE;
+    }
+
     public String orderName() {
-        return streamerNickname + "님 후원";
+        return isForBroadcast() ? streamerNickname + "님 후원" : targetName + " 응원금";
     }
 
     public Long getId() { return id; }
@@ -170,4 +247,7 @@ public class Donation {
     public String getFailureReason() { return failureReason; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public DonationTargetType getTargetType() { return targetType; }
+    public Long getTargetId() { return targetId; }
+    public String getTargetName() { return targetName; }
 }

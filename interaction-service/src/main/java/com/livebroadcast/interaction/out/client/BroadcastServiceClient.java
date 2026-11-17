@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.livebroadcast.common.error.DomainException;
 import com.livebroadcast.common.error.ErrorType;
 import com.livebroadcast.common.security.InternalApiKeyFilter;
+import com.livebroadcast.interaction.app.port.out.BroadcastModerationPort;
 import com.livebroadcast.interaction.app.port.out.BroadcastQueryPort;
 import com.livebroadcast.interaction.domain.broadcast.BroadcastInfo;
 
@@ -21,7 +22,7 @@ import com.livebroadcast.interaction.domain.broadcast.BroadcastInfo;
  * broadcast-service 의 내부 API 를 호출해서 방송 존재 여부와 방송자(후원 대상)를 확인한다.
  */
 @Component
-public class BroadcastServiceClient implements BroadcastQueryPort {
+public class BroadcastServiceClient implements BroadcastQueryPort, BroadcastModerationPort {
 
     private final RestClient restClient;
 
@@ -54,11 +55,37 @@ public class BroadcastServiceClient implements BroadcastQueryPort {
                             throw unavailable();
                         }
                         return Optional.of(new BroadcastInfo(dto.id(), dto.ownerId(), dto.ownerNickname(),
-                                dto.title(), dto.status()));
+                                dto.title(), dto.status(), dto.targetId(), dto.targetName()));
                     });
         } catch (RestClientException e) {
             throw unavailable();
         }
+    }
+
+    @Override
+    public boolean moderate(Long broadcastId, String reason) {
+        try {
+            ModerateResult result = restClient.post()
+                    .uri("/internal/broadcasts/{id}/moderate", broadcastId)
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(java.util.Map.of("reason", reason == null ? "" : reason))
+                    .exchange((request, response) -> {
+                        if (response.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+                            throw DomainException.notFound("BROADCAST_NOT_FOUND", "방송을 찾을 수 없습니다.");
+                        }
+                        if (!response.getStatusCode().is2xxSuccessful()) {
+                            throw unavailable();
+                        }
+                        return response.bodyTo(ModerateResult.class);
+                    });
+            return result != null && result.ended();
+        } catch (RestClientException e) {
+            throw unavailable();
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record ModerateResult(Long broadcastId, boolean ended) {
     }
 
     private static DomainException unavailable() {
@@ -67,6 +94,7 @@ public class BroadcastServiceClient implements BroadcastQueryPort {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record BroadcastDto(Long id, Long ownerId, String ownerNickname, String title, String status) {
+    record BroadcastDto(Long id, Long ownerId, String ownerNickname, String title, String status, Long targetId,
+                        String targetName) {
     }
 }

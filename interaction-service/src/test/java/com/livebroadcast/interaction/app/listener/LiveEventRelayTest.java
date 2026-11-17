@@ -18,6 +18,7 @@ import com.livebroadcast.interaction.domain.comment.CommentWritten;
 import com.livebroadcast.interaction.domain.donation.Donation;
 import com.livebroadcast.interaction.domain.donation.DonationCompleted;
 import com.livebroadcast.interaction.domain.donation.DonationSummary;
+import com.livebroadcast.interaction.domain.donation.DonationTargetSummary;
 
 /** 도메인 이벤트가 화면이 기대하는 실시간 이벤트 이름과 내용으로 바뀌는지 검증한다. */
 class LiveEventRelayTest {
@@ -55,6 +56,34 @@ class LiveEventRelayTest {
         assertThat(sent.get(1).payload()).isEqualTo(new DonationSummary(10L, 5000, 1));
     }
 
+    @Test
+    void 구단_응원금은_방송_화면으로_보내지_않는다() {
+        Donation donation = Donation.orderForTarget("don_t", 1L, "두산 베어스", 2L, "시청자", 5000, "", 1000,
+                1_000_000, NOW);
+
+        relay.on(new DonationCompleted(donation));
+
+        assertThat(sent).isEmpty();
+    }
+
+    @Test
+    void 확정된_응원_대상_후원만_팬덤_스트림으로_보낸다() {
+        List<Donation> published = new ArrayList<>();
+        DonationStreamRelay streamRelay = new DonationStreamRelay(published::add);
+        Donation plain = Donation.order("don_a", 10L, 1L, "방송자", 2L, "시청자", 5000, "", 1000, 1_000_000, NOW);
+        Donation fund = Donation.orderForTarget("don_b", 1L, "두산 베어스", 2L, "시청자", 5000, "", 1000,
+                1_000_000, NOW);
+        fund.approve(new com.livebroadcast.interaction.domain.donation.PaymentApproval("pk", "don_b", "DONE", 5000,
+                NOW), NOW);
+        plain.approve(new com.livebroadcast.interaction.domain.donation.PaymentApproval("pk2", "don_a", "DONE",
+                5000, NOW), NOW);
+
+        streamRelay.on(new DonationCompleted(plain));
+        streamRelay.on(new DonationCompleted(fund));
+
+        assertThat(published).extracting(Donation::getOrderId).containsExactly("don_b");
+    }
+
     static class SummaryOnlyRepository implements DonationRepositoryPort {
         @Override
         public Donation save(Donation donation) {
@@ -74,6 +103,41 @@ class LiveEventRelayTest {
         @Override
         public DonationSummary summarize(Long broadcastId) {
             return new DonationSummary(broadcastId, 5000, 1);
+        }
+
+        @Override
+        public List<Donation> findUnknownUpdatedBefore(Instant before, int limit) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PageResult<Donation> findDoneByDonor(Long donorId, int page, int size) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PageResult<Donation> findDoneByStreamer(Long streamerId, int page, int size) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PageResult<Donation> findDoneByTarget(Long targetId, int page, int size) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public DonationTargetSummary summarizeTarget(Long targetId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Map<Long, Long> sumDoneByTarget(Instant from, Instant to) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Donation> findDoneApprovedBetween(Instant from, Instant to) {
+            throw new UnsupportedOperationException();
         }
     }
 }

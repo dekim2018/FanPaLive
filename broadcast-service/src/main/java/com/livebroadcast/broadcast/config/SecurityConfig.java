@@ -28,7 +28,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/broadcasts/mine").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/broadcasts/*/live/session").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/broadcasts", "/api/broadcasts/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/recordings", "/api/recordings/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recordings", "/api/recordings/*",
+                                "/api/recordings/*/clips", "/api/clips", "/api/clips/*").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }

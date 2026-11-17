@@ -20,11 +20,13 @@ public record RecordingResponse(
         Instant endedAt,
         long durationSeconds,
         int segmentCount,
-        List<PlaybackSegment> segments
+        List<PlaybackSegment> segments,
+        BroadcastResponse.SideResponse side
 ) {
     public static RecordingResponse of(Recording r, List<PlaybackSegment> segments) {
         return new RecordingResponse(r.getId(), r.getBroadcastId(), r.getOwnerId(), r.getOwnerNickname(),
                 r.getTitle(), r.getStatus(), r.getMediaPath(), r.getStorageLocation(), r.getStartedAt(),
-                r.getEndedAt(), r.getDurationSeconds(), r.getSegmentCount(), segments);
+                r.getEndedAt(), r.getDurationSeconds(), r.getSegmentCount(), segments,
+                BroadcastResponse.SideResponse.of(r.getSide()));
     }
 }

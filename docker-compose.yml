@@ -42,6 +42,18 @@ services:
       timeout: 3s
       retries: 20
 
+  # 기존 볼륨으로 업그레이드할 때 새 서비스용 DB(fandom_db)를 만들어 주는 1회성 작업
+  postgres-init:
+    image: postgres:17-alpine
+    restart: "no"
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./infra/postgres/ensure-databases.sh:/ensure-databases.sh:ro
+    entrypoint: ["sh", "/ensure-databases.sh"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
   auth-service:
     build:
       context: .
@@ -65,6 +77,7 @@ services:
     restart: unless-stopped
     environment:
       <<: *service-env
+      FANDOM_SERVICE_URL: http://fandom-service:8084
       MEDIAMTX_API_URL: http://mediamtx:9997
       MEDIAMTX_PLAYBACK_URL: http://mediamtx:9996
       STREAM_STALE_GRACE: ${STREAM_STALE_GRACE:-3m}
@@ -81,11 +94,32 @@ services:
     environment:
       <<: *service-env
       BROADCAST_SERVICE_URL: http://broadcast-service:8082
+      FANDOM_SERVICE_URL: http://fandom-service:8084
       TOSS_CLIENT_KEY: ${TOSS_CLIENT_KEY:-}
       TOSS_SECRET_KEY: ${TOSS_SECRET_KEY:-}
+      # 장애 실험(scripts/chaos/toss-blackhole.sh)에서 응답 없는 주소로 바꿔 결제 결과 모름(UNKNOWN) 처리를 확인한다.
+      TOSS_API_URL: ${TOSS_API_URL:-https://api.tosspayments.com}
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+
+  fandom-service:
+    build:
+      context: .
+      args:
+        MODULE: fandom-service
+    restart: unless-stopped
+    environment:
+      <<: *service-env
+      INTERACTION_SERVICE_URL: http://interaction-service:8083
+      # 장애나 행사 때 기능 단위로 끌 수 있다(재시작 필요). 꺼도 다른 기능은 그대로 동작한다.
+      FEATURE_HEARTS: ${FEATURE_HEARTS:-true}
+      FEATURE_MATCHES: ${FEATURE_MATCHES:-true}
+      FEATURE_TARGET_REQUESTS: ${FEATURE_TARGET_REQUESTS:-true}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      postgres-init: { condition: service_completed_successfully }
 
   gateway:
     build:
@@ -97,12 +131,14 @@ services:
       AUTH_SERVICE_URL: http://auth-service:8081
       BROADCAST_SERVICE_URL: http://broadcast-service:8082
       INTERACTION_SERVICE_URL: http://interaction-service:8083
+      FANDOM_SERVICE_URL: http://fandom-service:8084
       JAVA_OPTS: "-Xms64m -Xmx256m -XX:+UseSerialGC"
       TZ: Asia/Seoul
     depends_on:
       - auth-service
       - broadcast-service
       - interaction-service
+      - fandom-service
 
   mediamtx:
     # -ffmpeg 이미지는 alpine 기반이라 훅 스크립트(sh, wget)를 실행할 수 있다.

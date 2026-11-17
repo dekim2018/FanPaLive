@@ -11,7 +11,7 @@ Render, Railway, Vercel 같은 PaaS 는 보통 HTTP 포트 하나만 열어 주�
 
 | 구성 요소 | 메모리(대략) |
 | --- | --- |
-| Spring 서비스 4개 (gateway, auth, broadcast, interaction) | 1.6 ~ 2.0GB |
+| Spring 서비스 5개 (gateway, auth, broadcast, interaction, fandom) | 2.0 ~ 2.4GB |
 | PostgreSQL, Redis, MediaMTX, Caddy | 0.3 ~ 0.5GB |
 | 첫 빌드 시 Gradle, npm | 일시적으로 1 ~ 1.5GB 추가 |
 
@@ -225,6 +225,12 @@ git pull
 docker compose up -d --build
 ```
 
+팬파라이브 기능(fandom-service)이 추가된 버전으로 처음 올릴 때도 같은 명령이면 됩니다.
+
+- `postgres-init` 컨테이너가 한 번 실행되어 기존 볼륨에 없는 `fandom_db` 를 만듭니다(기존 DB 와 데이터는 그대로).
+- 각 서비스가 뜨면서 Flyway 가 V2 마이그레이션(사용자 역할, 방송 응원팀, 응원금 후원)을 적용합니다.
+- 확인: `docker compose ps` 에서 `postgres-init` 이 `Exited (0)`, `fandom-service` 가 `Up` 이면 정상입니다. `docker compose logs fandom-service | grep -i flyway` 로 마이그레이션 적용 여부를 볼 수 있습니다.
+
 ## 10. 문제 해결
 
 | 증상 | 확인할 것 |
@@ -237,6 +243,8 @@ docker compose up -d --build
 | 화면 공유 시 소리가 안 나감 | 공유 창에서 "탭 오디오 공유" 또는 "시스템 오디오 공유" 체크. macOS 는 전체 화면 시스템 소리를 지원하지 않으므로 Chrome 탭 공유 사용 |
 | 빌드 중 서버가 멈춤 | `free -h` 로 스왑 확인, 메모리 4GB 이상 유형으로 변경 |
 | 로그인 후 새로고침하면 로그아웃됨 | HTTPS 인데 `COOKIE_SECURE=false` 이거나, HTTP 인데 `true` 로 되어 있지 않은지 |
+| 랭킹, 구단 화면이 비어 있음 | `docker compose logs fandom-service` 확인, `postgres-init` 이 실패했다면 `docker compose up -d postgres-init fandom-service` |
+| 하트가 "잠시 후 다시" 오류 | Redis 상태(`docker compose ps redis`). Redis 가 없으면 하트 한도를 확인할 수 없어 하트만 막힙니다 |
 | 후원 버튼이 비활성화 | `.env` 의 `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY` 입력 후 `docker compose up -d interaction-service` |
 
 유용한 명령어

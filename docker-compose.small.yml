@@ -1,0 +1,52 @@
+# 2GB 서버용 자원 제한. 기본 파일에 겹쳐서 쓴다.
+#   docker compose -f docker-compose.yml -f docker-compose.small.yml up -d --build
+# 숫자를 정한 근거와 측정 방법은 docs/RESOURCE-BUDGET.md 에 있다.
+#
+# JVM 공통 옵션(서비스마다 힙과 메타스페이스 상한만 다르다)
+#   -XX:+UseSerialGC                 GC 스레드 하나. 작은 힙에서는 G1 보다 메모리를 덜 쓰고 멈춤도 짧다.
+#   -Xss512k                         스레드 스택 절반(가상 스레드를 켜서 플랫폼 스레드 수가 적다)
+#   -XX:MaxMetaspaceSize, ReservedCodeCacheSize   클래스와 JIT 코드 영역 상한
+#   -XX:+AutoCreateSharedArchive     첫 실행 때 클래스 공유 파일(CDS)을 만들고 다음 실행부터 써서 기동 시간과 메모리를 줄인다
+#   -XX:TieredStopAtLevel=1          C1 컴파일러만 써서 JIT 메모리를 줄인다(처리량은 조금 손해)
+#   spring.threads.virtual.enabled   요청마다 가상 스레드. SSE 연결이 많아도 플랫폼 스레드가 늘지 않는다
+
+services:
+  postgres:
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "work_mem=2MB", "-c", "maintenance_work_mem=32MB",
+              "-c", "max_connections=60", "-c", "effective_cache_size=256MB"]
+    mem_limit: 256m
+
+  redis:
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "96mb", "--maxmemory-policy", "noeviction"]
+    mem_limit: 128m
+
+  auth-service:
+    mem_limit: 220m
+    environment:
+      JAVA_OPTS: "-Xmx96m -XX:MaxMetaspaceSize=96m -Xms64m -XX:+UseSerialGC -Xss512k -XX:ReservedCodeCacheSize=48m -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:SharedArchiveFile=/tmp/app.jsa -XX:+AutoCreateSharedArchive -Dspring.threads.virtual.enabled=true"
+
+  broadcast-service:
+    mem_limit: 260m
+    environment:
+      JAVA_OPTS: "-Xmx128m -XX:MaxMetaspaceSize=112m -Xms64m -XX:+UseSerialGC -Xss512k -XX:ReservedCodeCacheSize=48m -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:SharedArchiveFile=/tmp/app.jsa -XX:+AutoCreateSharedArchive -Dspring.threads.virtual.enabled=true"
+
+  interaction-service:
+    mem_limit: 260m
+    environment:
+      JAVA_OPTS: "-Xmx128m -XX:MaxMetaspaceSize=112m -Xms64m -XX:+UseSerialGC -Xss512k -XX:ReservedCodeCacheSize=48m -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:SharedArchiveFile=/tmp/app.jsa -XX:+AutoCreateSharedArchive -Dspring.threads.virtual.enabled=true"
+
+  fandom-service:
+    mem_limit: 260m
+    environment:
+      JAVA_OPTS: "-Xmx128m -XX:MaxMetaspaceSize=96m -Xms64m -XX:+UseSerialGC -Xss512k -XX:ReservedCodeCacheSize=48m -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:SharedArchiveFile=/tmp/app.jsa -XX:+AutoCreateSharedArchive -Dspring.threads.virtual.enabled=true"
+
+  gateway:
+    mem_limit: 200m
+    environment:
+      JAVA_OPTS: "-Xmx96m -XX:MaxMetaspaceSize=80m -Xms64m -XX:+UseSerialGC -Xss512k -XX:ReservedCodeCacheSize=48m -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:SharedArchiveFile=/tmp/app.jsa -XX:+AutoCreateSharedArchive"
+
+  mediamtx:
+    mem_limit: 160m
+
+  web:
+    mem_limit: 64m

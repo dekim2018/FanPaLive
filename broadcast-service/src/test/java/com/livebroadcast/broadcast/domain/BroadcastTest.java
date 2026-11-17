@@ -124,4 +124,20 @@ class BroadcastTest {
                 .extracting(e -> ((DomainException) e).getType())
                 .isEqualTo(ErrorType.FORBIDDEN);
     }
+
+    @Test
+    void 운영_제재되면_종료되고_송출과_재시작이_막힌다() {
+        Broadcast b = saved();
+        b.startLive(OWNER, SourceType.PC_SCREEN, "token-1", now);
+
+        boolean ended = b.moderate("중계권 영상 재송출", now);
+
+        assertThat(ended).isTrue();
+        assertThat(b.isModerated()).isTrue();
+        assertThat(b.getStatus()).isEqualTo(BroadcastStatus.ENDED);
+        assertThat(b.canPublishWith("token-1")).isFalse();
+        assertThat(b.isWatchable()).isFalse();
+        assertThatThrownBy(() -> b.startLive(OWNER, SourceType.PC_SCREEN, "token-2", now))
+                .hasMessageContaining("다시 시작할 수 없습니다");
+    }
 }

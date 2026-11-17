@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.livebroadcast.broadcast.app.MediaProperties;
 import com.livebroadcast.broadcast.app.PageResult;
 import com.livebroadcast.broadcast.app.port.in.RecordingUseCase;
+import com.livebroadcast.broadcast.app.port.out.ClipRepositoryPort;
 import com.livebroadcast.broadcast.app.port.out.MediaServerPort;
 import com.livebroadcast.broadcast.app.port.out.RecordingRepositoryPort;
 import com.livebroadcast.broadcast.domain.BroadcastErrors;
@@ -27,12 +28,14 @@ public class RecordingService implements RecordingUseCase {
     private final RecordingRepositoryPort recordingRepository;
     private final MediaServerPort mediaServer;
     private final MediaProperties mediaProperties;
+    private final ClipRepositoryPort clipRepository;
 
     public RecordingService(RecordingRepositoryPort recordingRepository, MediaServerPort mediaServer,
-                            MediaProperties mediaProperties) {
+                            MediaProperties mediaProperties, ClipRepositoryPort clipRepository) {
         this.recordingRepository = recordingRepository;
         this.mediaServer = mediaServer;
         this.mediaProperties = mediaProperties;
+        this.clipRepository = clipRepository;
     }
 
     @Override
@@ -44,8 +47,20 @@ public class RecordingService implements RecordingUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    public PageResult<Recording> list(RecordingFilter filter, int page, int size) {
+        int safeSize = size <= 0 ? 20 : Math.min(size, 50);
+        if (filter.targetId() == null && filter.leagueCode() == null) {
+            return recordingRepository.findVisible(filter.broadcastId(), Math.max(page, 0), safeSize);
+        }
+        return recordingRepository.findVisible(filter.broadcastId(), filter.targetId(), filter.leagueCode(),
+                Math.max(page, 0), safeSize);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RecordingDetail get(Long recordingId) {
         Recording recording = recordingRepository.findById(recordingId)
+                .filter(r -> !recordingRepository.isBroadcastModerated(r.getBroadcastId()))
                 .orElseThrow(BroadcastErrors::recordingNotFound);
         if (!recording.getStatus().isPlayable()) {
             return new RecordingDetail(recording, List.of());
@@ -70,6 +85,8 @@ public class RecordingService implements RecordingUseCase {
         // 파일을 먼저 지운다. 행만 지우면 같은 경로의 다른 녹화가 남아 있는 한 공개 재생 API 로 계속 볼 수 있다.
         SegmentWindow window = windowOf(recording);
         mediaServer.deleteRecordedSegments(recording.getMediaPath(), window.from(), window.to());
+        // 클립은 원본 녹화의 구간이라 원본이 없으면 재생할 수 없다.
+        clipRepository.deleteByRecording(recordingId);
         recordingRepository.delete(recordingId);
     }
 

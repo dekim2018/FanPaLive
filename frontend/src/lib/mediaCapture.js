@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 /**
  * 송출용 미디어 캡처.
  *  - PC: 화면 공유(getDisplayMedia) + 탭/시스템 소리 + 마이크를 Web Audio 로 하나의 오디오 트랙으로 합친다.
@@ -14,7 +15,7 @@ export const supportsCamera = () => !!navigator.mediaDevices?.getUserMedia
 
 export async function capturePcScreen({ withMic = true } = {}) {
   if (!supportsScreenShare()) {
-    throw new Error('이 브라우저는 화면 공유를 지원하지 않습니다. PC 의 Chrome 또는 Edge 를 사용해 주세요.')
+    throw new Error(tr('이 브라우저는 화면 공유를 지원하지 않습니다. PC 의 Chrome 또는 Edge 를 사용해 주세요.'))
   }
   const display = await navigator.mediaDevices.getDisplayMedia({
     video: { frameRate: { ideal: 30, max: 30 }, width: { ideal: 1920 }, height: { ideal: 1080 } },
@@ -33,7 +34,7 @@ export async function capturePcScreen({ withMic = true } = {}) {
         video: false
       })
     } catch (e) {
-      console.warn('마이크를 사용할 수 없습니다', e)
+      console.warn(tr('마이크를 사용할 수 없습니다'), e)
     }
   }
 
@@ -81,7 +82,7 @@ export async function capturePcScreen({ withMic = true } = {}) {
 
 export async function captureCamera({ facingMode = 'user' } = {}) {
   if (!supportsCamera()) {
-    throw new Error('이 브라우저는 카메라를 지원하지 않습니다. HTTPS 주소로 접속했는지 확인해 주세요.')
+    throw new Error(tr('이 브라우저는 카메라를 지원하지 않습니다. HTTPS 주소로 접속했는지 확인해 주세요.'))
   }
   const stream = await navigator.mediaDevices.getUserMedia({
     video: {
@@ -131,10 +132,10 @@ export async function captureCamera({ facingMode = 'user' } = {}) {
 
 export function describeMediaError(e) {
   const name = e?.name
-  if (name === 'NotAllowedError') return '권한이 거부되었습니다. 브라우저 주소창의 권한 설정에서 허용해 주세요.'
-  if (name === 'NotFoundError') return '사용 가능한 카메라 또는 마이크를 찾지 못했습니다.'
-  if (name === 'NotReadableError') return '다른 앱이 카메라나 마이크를 사용 중입니다.'
-  if (name === 'AbortError') return '장치 준비가 취소되었습니다.'
-  if (!window.isSecureContext) return 'HTTPS(또는 localhost) 주소에서만 카메라와 화면 공유를 사용할 수 있습니다.'
-  return e?.message || '장치를 준비하지 못했습니다.'
+  if (name === 'NotAllowedError') return tr('권한이 거부되었습니다. 브라우저 주소창의 권한 설정에서 허용해 주세요.')
+  if (name === 'NotFoundError') return tr('사용 가능한 카메라 또는 마이크를 찾지 못했습니다.')
+  if (name === 'NotReadableError') return tr('다른 앱이 카메라나 마이크를 사용 중입니다.')
+  if (name === 'AbortError') return tr('장치 준비가 취소되었습니다.')
+  if (!window.isSecureContext) return tr('HTTPS(또는 localhost) 주소에서만 카메라와 화면 공유를 사용할 수 있습니다.')
+  return e?.message || tr('장치를 준비하지 못했습니다.')
 }

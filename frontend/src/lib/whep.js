@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 import { ICE_SERVERS, deleteResource, resolveResourceUrl, waitIceGathering } from './webrtc'
 
 /**
@@ -27,9 +28,9 @@ export async function startWhepPlay({ url, onTrack, onStateChange }) {
   })
   if (res.status !== 201) {
     pc.close()
-    if (res.status === 404 || res.status === 400) throw new NotPublishingError('송출 대기 중')
-    if (res.status === 401) throw new NotPublishingError('방송 중이 아닙니다')
-    throw new Error(`미디어 서버 응답 오류(${res.status})`)
+    if (res.status === 404 || res.status === 400) throw new NotPublishingError(tr('송출 대기 중'))
+    if (res.status === 401) throw new NotPublishingError(tr('방송 중이 아닙니다'))
+    throw new Error(tr('미디어 서버 응답 오류({0})', res.status))
   }
   const resourceUrl = resolveResourceUrl(url, res.headers.get('Location'))
   await pc.setRemoteDescription({ type: 'answer', sdp: await res.text() })

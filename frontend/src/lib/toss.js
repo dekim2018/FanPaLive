@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 /**
  * 토스페이먼츠 결제위젯 SDK v2 (결제창 연동).
  * 문서: https://docs.tosspayments.com/sdk/v2/js
@@ -14,14 +15,17 @@ function loadSdk() {
     script.onload = () => resolve(window.TossPayments)
     script.onerror = () => {
       loading = null
-      reject(new Error('결제 모듈을 불러오지 못했습니다.'))
+      reject(new Error(tr('결제 모듈을 불러오지 못했습니다.')))
     }
     document.head.appendChild(script)
   })
   return loading
 }
 
-export async function requestCardPayment({ clientKey, customerKey, order, broadcastId }) {
+/**
+ * @param returnTo 결제 후 돌아갈 화면 경로(방송 또는 구단 페이지). 결과 페이지에 그대로 넘긴다.
+ */
+export async function requestCardPayment({ clientKey, customerKey, order, returnTo }) {
   const TossPayments = await loadSdk()
   const tossPayments = TossPayments(clientKey)
   const payment = tossPayments.payment({ customerKey })
@@ -32,7 +36,7 @@ export async function requestCardPayment({ clientKey, customerKey, order, broadc
     orderId: order.orderId,
     orderName: order.orderName,
     customerName: order.donorNickname,
-    successUrl: `${origin}/donations/success?broadcastId=${broadcastId}`,
-    failUrl: `${origin}/donations/fail?broadcastId=${broadcastId}`
+    successUrl: `${origin}/donations/success?returnTo=${encodeURIComponent(returnTo)}`,
+    failUrl: `${origin}/donations/fail?returnTo=${encodeURIComponent(returnTo)}`
   })
 }

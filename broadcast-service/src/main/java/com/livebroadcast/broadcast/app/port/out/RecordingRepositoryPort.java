@@ -19,7 +19,12 @@ public interface RecordingRepositoryPort {
 
     PageResult<Recording> findVisible(Long broadcastId, int page, int size);
 
+    PageResult<Recording> findVisible(Long broadcastId, Long targetId, String leagueCode, int page, int size);
+
     boolean existsReadyByMediaPath(String mediaPath);
+
+    /** 운영자가 중단한 방송인지. 중단된 방송의 녹화와 클립은 공개하지 않는다. */
+    boolean isBroadcastModerated(Long broadcastId);
 
     void delete(Long id);
 }

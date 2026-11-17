@@ -26,10 +26,20 @@ public class Recording {
     private int segmentCount;
     private String lastSegmentPath;
     private final Instant createdAt;
+    private final FanSide side;
 
     public Recording(Long id, Long broadcastId, Long ownerId, String ownerNickname, String title, String mediaPath,
                      String storageLocation, RecordingStatus status, Instant startedAt, Instant endedAt,
                      long durationSeconds, int segmentCount, String lastSegmentPath, Instant createdAt) {
+        this(id, broadcastId, ownerId, ownerNickname, title, mediaPath, storageLocation, status, startedAt, endedAt,
+                durationSeconds, segmentCount, lastSegmentPath, createdAt, FanSide.NONE);
+    }
+
+    public Recording(Long id, Long broadcastId, Long ownerId, String ownerNickname, String title, String mediaPath,
+                     String storageLocation, RecordingStatus status, Instant startedAt, Instant endedAt,
+                     long durationSeconds, int segmentCount, String lastSegmentPath, Instant createdAt,
+                     FanSide side) {
+        this.side = side == null ? FanSide.NONE : side;
         this.id = id;
         this.broadcastId = broadcastId;
         this.ownerId = ownerId;
@@ -48,9 +58,10 @@ public class Recording {
 
     public static Recording start(Broadcast broadcast, String recordingRoot, Instant now) {
         String path = broadcast.mediaPath();
+        // 다시보기를 팀별로 모아 볼 수 있게 녹화 시작 시점의 편파방 정보를 함께 남긴다.
         return new Recording(null, broadcast.getId(), broadcast.getOwnerId(), broadcast.getOwnerNickname(),
                 broadcast.getTitle(), path, recordingRoot + "/" + path, RecordingStatus.RECORDING,
-                now, null, 0, 0, null, now);
+                now, null, 0, 0, null, now, broadcast.getSide());
     }
 
     public void addSegment(String segmentPath) {
@@ -88,4 +99,5 @@ public class Recording {
     public int getSegmentCount() { return segmentCount; }
     public String getLastSegmentPath() { return lastSegmentPath; }
     public Instant getCreatedAt() { return createdAt; }
+    public FanSide getSide() { return side; }
 }

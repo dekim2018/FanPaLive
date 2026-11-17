@@ -28,9 +28,13 @@ public class RecordingController {
 
     @GetMapping
     public PageResponse<RecordingResponse> list(@RequestParam(required = false) Long broadcastId,
+                                                @RequestParam(name = "target", required = false) Long targetId,
+                                                @RequestParam(name = "league", required = false) String leagueCode,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "20") int size) {
-        return PageResponse.from(recordingUseCase.list(broadcastId, page, size)
+        var filter = new RecordingUseCase.RecordingFilter(broadcastId, targetId,
+                leagueCode == null || leagueCode.isBlank() ? null : leagueCode.strip().toUpperCase());
+        return PageResponse.from(recordingUseCase.list(filter, page, size)
                 .map(r -> RecordingResponse.of(r, List.of())));
     }
 

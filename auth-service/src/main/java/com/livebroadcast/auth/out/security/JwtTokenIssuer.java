@@ -54,6 +54,8 @@ public class JwtTokenIssuer implements TokenIssuerPort {
                 .issuedAt(now)
                 .expiresAt(now.plus(properties.accessTokenTtl()))
                 .claim(JwtClaims.NICKNAME, user.getNickname())
+                .claim(JwtClaims.ROLE, user.getRole().name())
+                .claim(JwtClaims.JOINED_AT, user.getCreatedAt().getEpochSecond())
                 .claim(JwtClaims.TOKEN_TYPE, JwtClaims.TYPE_ACCESS)
                 .build();
 

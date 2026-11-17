@@ -17,3 +17,12 @@ export const recordingApi = {
   get: (id) => http.get(`/recordings/${id}`).then((r) => r.data),
   remove: (id) => http.delete(`/recordings/${id}`)
 }
+
+/** 하이라이트 클립(녹화의 구간) */
+export const clipApi = {
+  list: (params) => http.get('/clips', { params }).then((r) => r.data),
+  get: (id) => http.get(`/clips/${id}`).then((r) => r.data),
+  byRecording: (recordingId) => http.get(`/recordings/${recordingId}/clips`).then((r) => r.data),
+  create: (recordingId, body) => http.post(`/recordings/${recordingId}/clips`, body).then((r) => r.data),
+  remove: (id) => http.delete(`/clips/${id}`)
+}

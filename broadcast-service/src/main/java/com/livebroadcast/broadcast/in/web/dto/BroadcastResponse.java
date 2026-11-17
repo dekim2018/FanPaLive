@@ -5,6 +5,7 @@ import java.time.Instant;
 import com.livebroadcast.broadcast.app.MediaProperties;
 import com.livebroadcast.broadcast.domain.Broadcast;
 import com.livebroadcast.broadcast.domain.BroadcastStatus;
+import com.livebroadcast.broadcast.domain.FanSide;
 import com.livebroadcast.broadcast.domain.SourceType;
 
 public record BroadcastResponse(
@@ -20,11 +21,23 @@ public record BroadcastResponse(
         Instant startedAt,
         Instant endedAt,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        SideResponse side,
+        boolean moderated
 ) {
+    /** 편파방 응원팀. 일반 방송이면 null */
+    public record SideResponse(String leagueCode, Long targetId, String targetName, String targetShortName,
+                               String targetColor, String targetTextColor, Long matchId) {
+        public static SideResponse of(FanSide side) {
+            return side == null || !side.isPresent() ? null : new SideResponse(side.leagueCode(), side.targetId(),
+                    side.targetName(), side.targetShortName(), side.targetColor(), side.targetTextColor(), side.matchId());
+        }
+    }
+
     public static BroadcastResponse of(Broadcast b, MediaProperties media) {
         return new BroadcastResponse(b.getId(), b.getOwnerId(), b.getOwnerNickname(), b.getTitle(),
                 b.getDescription(), b.getStatus(), b.getSourceType(), b.isStreamOnline(),
-                media.whepUrl(b.mediaPath()), b.getStartedAt(), b.getEndedAt(), b.getCreatedAt(), b.getUpdatedAt());
+                media.whepUrl(b.mediaPath()), b.getStartedAt(), b.getEndedAt(), b.getCreatedAt(), b.getUpdatedAt(),
+                SideResponse.of(b.getSide()), b.isModerated());
     }
 }

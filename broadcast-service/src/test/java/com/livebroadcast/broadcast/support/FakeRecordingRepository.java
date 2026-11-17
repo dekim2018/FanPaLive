@@ -14,6 +14,8 @@ import com.livebroadcast.broadcast.domain.RecordingStatus;
 /** 메모리에 녹화를 저장하는 테스트용 저장소 */
 public class FakeRecordingRepository implements RecordingRepositoryPort {
     public final Map<Long, Recording> byId = new HashMap<>();
+    /** 운영자가 중단한 방송 id */
+    public final java.util.Set<Long> moderatedBroadcasts = new java.util.HashSet<>();
     long seq;
 
     @Override
@@ -21,7 +23,7 @@ public class FakeRecordingRepository implements RecordingRepositoryPort {
         Recording saved = new Recording(r.getId() == null ? ++seq : r.getId(), r.getBroadcastId(), r.getOwnerId(),
                 r.getOwnerNickname(), r.getTitle(), r.getMediaPath(), r.getStorageLocation(), r.getStatus(),
                 r.getStartedAt(), r.getEndedAt(), r.getDurationSeconds(), r.getSegmentCount(),
-                r.getLastSegmentPath(), r.getCreatedAt());
+                r.getLastSegmentPath(), r.getCreatedAt(), r.getSide());
         byId.put(saved.getId(), saved);
         return saved;
     }
@@ -48,6 +50,16 @@ public class FakeRecordingRepository implements RecordingRepositoryPort {
     @Override
     public PageResult<Recording> findVisible(Long broadcastId, int page, int size) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PageResult<Recording> findVisible(Long broadcastId, Long targetId, String leagueCode, int page, int size) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isBroadcastModerated(Long broadcastId) {
+        return moderatedBroadcasts.contains(broadcastId);
     }
 
     @Override

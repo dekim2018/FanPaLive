@@ -6,6 +6,7 @@ import com.livebroadcast.broadcast.domain.BroadcastStatus;
 import com.livebroadcast.broadcast.domain.SourceType;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -63,13 +64,23 @@ public class BroadcastJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Embedded
+    private FanSideColumns side;
+
+    @Column(name = "moderated_at")
+    private Instant moderatedAt;
+
+    @Column(name = "moderation_reason", length = 200)
+    private String moderationReason;
+
     protected BroadcastJpaEntity() {
     }
 
     BroadcastJpaEntity(Long id, Long ownerId, String ownerNickname, String title, String description,
                        BroadcastStatus status, SourceType sourceType, boolean streamOnline, String publishToken,
                        Instant streamOfflineSince, Instant startedAt, Instant endedAt,
-                       Instant createdAt, Instant updatedAt) {
+                       Instant createdAt, Instant updatedAt, FanSideColumns side) {
+        this.side = side;
         this.id = id;
         this.ownerId = ownerId;
         this.ownerNickname = ownerNickname;
@@ -100,4 +111,19 @@ public class BroadcastJpaEntity {
     Instant getEndedAt() { return endedAt; }
     Instant getCreatedAt() { return createdAt; }
     Instant getUpdatedAt() { return updatedAt; }
+    FanSideColumns getSide() { return side; }
+
+    BroadcastJpaEntity moderation(Instant at, String reason) {
+        this.moderatedAt = at;
+        this.moderationReason = reason;
+        return this;
+    }
+
+    Instant getModeratedAt() {
+        return moderatedAt;
+    }
+
+    String getModerationReason() {
+        return moderationReason;
+    }
 }
