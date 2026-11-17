@@ -1,6 +1,6 @@
 <script setup>
 import { tr } from '../i18n'
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authApi } from '../api/auth'
 import { errorMessage } from '../api/http'
@@ -17,6 +17,7 @@ const password = ref('')
 const error = ref('')
 const submitting = ref(false)
 const testAccounts = ref([])
+const passwordInput = ref(null)
 
 function goNext() {
   const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/'
@@ -32,6 +33,10 @@ async function submit() {
     goNext()
   } catch (e) {
     error.value = errorMessage(e, tr('로그인에 실패했습니다.'))
+    // 대개 비밀번호를 다시 쳐야 하므로 그 칸으로 초점을 옮기고 내용을 선택해 둔다.
+    await nextTick()
+    passwordInput.value?.focus()
+    passwordInput.value?.select()
   } finally {
     submitting.value = false
   }
@@ -63,9 +68,9 @@ onMounted(async () => {
         <input name="username" v-model.trim="username" class="input" autocomplete="username" spellcheck="false" autocapitalize="none" required />
       </label>
       <label class="field">{{ tr('비밀번호') }}
-        <input name="password" v-model="password" class="input" type="password" autocomplete="current-password" required />
+        <input ref="passwordInput" name="password" v-model="password" class="input" type="password" autocomplete="current-password" required />
       </label>
-      <div v-if="error" class="error-text">{{ error }}</div>
+      <div v-if="error" class="error-text" role="alert">{{ error }}</div>
       <button class="btn primary block" :disabled="submitting">{{ tr('로그인') }}</button>
       <div class="small muted">{{ tr('계정이 없나요?') }} <RouterLink to="/signup" class="accent">{{ tr('회원가입') }}</RouterLink></div>
     </form>

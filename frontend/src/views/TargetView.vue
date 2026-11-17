@@ -1,6 +1,6 @@
 <script setup>
 import { tr } from '../i18n'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { broadcastApi, clipApi, recordingApi } from '../api/broadcasts'
 import { fandomApi, viewerApi } from '../api/fandom'
@@ -11,6 +11,8 @@ import DonationPanel from '../components/DonationPanel.vue'
 import HeartButton from '../components/HeartButton.vue'
 import TeamCrest from '../components/TeamCrest.vue'
 import { useViewerStats } from '../composables/useViewerStats'
+import { latestOnly } from '../lib/latest'
+import { q, syncQuery } from '../lib/query'
 import { formatCount, formatDate, formatDuration, formatWon } from '../lib/format'
 import { KIND_LABEL, PERIOD_LABEL, teamStyle } from '../lib/team'
 import { useAuthStore } from '../stores/auth'
@@ -28,16 +30,22 @@ const { stats, refresh: refreshViewers } = useViewerStats()
 
 const detail = ref(null)
 const error = ref('')
-const tab = ref('live')
+const TABS = ['live', 'supporters', 'streamers', 'history', 'vod', 'clips']
+const tab = ref(q(route, 'tab', 'live', TABS))
 const lives = ref([])
 const recordings = ref([])
 const supporters = ref([])
-const supporterPeriod = ref('SEASON')
+const supporterPeriod = ref(q(route, 'period', 'SEASON', ['WEEKLY', 'MONTHLY', 'SEASON']))
+// 새로고침이나 링크 공유를 해도 같은 탭과 기간이 열리도록 주소에 남긴다.
+watch([tab, supporterPeriod], () => syncQuery(router, route,
+  { tab: tab.value, period: supporterPeriod.value }, { tab: 'live', period: 'SEASON' }))
 const history = ref([])
 const monthlyViewers = ref(0)
 const streamers = ref(null)
 const clips = ref([])
 const busy = ref(false)
+const tabLoading = ref(false)
+const tabError = ref('')
 
 const t = computed(() => detail.value?.target)
 const myFan = computed(() => detail.value?.myFan)
@@ -51,24 +59,44 @@ async function load() {
   }
 }
 
+// 탭을 빠르게 바꾸면 이전 탭의 늦은 응답(실패 포함)이 지금 탭의 로딩/오류 상태를 덮어쓰므로 마지막 요청만 반영한다.
+const latestTab = latestOnly()
+
+function fetchTab() {
+  if (tab.value === 'live') return broadcastApi.list({ target: targetId, status: 'LIVE', size: 12 })
+  if (tab.value === 'vod') return recordingApi.list({ target: targetId, size: 12 })
+  if (tab.value === 'supporters') return fandomApi.supporters(targetId, supporterPeriod.value, 20)
+  if (tab.value === 'history') return fandomApi.rankHistory(targetId, 8)
+  if (tab.value === 'streamers') return viewerApi.streamerRanking(targetId)
+  return clipApi.list({ target: targetId, size: 12 })
+}
+
 async function loadTab() {
+  const current = tab.value
+  tabLoading.value = true
+  tabError.value = ''
   try {
-    if (tab.value === 'live') {
-      lives.value = (await broadcastApi.list({ target: targetId, status: 'LIVE', size: 12 })).content
+    const { value, stale } = await latestTab(fetchTab())
+    if (stale) return
+    if (current === 'live') {
+      lives.value = value.content
       refreshViewers(lives.value)
-    } else if (tab.value === 'vod') {
-      recordings.value = (await recordingApi.list({ target: targetId, size: 12 })).content
-    } else if (tab.value === 'supporters') {
-      supporters.value = await fandomApi.supporters(targetId, supporterPeriod.value, 20)
-    } else if (tab.value === 'history') {
-      history.value = [...(await fandomApi.rankHistory(targetId, 8))].reverse()
-    } else if (tab.value === 'streamers') {
-      streamers.value = await viewerApi.streamerRanking(targetId)
-    } else if (tab.value === 'clips') {
-      clips.value = (await clipApi.list({ target: targetId, size: 12 })).content
+    } else if (current === 'vod') {
+      recordings.value = value.content
+    } else if (current === 'supporters') {
+      supporters.value = value
+    } else if (current === 'history') {
+      history.value = [...value].reverse()
+    } else if (current === 'streamers') {
+      streamers.value = value
+    } else {
+      clips.value = value.content
     }
-  } catch {
-    // 탭 내용은 비어 있는 상태로 둔다.
+    tabLoading.value = false
+  } catch (e) {
+    // 실패를 숨기면 '없습니다' 빈 상태로 보여 오해하게 되므로 오류와 다시 시도를 보여 준다.
+    tabError.value = errorMessage(e)
+    tabLoading.value = false
   }
 }
 
@@ -163,30 +191,34 @@ onMounted(async () => {
     <div class="layout-watch">
       <div>
         <div class="tabs">
-          <button :class="{ active: tab === 'live' }" @click="changeTab('live')">{{ tr('편파방 LIVE') }}</button>
-          <button :class="{ active: tab === 'supporters' }" @click="changeTab('supporters')">{{ tr('서포터 순위') }}</button>
-          <button :class="{ active: tab === 'streamers' }" @click="changeTab('streamers')">{{ tr('스트리머 순위') }}</button>
-          <button :class="{ active: tab === 'history' }" @click="changeTab('history')">{{ tr('순위 변화') }}</button>
-          <button :class="{ active: tab === 'vod' }" @click="changeTab('vod')">{{ tr('다시보기') }}</button>
-          <button :class="{ active: tab === 'clips' }" @click="changeTab('clips')">{{ tr('하이라이트') }}</button>
+          <button type="button" :class="{ active: tab === 'live' }" :aria-pressed="tab === 'live'" @click="changeTab('live')">{{ tr('편파방 LIVE') }}</button>
+          <button type="button" :class="{ active: tab === 'supporters' }" :aria-pressed="tab === 'supporters'" @click="changeTab('supporters')">{{ tr('서포터 순위') }}</button>
+          <button type="button" :class="{ active: tab === 'streamers' }" :aria-pressed="tab === 'streamers'" @click="changeTab('streamers')">{{ tr('스트리머 순위') }}</button>
+          <button type="button" :class="{ active: tab === 'history' }" :aria-pressed="tab === 'history'" @click="changeTab('history')">{{ tr('순위 변화') }}</button>
+          <button type="button" :class="{ active: tab === 'vod' }" :aria-pressed="tab === 'vod'" @click="changeTab('vod')">{{ tr('다시보기') }}</button>
+          <button type="button" :class="{ active: tab === 'clips' }" :aria-pressed="tab === 'clips'" @click="changeTab('clips')">{{ tr('하이라이트') }}</button>
         </div>
 
-        <div v-if="tab === 'live'">
-          <div v-if="!lives.length" class="empty">
+        <div v-if="tabError" class="empty">{{ tabError }} <button type="button" class="btn sm" @click="loadTab">{{ tr('다시 시도') }}</button></div>
+
+        <div v-else-if="tab === 'live'">
+          <div v-if="tabLoading && !lives.length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+          <div v-else-if="!lives.length" class="empty">
             {{ tr('지금 {0} 편파중계가 없습니다.', tr(t.name)) }}
             <div style="margin-top:12px"><RouterLink to="/broadcasts/new" class="btn primary sm">{{ tr('내가 편파중계 하기') }}</RouterLink></div>
           </div>
-          <div v-else class="grid">
+          <div v-else class="grid" :aria-busy="tabLoading">
             <BroadcastCard v-for="b in lives" :key="b.id" :broadcast="b" :viewers="stats[b.id]" />
           </div>
         </div>
 
         <div v-else-if="tab === 'supporters'" class="stack">
           <div class="pill-tabs">
-            <button v-for="p in ['WEEKLY', 'MONTHLY', 'SEASON']" :key="p" :class="{ active: supporterPeriod === p }"
+            <button v-for="p in ['WEEKLY', 'MONTHLY', 'SEASON']" :key="p" type="button" :class="{ active: supporterPeriod === p }"
+                    :aria-pressed="supporterPeriod === p"
                     @click="supporterPeriod = p; loadTab()">{{ PERIOD_LABEL[p] }}</button>
           </div>
-          <table v-if="supporters.length" class="table">
+          <table v-if="supporters.length" class="table" :aria-busy="tabLoading">
             <thead><tr><th>{{ tr('순위') }}</th><th>{{ tr('팬') }}</th><th>{{ tr('기여 점수') }}</th><th>{{ tr('하트') }}</th><th>{{ tr('후원') }}</th></tr></thead>
             <tbody>
               <tr v-for="(s, i) in supporters" :key="s.userId">
@@ -198,12 +230,13 @@ onMounted(async () => {
               </tr>
             </tbody>
           </table>
+          <div v-else-if="tabLoading" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
           <div v-else class="empty">{{ tr('아직 기여한 팬이 없습니다. 첫 하트를 보내 보세요.') }}</div>
         </div>
 
         <div v-else-if="tab === 'streamers'" class="stack">
           <p class="small muted" style="margin:0">{{ tr('이번 달 {0} 편파방을 연 스트리머 순위입니다. 점수는 순시청자 1명당 1점, 받은 후원 1,000원당 1점이에요.', tr(t.name)) }}</p>
-          <table v-if="streamers?.rows.length" class="table">
+          <table v-if="streamers?.rows.length" class="table" :aria-busy="tabLoading">
             <thead><tr><th>{{ tr('순위') }}</th><th>{{ tr('스트리머') }}</th><th>{{ tr('순시청자') }}</th><th>{{ tr('받은 후원') }}</th><th>{{ tr('점수') }}</th></tr></thead>
             <tbody>
               <tr v-for="r in streamers.rows" :key="r.streamerId">
@@ -215,19 +248,22 @@ onMounted(async () => {
               </tr>
             </tbody>
           </table>
+          <div v-else-if="tabLoading" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
           <div v-else class="empty">{{ tr('이번 달에는 아직 {0} 편파방이 없었어요.', tr(t.name)) }}</div>
         </div>
 
         <div v-else-if="tab === 'clips'">
-          <div v-if="!clips.length" class="empty">{{ tr('아직 이 팀의 하이라이트가 없습니다.') }}</div>
-          <div v-else class="grid dense">
+          <div v-if="tabLoading && !clips.length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+          <div v-else-if="!clips.length" class="empty">{{ tr('아직 이 팀의 하이라이트가 없습니다.') }}</div>
+          <div v-else class="grid dense" :aria-busy="tabLoading">
             <ClipCard v-for="c in clips" :key="c.id" :clip="c" />
           </div>
         </div>
 
         <div v-else-if="tab === 'history'" class="card">
-          <div v-if="!history.length" class="muted small">{{ tr('주간 순위 기록은 매주 월요일 0시에 저장됩니다.') }}</div>
-          <div v-else class="history">
+          <div v-if="tabLoading && !history.length" class="muted small" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+          <div v-else-if="!history.length" class="muted small">{{ tr('주간 순위 기록은 매주 월요일 0시에 저장됩니다.') }}</div>
+          <div v-else class="history" :aria-busy="tabLoading">
             <div v-for="h in history" :key="h.periodKey" class="hbar">
               <span class="xsmall num">{{ tr('{0}위', h.rank) }}</span>
               <div class="bar" :style="{ height: `${Math.max(8, 100 - ((h.rank - 1) / maxRank) * 100)}%` }"></div>
@@ -237,8 +273,9 @@ onMounted(async () => {
         </div>
 
         <div v-else-if="tab === 'vod'">
-          <div v-if="!recordings.length" class="empty">{{ tr('이 팀의 다시보기가 없습니다.') }}</div>
-          <div v-else class="stack">
+          <div v-if="tabLoading && !recordings.length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+          <div v-else-if="!recordings.length" class="empty">{{ tr('이 팀의 다시보기가 없습니다.') }}</div>
+          <div v-else class="stack" :aria-busy="tabLoading">
             <RouterLink v-for="r in recordings" :key="r.id" :to="`/recordings/${r.id}`" class="card row rec">
               <span class="badge vod">VOD</span>
               <strong class="ellipsis">{{ r.title }}</strong>

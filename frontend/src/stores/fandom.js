@@ -8,6 +8,8 @@ export const useFandomStore = defineStore('fandom', {
   state: () => ({
     config: null,
     sports: [],
+    sportsLoading: true,
+    sportsError: false,
     myFans: [],
     myFansLoaded: false,
     badges: {},
@@ -21,9 +23,20 @@ export const useFandomStore = defineStore('fandom', {
   },
   actions: {
     async init() {
-      const [config, sports] = await Promise.allSettled([fandomApi.config(), fandomApi.sports()])
+      const [config] = await Promise.allSettled([fandomApi.config(), this.loadSports()])
       if (config.status === 'fulfilled') this.config = config.value
-      if (sports.status === 'fulfilled') this.sports = sports.value
+    },
+    /** 종목/리그 목록. 실패는 던지지 않고 sportsError 로 남겨 화면이 다시 시도 버튼을 보이게 한다. */
+    async loadSports() {
+      this.sportsLoading = true
+      this.sportsError = false
+      try {
+        this.sports = await fandomApi.sports()
+      } catch {
+        this.sportsError = true
+      } finally {
+        this.sportsLoading = false
+      }
     },
     leagueByCode(code) {
       return this.leagues.find((l) => l.code === code)

@@ -10,6 +10,7 @@ import RankingTable from '../components/RankingTable.vue'
 import TeamCrest from '../components/TeamCrest.vue'
 import { useViewerStats } from '../composables/useViewerStats'
 import { formatCount } from '../lib/format'
+import { latestOnly } from '../lib/latest'
 import { teamFg } from '../lib/team'
 import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
@@ -25,6 +26,8 @@ const ranking = ref(null)
 const overall = ref([])
 const error = ref('')
 let timer = null
+// 리그를 빠르게 바꾸거나 15초 폴링과 겹쳐도 마지막 요청의 응답만 쓴다
+const latestLives = latestOnly()
 
 const featured = computed(() => lives.value[0] || null)
 const rest = computed(() => lives.value.slice(featured.value ? 1 : 0))
@@ -35,7 +38,9 @@ async function loadLives() {
   try {
     const params = { status: 'LIVE', size: 30 }
     if (league.value) params.league = league.value
-    lives.value = (await broadcastApi.list(params)).content
+    const { value, stale } = await latestLives(broadcastApi.list(params))
+    if (stale) return
+    lives.value = value.content
     error.value = ''
     refreshViewers(lives.value)
   } catch (e) {
@@ -133,8 +138,8 @@ onBeforeUnmount(() => clearInterval(timer))
         <RouterLink to="/live" class="more">{{ tr('전체 보기') }}</RouterLink>
       </div>
       <div class="pill-tabs">
-        <button :class="{ active: !league }" @click="pickLeague('')">{{ tr('전체') }}</button>
-        <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="pickLeague(l.code)">{{ tr(l.name) }}</button>
+        <button type="button" :class="{ active: !league }" :aria-pressed="!league" @click="pickLeague('')">{{ tr('전체') }}</button>
+        <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }" :aria-pressed="league === l.code" @click="pickLeague(l.code)">{{ tr(l.name) }}</button>
       </div>
       <div v-if="error" class="empty">{{ error }}</div>
       <div v-else-if="!rest.length && !featured" class="empty">

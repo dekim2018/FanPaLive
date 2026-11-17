@@ -1,6 +1,6 @@
 <script setup>
 import { tr } from '../i18n'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '../api/auth'
 import { errorMessage } from '../api/http'
@@ -13,11 +13,17 @@ const toast = useToastStore()
 const form = ref({ username: '', password: '', passwordConfirm: '', nickname: '' })
 const error = ref('')
 const submitting = ref(false)
+// 비밀번호 불일치는 확인 칸 바로 아래에 보여 주고 그 칸으로 초점을 옮긴다.
+const mismatch = ref('')
+const confirmInput = ref(null)
 
 async function submit() {
   error.value = ''
+  mismatch.value = ''
   if (form.value.password !== form.value.passwordConfirm) {
-    error.value = tr('비밀번호가 서로 다릅니다.')
+    mismatch.value = tr('비밀번호가 서로 다릅니다.')
+    await nextTick()
+    confirmInput.value?.focus()
     return
   }
   submitting.value = true
@@ -48,9 +54,11 @@ async function submit() {
         <input name="password" v-model="form.password" class="input" type="password" minlength="8" maxlength="64" autocomplete="new-password" required />
       </label>
       <label class="field">{{ tr('비밀번호 확인') }}
-        <input name="password-confirm" v-model="form.passwordConfirm" class="input" type="password" autocomplete="new-password" required />
+        <input ref="confirmInput" name="password-confirm" v-model="form.passwordConfirm" class="input" type="password" autocomplete="new-password" required
+               :aria-invalid="!!mismatch" :aria-describedby="mismatch ? 'password-confirm-error' : undefined" />
       </label>
-      <div v-if="error" class="error-text">{{ error }}</div>
+      <div v-if="mismatch" id="password-confirm-error" class="error-text" role="alert">{{ mismatch }}</div>
+      <div v-if="error" class="error-text" role="alert">{{ error }}</div>
       <button class="btn primary block" :disabled="submitting">{{ tr('가입하기') }}</button>
       <div class="small muted">{{ tr('이미 계정이 있나요?') }} <RouterLink to="/login" class="text-link">{{ tr('로그인') }}</RouterLink></div>
     </form>

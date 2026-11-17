@@ -26,7 +26,11 @@ const KIND = { TEAM: tr('팀 종목'), INDIVIDUAL: tr('개인 종목') }
         </RouterLink>
       </div>
     </section>
-    <div v-if="!fandom.sports.length" class="empty">{{ tr('종목 정보를 불러오는 중입니다.') }}</div>
+    <template v-if="!fandom.sports.length">
+      <div v-if="fandom.sportsError" class="empty">{{ tr('종목 정보를 불러오지 못했습니다.') }} <button type="button" class="btn sm" @click="fandom.loadSports()">{{ tr('다시 시도') }}</button></div>
+      <div v-else-if="fandom.sportsLoading" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+      <div v-else class="empty">{{ tr('등록된 종목이 없습니다.') }}</div>
+    </template>
   </div>
 </template>
 
