@@ -37,7 +37,7 @@ const MENU = [
       <div class="group-title">내 응원팀</div>
       <template v-if="auth.isLoggedIn && fandom.myFans.length">
         <RouterLink v-for="f in fandom.myFans" :key="f.target.id" :to="`/targets/${f.target.id}`" class="item team" @click="emit('close')">
-          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :size="26" />
+          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :color2="f.target.colorSecondary" :size="26" />
           <span class="ellipsis">{{ f.target.name }}</span>
           <span v-if="f.primary" class="star" aria-label="주 응원팀">★</span>
         </RouterLink>
@@ -74,7 +74,7 @@ const MENU = [
   font-size: 14px; font-weight: 600; color: var(--text-sub); min-width: 0; min-height: 40px;
 }
 .item:hover { background: var(--bg-elev-2); color: var(--text); }
-.item.router-link-exact-active { background: var(--accent-soft); color: var(--accent-text); }
+.item.router-link-exact-active { background: var(--accent-soft); color: var(--accent-text); box-shadow: inset 3px 0 0 var(--accent); }
 .team { gap: 10px; }
 .star { margin-left: auto; color: var(--gold); font-size: 12px; }
 .hint { color: var(--text-sub); font-size: 13px; }

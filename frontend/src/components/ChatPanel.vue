@@ -136,7 +136,7 @@ onMounted(() => load())
         </template>
         <template v-else>
           <TeamBadge v-if="fandom.badges[c.authorId]?.length" :label="fandom.badges[c.authorId][0].shortName"
-                     :color="fandom.badges[c.authorId][0].colorPrimary" class="cbadge" />
+                     :color="fandom.badges[c.authorId][0].colorPrimary" :color2="fandom.badges[c.authorId][0].colorSecondary" class="cbadge" />
           <span class="author">{{ c.authorNickname }}</span>
           <span class="text">{{ c.content }}</span>
           <span v-if="c.edited" class="muted small"> (수정됨)</span>

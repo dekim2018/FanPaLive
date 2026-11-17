@@ -39,7 +39,7 @@ public class FandomServiceClient implements FandomQueryPort {
     public Optional<TargetInfo> findTarget(Long targetId) {
         return get("/internal/targets/{id}", targetId, TargetDto.class)
                 .map(d -> new TargetInfo(d.id(), d.leagueCode(), d.name(), d.shortName(), d.colorPrimary(),
-                        d.status()));
+                        d.colorSecondary(), d.status()));
     }
 
     @Override
@@ -65,7 +65,8 @@ public class FandomServiceClient implements FandomQueryPort {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record TargetDto(Long id, String leagueCode, String name, String shortName, String colorPrimary, String status) {
+    record TargetDto(Long id, String leagueCode, String name, String shortName, String colorPrimary,
+                     String colorSecondary, String status) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

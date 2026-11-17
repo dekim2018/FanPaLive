@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { formatCount } from '../lib/format'
-import { readable } from '../lib/team'
+import { gaugeColors, readable } from '../lib/team'
 
 /** 매치룸 응원 게이지: 홈/원정 하트 비율 */
 const props = defineProps({
@@ -14,18 +14,20 @@ const percent = computed(() => {
   const total = props.homeHearts + props.awayHearts
   return total === 0 ? 50 : Math.round((props.homeHearts * 100) / total)
 })
+// 두 팀 배경색이 비슷하면 한쪽을 글자색으로 칠해 막대를 구분한다(두산과 롯데, KIA와 SSG)
+const colors = computed(() => gaugeColors(props.home, props.away))
 </script>
 
 <template>
   <div class="gauge">
     <div class="labels row nowrap">
-      <strong :style="{ color: readable(home.colorPrimary, home.colorSecondary) }">{{ home.shortName || home.name }} {{ percent }}%</strong>
+      <strong :style="{ color: readable(colors.home) }">{{ home.shortName || home.name }} {{ percent }}%</strong>
       <span class="spacer"></span>
-      <strong :style="{ color: readable(away.colorPrimary, away.colorSecondary) }">{{ 100 - percent }}% {{ away.shortName || away.name }}</strong>
+      <strong :style="{ color: readable(colors.away) }">{{ 100 - percent }}% {{ away.shortName || away.name }}</strong>
     </div>
     <div class="bar" role="img" :aria-label="`응원 게이지 ${home.name} ${percent}퍼센트, ${away.name} ${100 - percent}퍼센트`">
-      <div class="home" :style="{ width: percent + '%', background: home.colorPrimary }"></div>
-      <div class="away" :style="{ background: away.colorPrimary }"></div>
+      <div class="home" :style="{ width: percent + '%', background: colors.home }"></div>
+      <div class="away" :style="{ background: colors.away }"></div>
     </div>
     <div class="row nowrap small muted num">
       <span>하트 {{ formatCount(homeHearts) }}</span>
@@ -38,6 +40,6 @@ const percent = computed(() => {
 <style scoped>
 .gauge { display: flex; flex-direction: column; gap: 6px; }
 .bar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--bg-elev-2); }
-.home { transition: width .5s ease; border-right: 2px solid var(--bg-elev); }
+.home { transition: width .5s ease; border-right: 3px solid var(--bg-elev); }
 .away { flex: 1; }
 </style>

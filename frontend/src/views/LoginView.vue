@@ -85,5 +85,5 @@ onMounted(async () => {
 
 <style scoped>
 .auth-page { max-width: 420px; margin: 24px auto; display: flex; flex-direction: column; gap: 16px; }
-.accent { color: var(--accent); }
+.accent { color: var(--text); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 </style>

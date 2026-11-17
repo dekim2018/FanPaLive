@@ -66,7 +66,7 @@ async function logout() {
     </button>
     <RouterLink to="/" class="logo" aria-label="팬파라이브 홈">
       <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
-        <rect x="2" y="2" width="28" height="28" rx="8" fill="#0b57d0"/>
+        <rect x="2" y="2" width="28" height="28" rx="8" fill="#5e5ede"/>
         <path d="M10 9h12v4h-8v3h7v4h-7v4h-4z" fill="#fff"/>
         <circle cx="24" cy="22" r="3" fill="#ff5a4e"/>
       </svg>
@@ -81,7 +81,7 @@ async function logout() {
       <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
       <div v-if="searchOpen && results.length" class="search-pop" aria-label="검색 결과">
         <button v-for="t in results" :key="t.id" type="button" class="search-item" @mousedown.prevent="pick(t)">
-          <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :size="28" />
+          <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="28" />
           <span class="ellipsis">{{ t.name }}</span>
           <span class="muted xsmall">{{ t.leagueName }}</span>
         </button>
@@ -149,6 +149,7 @@ async function logout() {
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
   background: var(--accent-soft); color: var(--accent-text); font-weight: 900;
+  box-shadow: inset 0 0 0 1px var(--key);
 }
 .menu {
   position: absolute; right: 0; top: 42px; min-width: 180px; z-index: 40;

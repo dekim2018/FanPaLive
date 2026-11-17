@@ -55,7 +55,7 @@ onMounted(async () => {
       <div v-if="!fandom.myFans.length" class="muted small">아직 응원팀이 없습니다.</div>
       <div class="grid dense">
         <RouterLink v-for="f in fandom.myFans" :key="f.target.id" :to="`/targets/${f.target.id}`" class="row nowrap fan">
-          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :size="40" />
+          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :color2="f.target.colorSecondary" :size="40" />
           <div style="min-width:0">
             <strong class="ellipsis" style="display:block">{{ f.target.name }}</strong>
             <span class="xsmall muted">{{ f.leagueName }}, {{ f.primary ? '★ 주 응원팀' : '팔로우' }}</span>

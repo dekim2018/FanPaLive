@@ -1,8 +1,11 @@
 <script setup>
 import TeamCrest from './TeamCrest.vue'
+import { computed } from 'vue'
 import { formatDate } from '../lib/format'
+import { gaugeColors } from '../lib/team'
 
-defineProps({ match: { type: Object, required: true } })
+const props = defineProps({ match: { type: Object, required: true } })
+const gauge = computed(() => gaugeColors(props.match.home, props.match.away))
 const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED: '취소' }
 </script>
 
@@ -17,7 +20,7 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
     </div>
     <div class="teams">
       <div class="team">
-        <TeamCrest :name="match.home.name" :short-name="match.home.shortName" :color="match.home.colorPrimary" :size="40" />
+        <TeamCrest :name="match.home.name" :short-name="match.home.shortName" :color="match.home.colorPrimary" :color2="match.home.colorSecondary" :size="40" />
         <span class="ellipsis">{{ match.home.shortName || match.home.name }}</span>
       </div>
       <div class="score num">
@@ -25,13 +28,13 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
         <template v-else>{{ match.homeScore }} : {{ match.awayScore }}</template>
       </div>
       <div class="team">
-        <TeamCrest :name="match.away.name" :short-name="match.away.shortName" :color="match.away.colorPrimary" :size="40" />
+        <TeamCrest :name="match.away.name" :short-name="match.away.shortName" :color="match.away.colorPrimary" :color2="match.away.colorSecondary" :size="40" />
         <span class="ellipsis">{{ match.away.shortName || match.away.name }}</span>
       </div>
     </div>
     <div class="mini-gauge" aria-hidden="true">
-      <div :style="{ width: match.homePercent + '%', background: match.home.colorPrimary }"></div>
-      <div :style="{ flex: 1, background: match.away.colorPrimary }"></div>
+      <div :style="{ width: match.homePercent + '%', background: gauge.home }"></div>
+      <div :style="{ flex: 1, background: gauge.away }"></div>
     </div>
   </RouterLink>
 </template>
@@ -46,5 +49,6 @@ const STATUS = { SCHEDULED: '예정', LIVE: 'LIVE', FINISHED: '종료', CANCELED
 .teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
 .team { display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 14px; min-width: 0; }
 .score { font-size: 20px; font-weight: 900; }
-.mini-gauge { display: flex; height: 4px; border-radius: 999px; overflow: hidden; background: var(--bg-elev-2); }
+.mini-gauge > div:first-child { border-right: 2px solid var(--bg-elev); }
+.mini-gauge { display: flex; height: 5px; border-radius: 999px; overflow: hidden; background: var(--bg-elev-2); }
 </style>

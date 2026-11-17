@@ -163,7 +163,7 @@ onMounted(load)
 <style scoped>
 .total { color: var(--accent-text); }
 .accent { color: var(--accent-text); font-weight: 800; }
-.alert { background: var(--accent-soft); border: 1px solid var(--accent); padding: 10px 12px; border-radius: 10px; }
+.alert { background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 10px 12px; border-radius: 10px; }
 .mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .mode button {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px;
@@ -171,7 +171,7 @@ onMounted(load)
   font-weight: 800; font-size: 13px; cursor: pointer; text-align: left;
 }
 .mode button:hover { background: var(--bg-elev-2); }
-.mode button.on { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); }
+.mode button.on { border-color: var(--accent-border); color: var(--accent-text); background: var(--accent-soft); }
 .mode .xsmall { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .list { gap: 8px; max-height: 240px; overflow-y: auto; }
 .item { padding: 8px 0; border-top: 1px solid var(--border); }

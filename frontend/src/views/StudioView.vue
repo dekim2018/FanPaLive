@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
   display: flex; align-items: center; gap: 8px; padding: 10px 12px;
   border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 14px;
 }
-.source.active { border-color: var(--accent); background: var(--accent-soft); }
+.source.active { border-color: var(--accent-border); background: var(--accent-soft); }
 .source.disabled { opacity: .5; cursor: not-allowed; }
 .link { background: var(--bg); padding: 4px 8px; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 </style>

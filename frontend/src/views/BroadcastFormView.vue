@@ -203,12 +203,12 @@ async function submit() {
   display: flex; flex-direction: column; gap: 2px; align-items: flex-start; text-align: left;
   padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer;
 }
-.mode button.on { border-color: var(--accent); background: var(--accent-soft); }
+.mode button.on { border-color: var(--accent-border); background: var(--accent-soft); }
 .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
 .team {
   display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px;
   border: 2px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; min-width: 0;
 }
 .team.on { background: var(--bg-elev-2); }
-.link { color: var(--accent-text); }
+.link { color: var(--text); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 </style>

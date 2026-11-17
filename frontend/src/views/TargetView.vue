@@ -221,19 +221,19 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* 팀 색 배너. 글자색은 팀 색과 대비가 큰 쪽(흰색 또는 검정)을 teamStyle() 이 정한다. */
+/* 팀 색 배너: 진한 배경색(--team) 위에 연한 글자색(--team-on), 보조 글자는 --team-sub. 값은 teamStyle() 이 대비를 확인해서 넣는다. */
 .banner {
   display: flex; align-items: center; gap: 20px; padding: 24px; border-radius: 14px; margin-bottom: 8px; flex-wrap: wrap;
   background: linear-gradient(110deg, var(--team) 55%, color-mix(in srgb, var(--team) 80%, #000) 100%);
   color: var(--team-on);
 }
-.banner .chip { background: color-mix(in srgb, currentColor 16%, transparent); color: inherit; }
+.banner .chip { background: transparent; border: 1px solid var(--team-sub); color: var(--team-sub); }
 .banner-text { flex: 1; min-width: 200px; }
 .name { font-size: 30px; margin: 6px 0 0; }
-.en { opacity: .85; }
+.en { color: var(--team-sub); }
 .banner-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.banner-actions .btn.team { background: #fff; color: #111827; }
-.banner-actions .btn.team:hover { background: #f2f4f7; filter: none; }
+.banner-actions .btn.team { background: var(--team-on); color: var(--team); }
+.banner-actions .btn.team:hover { filter: brightness(.94); }
 .banner-actions .btn.ghost { background: transparent; border-color: currentColor; color: inherit; }
 .banner-actions .btn.ghost:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
 .mine { font-weight: 800; }

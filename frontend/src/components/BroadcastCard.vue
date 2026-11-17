@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import TeamCrest from './TeamCrest.vue'
 import { elapsedSince, formatCount, formatDate } from '../lib/format'
-import { textOn } from '../lib/team'
+import { teamFg } from '../lib/team'
 
 /**
  * 라이브 카드: 16:9 썸네일(LIVE 배지, 시청자 수, 방송 시간) + 아래 채널 정보와 카테고리 칩.
@@ -26,7 +26,7 @@ const thumbStyle = computed(() => {
     <div class="thumb" :style="thumbStyle" aria-hidden="true">
       <div class="thumb-mark">
         <template v-if="side">
-          <span class="mark-team" :style="{ color: textOn(side.targetColor) }">{{ side.targetShortName || side.targetName }}</span>
+          <span class="mark-team" :style="{ color: teamFg(side.targetColor, side.targetTextColor) }">{{ side.targetShortName || side.targetName }}</span>
           <span class="mark-sub">편파중계</span>
         </template>
         <span v-else class="mark-sub">{{ broadcast.sourceType === 'MOBILE_CAMERA' ? 'CAMERA' : 'SCREEN' }}</span>
@@ -39,7 +39,7 @@ const thumbStyle = computed(() => {
       <div v-if="live" class="br small">{{ elapsedSince(broadcast.startedAt) }}</div>
     </div>
     <div class="meta">
-      <TeamCrest v-if="side" :name="side.targetName" :short-name="side.targetShortName" :color="side.targetColor" :size="36" />
+      <TeamCrest v-if="side" :name="side.targetName" :short-name="side.targetShortName" :color="side.targetColor" :color2="side.targetTextColor" :size="36" />
       <span v-else class="avatar">{{ broadcast.ownerNickname?.slice(0, 1) }}</span>
       <div class="meta-text">
         <span class="sr-only">{{ live ? `방송 중${viewers ? `, 시청자 ${viewers.current}명` : ''}` : broadcast.status === 'ENDED' ? '종료된 방송' : '대기 중인 방송' }}</span>

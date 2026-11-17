@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
-  <div v-else-if="broadcast" class="layout-watch" :style="teamStyle(broadcast.side?.targetColor)">
+  <div v-else-if="broadcast" class="layout-watch" :style="teamStyle(broadcast.side?.targetColor, broadcast.side?.targetTextColor)">
     <div class="stack">
       <LivePlayer :url="broadcast.watchUrl" :active="isLive">
         <template #overlay="{ state }">
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
         </div>
         <div v-if="broadcast.side" class="row side-row">
           <RouterLink :to="`/targets/${broadcast.side.targetId}`" class="row nowrap">
-            <TeamCrest :name="broadcast.side.targetName" :short-name="broadcast.side.targetShortName" :color="broadcast.side.targetColor" :size="40" />
+            <TeamCrest :name="broadcast.side.targetName" :short-name="broadcast.side.targetShortName" :color="broadcast.side.targetColor" :color2="broadcast.side.targetTextColor" :size="40" />
             <div>
               <div class="xsmall muted">{{ broadcast.side.leagueCode }} 편파중계</div>
               <strong>{{ broadcast.side.targetName }}</strong>

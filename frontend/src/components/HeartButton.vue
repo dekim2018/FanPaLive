@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { solid, teamFg } from '../lib/team'
 import { useRouter } from 'vue-router'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
@@ -15,8 +16,12 @@ const props = defineProps({
   targetId: { type: Number, required: true },
   source: { type: String, default: 'TARGET_PAGE' },
   matchId: { type: Number, default: null },
-  compact: { type: Boolean, default: false }
+  compact: { type: Boolean, default: false },
+  /** 매치룸처럼 팀 색 버튼이 필요할 때: 배경색과 글자색 */
+  color: { type: String, default: '' },
+  color2: { type: String, default: '' }
 })
+const teamLook = computed(() => (props.color ? { background: solid(props.color), color: teamFg(props.color, props.color2) } : null))
 const emit = defineEmits(['sent'])
 
 const auth = useAuthStore()
@@ -51,7 +56,7 @@ async function send() {
 </script>
 
 <template>
-  <button type="button" class="heart-btn" :class="{ compact }" :disabled="sending"
+  <button type="button" class="heart-btn" :class="{ compact, 'team-look': !!teamLook }" :style="teamLook" :disabled="sending"
           :aria-label="compact ? '하트 보내기' : undefined" @click="send">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
       <path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4 2.1.6-1 1.9-2.1 4-2.1 3.8 0 5.6 4 4 7.2C19.5 16.4 12 21 12 21z"/>
@@ -70,6 +75,7 @@ async function send() {
   transition: transform .1s, background-color .15s; touch-action: manipulation;
 }
 .heart-btn:hover { background: #fbd5e3; }
+.heart-btn.team-look:hover { filter: brightness(1.12); }
 .heart-btn:active { transform: scale(.94); }
 .heart-btn.compact { min-height: 36px; min-width: 36px; padding: 0 9px; justify-content: center; }
 .left { background: var(--heart); color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }

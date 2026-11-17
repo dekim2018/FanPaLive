@@ -108,7 +108,7 @@ onMounted(loadRequests)
       </div>
       <div v-if="!requests.length" class="empty">신청이 없습니다.</div>
       <div v-for="r in requests" :key="r.id" class="card row req">
-        <TeamCrest :name="r.name" :short-name="r.shortName || r.name" :color="r.colorPrimary || '#3a3d44'" :size="44" />
+        <TeamCrest :name="r.name" :short-name="r.shortName || r.name" :color="r.colorPrimary || '#3a3d44'" :color2="r.colorSecondary" :size="44" />
         <div style="flex:1; min-width:200px">
           <strong>{{ r.name }}</strong> <span class="small muted">{{ r.nameEn }}</span>
           <div class="xsmall muted">{{ r.leagueName }}, {{ r.kind === 'PLAYER' ? '선수' : '구단' }}, {{ r.requesterNickname }}님, 함께 신청 {{ r.voteCount }}명, {{ formatDate(r.createdAt) }}</div>
@@ -177,7 +177,7 @@ onMounted(loadRequests)
 <style scoped>
 .req { gap: 12px; margin-bottom: 8px; align-items: flex-start; }
 .w { width: auto; flex: 1; min-width: 140px; }
-.link { color: var(--accent-text); word-break: break-all; }
+.link { color: var(--text); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; word-break: break-all; }
 .ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 .ops .card { display: flex; flex-direction: column; gap: 4px; }
 .ops strong { font-size: 24px; }

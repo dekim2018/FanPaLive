@@ -118,5 +118,5 @@ onMounted(async () => {
 .mark { position: absolute; top: 6px; right: 8px; font-size: 11px; font-weight: 900; color: var(--gold); }
 .mark.f { color: var(--text-sub); }
 .actions { margin-top: 24px; justify-content: center; }
-.link { color: var(--accent-text); }
+.link { color: var(--text); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 </style>

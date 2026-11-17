@@ -51,7 +51,7 @@ async function submit() {
       </label>
       <div v-if="error" class="error-text">{{ error }}</div>
       <button class="btn primary block" :disabled="submitting">가입하기</button>
-      <div class="small muted">이미 계정이 있나요? <RouterLink to="/login" style="color:var(--accent)">로그인</RouterLink></div>
+      <div class="small muted">이미 계정이 있나요? <RouterLink to="/login" class="text-link">로그인</RouterLink></div>
     </form>
   </div>
 </template>
