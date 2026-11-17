@@ -1,21 +1,29 @@
 <script setup>
 import { tr } from '../i18n'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { recordingApi } from '../api/broadcasts'
 import { errorMessage } from '../api/http'
 import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, formatDuration } from '../lib/format'
+import { q, syncQuery } from '../lib/query'
 import { useFandomStore } from '../stores/fandom'
 import { solid, teamFg } from '../lib/team'
 
+const route = useRoute()
+const router = useRouter()
 const fandom = useFandomStore()
-const league = ref('')
+// 새로고침이나 링크 공유를 해도 같은 리그와 페이지가 열리도록 주소에서 읽고 주소에 남긴다.
+const league = ref(q(route, 'league', ''))
 
 const items = ref([])
 const loading = ref(true)
 const error = ref('')
-const page = ref(0)
+const page = ref(Math.max(0, (Number(q(route, 'page', '1')) || 1) - 1))
 const totalPages = ref(0)
+// 페이지 번호는 사람이 읽기 쉽게 1부터 주소에 남긴다.
+watch([league, page], () => syncQuery(router, route,
+  { league: league.value, page: page.value + 1 }, { page: 1 }))
 
 async function load() {
   loading.value = true
@@ -52,8 +60,9 @@ onMounted(load)
   <div class="stack">
     <h1>{{ tr('다시보기') }}</h1>
     <div class="pill-tabs" style="margin:0">
-      <button :class="{ active: !league }" @click="changeLeague('')">{{ tr('전체') }}</button>
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="changeLeague(l.code)">{{ tr(l.name) }}</button>
+      <button type="button" :class="{ active: !league }" :aria-pressed="!league" @click="changeLeague('')">{{ tr('전체') }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }"
+              :aria-pressed="league === l.code" @click="changeLeague(l.code)">{{ tr(l.name) }}</button>
     </div>
     <div v-if="error" class="empty">{{ error }}</div>
     <div v-else-if="!loading && !items.length" class="empty">{{ tr('아직 녹화된 방송이 없습니다. 방송을 하면 자동으로 녹화됩니다.') }}</div>

@@ -32,6 +32,27 @@ const list = ref([])
 const mine = ref([])
 const submitting = ref(false)
 const error = ref('')
+// 투표 중인 신청 id. 응답이 오기 전 같은 버튼을 다시 누르지 못하게 한다.
+const voting = ref(new Set())
+// 비로그인 상태로 신청하면 로그인 다녀오는 동안 입력값을 잠시 보관한다(공개 정보만 있는 폼).
+const DRAFT_KEY = 'fanpa:target-request-draft'
+const DRAFT_FIELDS = ['leagueCode', 'name', 'nameEn', 'shortName', 'colorPrimary', 'colorSecondary', 'description', 'referenceUrl']
+
+function saveDraft() {
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form.value)) } catch { /* 저장소를 못 쓰면 그냥 넘어간다 */ }
+}
+
+function restoreDraft() {
+  let draft = null
+  try {
+    draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null')
+    sessionStorage.removeItem(DRAFT_KEY)
+  } catch { return }
+  if (!draft || typeof draft !== 'object') return
+  for (const k of DRAFT_FIELDS) {
+    if (typeof draft[k] === 'string' && draft[k]) form.value[k] = draft[k]
+  }
+}
 const STATUS = { PENDING: tr('심사 중'), APPROVED: tr('승인'), REJECTED: tr('반려') }
 
 async function load() {
@@ -49,6 +70,7 @@ async function load() {
 
 async function submit() {
   if (!auth.isLoggedIn) {
+    saveDraft()
     router.push({ name: 'login', query: { redirect: route.fullPath } })
     return
   }
@@ -71,16 +93,21 @@ async function vote(r) {
     router.push({ name: 'login', query: { redirect: route.fullPath } })
     return
   }
+  if (voting.value.has(r.id)) return
+  voting.value.add(r.id)
   try {
     const updated = await fandomApi.voteRequest(r.id)
     r.voteCount = updated.voteCount
     toast.success(tr('함께 신청했습니다.'))
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    voting.value.delete(r.id)
   }
 }
 
 onMounted(() => {
+  restoreDraft()
   if (!form.value.leagueCode && openLeagues.value.length) form.value.leagueCode = openLeagues.value[0].code
   load()
 })
@@ -131,7 +158,7 @@ onMounted(() => {
         <label class="field">{{ tr('참고 링크 (공식 사이트, 위키 등)') }}
           <input name="reference-url" autocomplete="off" type="url" inputmode="url" spellcheck="false" v-model="form.referenceUrl" class="input" maxlength="300" placeholder="https://…" />
         </label>
-        <div v-if="error" class="error-text">{{ error }}</div>
+        <div v-if="error" class="error-text" role="alert">{{ error }}</div>
         <button class="btn primary" :disabled="submitting">{{ auth.isLoggedIn ? tr('신청하기') : tr('로그인하고 신청하기') }}</button>
       </form>
 
@@ -151,7 +178,7 @@ onMounted(() => {
             <strong class="ellipsis" style="display:block">{{ tr(r.name) }}</strong>
             <span class="xsmall muted">{{ tr('{0}, {1}님 신청, {2}', tr(r.leagueName), r.requesterNickname, formatDate(r.createdAt)) }}</span>
           </div>
-          <button class="btn sm" @click="vote(r)">{{ tr('나도 원해요 {0}', r.voteCount) }}</button>
+          <button type="button" class="btn sm" :disabled="voting.has(r.id)" :aria-busy="voting.has(r.id)" @click="vote(r)">{{ tr('나도 원해요 {0}', r.voteCount) }}</button>
         </div>
 
         <template v-if="mine.length">

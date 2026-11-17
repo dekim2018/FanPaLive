@@ -7,6 +7,7 @@ import LevelBadge from '../components/LevelBadge.vue'
 import TeamCrest from '../components/TeamCrest.vue'
 import { ACHIEVEMENTS, LEVELS, levelInfo } from '../lib/level'
 import { formatDate, formatWon } from '../lib/format'
+import { latestOnly } from '../lib/latest'
 import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
 
@@ -15,6 +16,10 @@ const fandom = useFandomStore()
 const tab = ref('given')
 const given = ref([])
 const received = ref([])
+const donationsLoading = ref(true)
+const donationsError = ref(false)
+// 탭을 빠르게 바꾸면 늦게 온 이전 탭 응답이 로딩/오류 상태를 덮어쓰지 않게 한다.
+const latestDonations = latestOnly()
 const hearts = ref(null)
 const profile = ref(null)
 const predictions = ref([])
@@ -31,12 +36,23 @@ const PICK = { HOME: tr('홈 승'), AWAY: tr('원정 승') }
 const RESULT = { HIT: tr('적중'), MISS: tr('빗나감'), VOID: tr('무효') }
 
 async function loadDonations() {
+  const which = tab.value
+  donationsLoading.value = true
+  donationsError.value = false
   try {
-    if (tab.value === 'given') given.value = (await fundApi.mine({ size: 30 })).content
-    else received.value = (await fundApi.received({ size: 30 })).content
+    const { value, stale } = await latestDonations(which === 'given' ? fundApi.mine({ size: 30 }) : fundApi.received({ size: 30 }))
+    if (stale) return
+    if (which === 'given') given.value = value.content
+    else received.value = value.content
   } catch {
-    // 빈 목록으로 둔다.
+    donationsError.value = true
   }
+  donationsLoading.value = false
+}
+
+function changeTab(t) {
+  tab.value = t
+  loadDonations()
 }
 
 onMounted(async () => {
@@ -126,10 +142,10 @@ onMounted(async () => {
 
     <section class="card">
       <div class="tabs">
-        <button :class="{ active: tab === 'given' }" @click="tab = 'given'; loadDonations()">{{ tr('내가 한 후원') }}</button>
-        <button :class="{ active: tab === 'received' }" @click="tab = 'received'; loadDonations()">{{ tr('받은 후원') }}</button>
+        <button type="button" :class="{ active: tab === 'given' }" :aria-pressed="tab === 'given'" @click="changeTab('given')">{{ tr('내가 한 후원') }}</button>
+        <button type="button" :class="{ active: tab === 'received' }" :aria-pressed="tab === 'received'" @click="changeTab('received')">{{ tr('받은 후원') }}</button>
       </div>
-      <table class="table">
+      <table class="table" :aria-busy="donationsLoading">
         <thead><tr><th>{{ tr('일시') }}</th><th>{{ tr('대상') }}</th><th>{{ tr('메시지') }}</th><th>{{ tr('금액') }}</th></tr></thead>
         <tbody>
           <tr v-for="d in (tab === 'given' ? given : received)" :key="d.id">
@@ -144,7 +160,9 @@ onMounted(async () => {
           </tr>
         </tbody>
       </table>
-      <div v-if="!(tab === 'given' ? given : received).length" class="muted small" style="padding:12px 0">{{ tr('내역이 없습니다.') }}</div>
+      <div v-if="donationsError" class="empty">{{ tr('후원 내역을 불러오지 못했습니다.') }} <button type="button" class="btn sm" @click="loadDonations">{{ tr('다시 시도') }}</button></div>
+      <div v-else-if="donationsLoading && !(tab === 'given' ? given : received).length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
+      <div v-else-if="!(tab === 'given' ? given : received).length" class="muted small" style="padding:12px 0">{{ tr('내역이 없습니다.') }}</div>
     </section>
   </div>
 </template>

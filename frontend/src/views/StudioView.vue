@@ -1,7 +1,7 @@
 <script setup>
 import { tr } from '../i18n'
 import { computed, onBeforeUnmount, onMounted, ref, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { broadcastApi } from '../api/broadcasts'
 import { errorMessage } from '../api/http'
 import StatusBadge from '../components/StatusBadge.vue'
@@ -30,7 +30,8 @@ const sourceType = ref(supportsScreenShare() ? 'PC_SCREEN' : 'MOBILE_CAMERA')
 const capture = ref(null)
 const publisher = ref(null)
 const connectionState = ref('new')
-const busy = ref(false)
+// 진행 중인 동작('prepare' | 'start' | 'reconnect' | 'end'). 버튼 문구를 '…하는 중…'으로 바꾸려고 이름으로 둔다.
+const busy = ref(null)
 const micMuted = ref(false)
 const systemMuted = ref(false)
 const previewEl = ref(null)
@@ -63,7 +64,7 @@ async function attachPreview() {
 /** 장치 준비: 반드시 사용자 클릭으로 호출되어야 브라우저가 화면 공유/카메라 권한 창을 띄운다. */
 async function prepareDevice() {
   releaseDevice()
-  busy.value = true
+  busy.value = 'prepare'
   try {
     capture.value = sourceType.value === 'PC_SCREEN'
       ? await capturePcScreen({ withMic: true })
@@ -81,7 +82,7 @@ async function prepareDevice() {
     capture.value = null
     toast.error(describeMediaError(e))
   } finally {
-    busy.value = false
+    busy.value = null
   }
 }
 
@@ -107,7 +108,7 @@ async function startLive() {
     toast.error(tr('먼저 장치를 준비해 주세요.'))
     return
   }
-  busy.value = true
+  busy.value = 'start'
   try {
     const session = await broadcastApi.startLive(broadcastId, sourceType.value)
     broadcast.value = session.broadcast
@@ -123,7 +124,7 @@ async function startLive() {
   } catch (e) {
     toast.error(errorMessage(e, tr('방송을 시작하지 못했습니다.')))
   } finally {
-    busy.value = false
+    busy.value = null
   }
 }
 
@@ -133,7 +134,7 @@ async function reconnect() {
     toast.error(tr('먼저 장치를 준비해 주세요.'))
     return
   }
-  busy.value = true
+  busy.value = 'reconnect'
   try {
     const session = await broadcastApi.liveSession(broadcastId)
     await publish(session)
@@ -141,12 +142,18 @@ async function reconnect() {
   } catch (e) {
     toast.error(errorMessage(e, tr('다시 연결하지 못했습니다.')))
   } finally {
-    busy.value = false
+    busy.value = null
   }
 }
 
+// 방송 종료는 되돌릴 수 없으므로 버튼으로 누를 때만 한 번 더 확인한다(장치가 끊겨 자동 종료할 때는 묻지 않는다).
+function confirmEndLive() {
+  if (!confirm(tr('방송을 종료할까요? 시청자 화면에서도 방송이 끝납니다.'))) return
+  endLive()
+}
+
 async function endLive() {
-  busy.value = true
+  busy.value = 'end'
   try {
     await publisher.value?.stop()
     publisher.value = null
@@ -157,7 +164,7 @@ async function endLive() {
     toast.error(errorMessage(e, tr('방송 종료 중 오류가 발생했습니다.')))
     await loadBroadcast()
   } finally {
-    busy.value = false
+    busy.value = null
     connectionState.value = 'closed'
   }
 }
@@ -198,6 +205,11 @@ function onBeforeUnload(e) {
     e.returnValue = ''
   }
 }
+
+// 앱 안 링크로 떠나면 화면이 사라지며 송출이 끊기므로 송출 중에는 한 번 더 확인한다.
+onBeforeRouteLeave(() => {
+  if (publisher.value && !confirm(tr('송출 중입니다. 이 화면을 떠나면 송출이 끊기고 방송은 종료되지 않은 채 남습니다. 떠날까요?'))) return false
+})
 
 onMounted(async () => {
   await loadBroadcast()
@@ -255,12 +267,12 @@ onBeforeUnmount(() => {
 
         <div class="row">
           <button class="btn" :disabled="busy || !!publisher" @click="prepareDevice">
-            {{ capture ? tr('장치 다시 선택') : tr('장치 준비') }}
+            {{ busy === 'prepare' ? tr('준비하는 중…') : capture ? tr('장치 다시 선택') : tr('장치 준비') }}
           </button>
-          <button v-if="!isLive" class="btn primary" :disabled="busy || !capture" @click="startLive">{{ tr('방송 시작') }}</button>
+          <button v-if="!isLive" class="btn primary" :disabled="busy || !capture" @click="startLive">{{ busy === 'start' ? tr('시작하는 중…') : tr('방송 시작') }}</button>
           <template v-else>
-            <button v-if="!publisher" class="btn primary" :disabled="busy || !capture" @click="reconnect">{{ tr('송출 다시 연결') }}</button>
-            <button class="btn danger" :disabled="busy" @click="endLive">{{ tr('방송 종료') }}</button>
+            <button v-if="!publisher" class="btn primary" :disabled="busy || !capture" @click="reconnect">{{ busy === 'reconnect' ? tr('연결하는 중…') : tr('송출 다시 연결') }}</button>
+            <button class="btn danger" :disabled="!!busy" @click="confirmEndLive">{{ busy === 'end' ? tr('종료하는 중…') : tr('방송 종료') }}</button>
           </template>
         </div>
 

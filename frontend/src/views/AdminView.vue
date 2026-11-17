@@ -30,25 +30,43 @@ async function loadRequests() {
   }
 }
 
+// 처리 중인 신청. 응답 전에 또 누르면 같은 신청을 두 번 처리하려다 오류 토스트가 뜬다.
+const requestBusy = ref(new Set())
+
+function setBusy(busySet, id, on) {
+  const next = new Set(busySet.value)
+  if (on) next.add(id)
+  else next.delete(id)
+  busySet.value = next
+}
+
 async function approve(r) {
+  if (requestBusy.value.has(r.id)) return
+  setBusy(requestBusy, r.id, true)
   try {
     await adminApi.approve(r.id)
     toast.success(tr('{0} 승인', tr(r.name)))
     loadRequests()
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    setBusy(requestBusy, r.id, false)
   }
 }
 
 async function reject(r) {
+  if (requestBusy.value.has(r.id)) return
   const reason = prompt(tr('반려 사유'))
   if (!reason) return
+  setBusy(requestBusy, r.id, true)
   try {
     await adminApi.reject(r.id, reason)
     toast.success(tr('반려했습니다.'))
     loadRequests()
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    setBusy(requestBusy, r.id, false)
   }
 }
 
@@ -61,13 +79,27 @@ async function loadMatches() {
   }
 }
 
+// 리그를 바꾸면 이전 리그의 팀 id 가 남아 다른 리그 팀으로 등록되지 않도록 비운다.
+function changeLeague() {
+  matchForm.value.homeTargetId = null
+  matchForm.value.awayTargetId = null
+  loadMatches()
+}
+
+// 등록 중 연타하면 같은 경기가 여러 번 등록된다.
+const creating = ref(false)
+
 async function createMatch() {
+  if (creating.value) return
+  creating.value = true
   try {
     await adminApi.createMatch({ ...matchForm.value, startsAt: new Date(matchForm.value.startsAt).toISOString() })
     toast.success(tr('경기를 등록했습니다.'))
     loadMatches()
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    creating.value = false
   }
 }
 
@@ -94,6 +126,12 @@ async function updateMatch(m, patch) {
 function finishMatch(m) {
   if (!confirm(tr('최종 점수 {0}:{1}로 종료할까요? 종료하면 점수를 바꿀 수 없고 승부 예측이 정산됩니다.', m.homeScore, m.awayScore))) return
   updateMatch(m, { status: 'FINISHED' })
+}
+
+// 취소한 경기는 되돌릴 수 없으므로 한 번 더 확인한다.
+function cancelMatch(m) {
+  if (!confirm(tr('이 경기를 취소할까요? 취소하면 되돌릴 수 없습니다.'))) return
+  updateMatch(m, { status: 'CANCELED' })
 }
 
 const seasonDate = ref('')
@@ -130,17 +168,17 @@ onMounted(loadRequests)
   <div>
     <h1>{{ tr('운영 관리') }}</h1>
     <div class="tabs">
-      <button :class="{ active: tab === 'requests' }" @click="changeTab('requests')">{{ tr('팀/선수 신청') }}</button>
-      <button :class="{ active: tab === 'reports' }" @click="changeTab('reports')">{{ tr('신고 처리') }}</button>
-      <button :class="{ active: tab === 'matches' }" @click="changeTab('matches')">{{ tr('경기 관리') }}</button>
-      <button :class="{ active: tab === 'import' }" @click="changeTab('import')">{{ tr('일정 가져오기') }}</button>
-      <button :class="{ active: tab === 'seasons' }" @click="changeTab('seasons')">{{ tr('시즌 마감') }}</button>
-      <button :class="{ active: tab === 'ops' }" @click="changeTab('ops')">{{ tr('운영 지표') }}</button>
+      <button type="button" :class="{ active: tab === 'requests' }" :aria-pressed="tab === 'requests'" @click="changeTab('requests')">{{ tr('팀/선수 신청') }}</button>
+      <button type="button" :class="{ active: tab === 'reports' }" :aria-pressed="tab === 'reports'" @click="changeTab('reports')">{{ tr('신고 처리') }}</button>
+      <button type="button" :class="{ active: tab === 'matches' }" :aria-pressed="tab === 'matches'" @click="changeTab('matches')">{{ tr('경기 관리') }}</button>
+      <button type="button" :class="{ active: tab === 'import' }" :aria-pressed="tab === 'import'" @click="changeTab('import')">{{ tr('일정 가져오기') }}</button>
+      <button type="button" :class="{ active: tab === 'seasons' }" :aria-pressed="tab === 'seasons'" @click="changeTab('seasons')">{{ tr('시즌 마감') }}</button>
+      <button type="button" :class="{ active: tab === 'ops' }" :aria-pressed="tab === 'ops'" @click="changeTab('ops')">{{ tr('운영 지표') }}</button>
     </div>
 
     <template v-if="tab === 'requests'">
       <div class="pill-tabs">
-        <button v-for="s in ['PENDING', 'APPROVED', 'REJECTED']" :key="s" :class="{ active: status === s }" @click="status = s; loadRequests()">
+        <button v-for="s in ['PENDING', 'APPROVED', 'REJECTED']" :key="s" type="button" :class="{ active: status === s }" :aria-pressed="status === s" @click="status = s; loadRequests()">
           {{ { PENDING: tr('심사 중'), APPROVED: tr('승인됨'), REJECTED: tr('반려됨') }[s] }}
         </button>
       </div>
@@ -155,8 +193,8 @@ onMounted(loadRequests)
           <div v-if="r.rejectReason" class="xsmall muted">{{ tr('반려 사유: {0}', r.rejectReason) }}</div>
         </div>
         <template v-if="r.status === 'PENDING'">
-          <button class="btn sm primary" @click="approve(r)">{{ tr('승인') }}</button>
-          <button class="btn sm ghost" @click="reject(r)">{{ tr('반려') }}</button>
+          <button type="button" class="btn sm primary" :disabled="requestBusy.has(r.id)" @click="approve(r)">{{ tr('승인') }}</button>
+          <button type="button" class="btn sm ghost" :disabled="requestBusy.has(r.id)" @click="reject(r)">{{ tr('반려') }}</button>
         </template>
         <RouterLink v-else-if="r.targetId" :to="`/targets/${r.targetId}`" class="btn sm">{{ tr('보기') }}</RouterLink>
       </div>
@@ -166,7 +204,7 @@ onMounted(loadRequests)
       <form class="card stack" @submit.prevent="createMatch">
         <h3 style="margin:0">{{ tr('경기 등록') }}</h3>
         <div class="row">
-          <select name="league-code" :aria-label="tr('리그')" v-model="matchForm.leagueCode" class="input w" @change="loadMatches">
+          <select name="league-code" :aria-label="tr('리그')" v-model="matchForm.leagueCode" class="input w" @change="changeLeague">
             <option v-for="l in fandom.leagues" :key="l.code" :value="l.code">{{ tr(l.name) }}</option>
           </select>
           <select name="home-target-id" :aria-label="tr('홈 팀')" v-model="matchForm.homeTargetId" class="input w" required>
@@ -179,7 +217,7 @@ onMounted(loadRequests)
           </select>
           <input name="starts-at" autocomplete="off" :aria-label="tr('경기 시작 시각')" v-model="matchForm.startsAt" class="input w" type="datetime-local" required />
           <input name="venue" autocomplete="off" :aria-label="tr('경기장')" v-model="matchForm.venue" class="input w" maxlength="40" :placeholder="tr('경기장 (예: 잠실)…')" />
-          <button class="btn primary">{{ tr('등록') }}</button>
+          <button class="btn primary" :disabled="creating">{{ creating ? tr('등록하는 중…') : tr('등록') }}</button>
         </div>
       </form>
       <div class="grid dense" style="margin-top:16px">
@@ -192,7 +230,7 @@ onMounted(loadRequests)
               <button class="btn sm" :disabled="matchBusy.has(m.id)" @click="updateMatch(m, { awayScore: m.awayScore + 1 })">{{ tr('원정 +1') }}</button>
               <button class="btn sm" :disabled="matchBusy.has(m.id)" @click="finishMatch(m)">{{ tr('종료') }}</button>
             </template>
-            <button v-if="m.status === 'SCHEDULED'" class="btn sm ghost" :disabled="matchBusy.has(m.id)" @click="updateMatch(m, { status: 'CANCELED' })">{{ tr('취소') }}</button>
+            <button v-if="m.status === 'SCHEDULED'" class="btn sm ghost" :disabled="matchBusy.has(m.id)" @click="cancelMatch(m)">{{ tr('취소') }}</button>
           </div>
         </div>
       </div>

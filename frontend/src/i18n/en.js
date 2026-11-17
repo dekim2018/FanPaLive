@@ -612,7 +612,6 @@ export default {
   "종료": "Ended",
   "종료 {0}": "Ended {0}",
   "종료된 방송": "Ended stream",
-  "종목 정보를 불러오는 중입니다.": "Loading sports…",
   "종목 통합 팬 TOP": "Top fandoms across sports",
   "주 응원 팬": "Main-team fans",
   "주 응원팀": "Main team",
@@ -756,7 +755,23 @@ export default {
   "후원을 확정하지 못했습니다.": "Could not confirm the donation.",
   "후원이 완료되었습니다": "Donation complete",
   "후원하기": "Donate",
-  "후원할 방송을 선택해 주세요.": "Choose a stream to donate to."
+  "후원할 방송을 선택해 주세요.": "Choose a stream to donate to.",
+  "등록하는 중…": "Registering…",
+  "이 경기를 취소할까요? 취소하면 되돌릴 수 없습니다.": "Cancel this match? This cannot be undone.",
+  "준비하는 중…": "Preparing…",
+  "시작하는 중…": "Starting…",
+  "연결하는 중…": "Connecting…",
+  "종료하는 중…": "Ending…",
+  "방송을 종료할까요? 시청자 화면에서도 방송이 끝납니다.": "End the broadcast? It will also end for viewers.",
+  "송출 중입니다. 이 화면을 떠나면 송출이 끊기고 방송은 종료되지 않은 채 남습니다. 떠날까요?": "You are streaming. Leaving this page will cut the stream, but the broadcast will stay open. Leave anyway?",
+  "저장하지 않은 내용이 있습니다. 나갈까요?": "You have unsaved changes. Leave anyway?",
+  "불러오는 중…": "Loading…",
+  "다시 시도": "Try again",
+  "삭제 중…": "Deleting…",
+  "구단/선수 목록을 불러오지 못했습니다.": "Could not load teams and players.",
+  "후원 내역을 불러오지 못했습니다.": "Could not load donation history.",
+  "종목 정보를 불러오지 못했습니다.": "Could not load sports.",
+  "등록된 종목이 없습니다.": "No sports yet."
 }
 
 /** 서버가 값을 이어 붙여 만드는 문구. 사전에 없을 때만 차례로 맞춰 본다. */

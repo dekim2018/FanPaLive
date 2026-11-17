@@ -5,6 +5,7 @@ import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
 import TeamCrest from '../components/TeamCrest.vue'
 import { formatCount } from '../lib/format'
+import { latestOnly } from '../lib/latest'
 import { readable, teamFg, solid } from '../lib/team'
 import { useFandomStore } from '../stores/fandom'
 
@@ -17,15 +18,19 @@ const league = ref('KBO')
 const seasons = ref([])
 const loading = ref(true)
 const error = ref('')
+// 리그를 빠르게 바꿔도 마지막 요청의 응답만 쓴다
+const latest = latestOnly()
 
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    seasons.value = await fandomApi.hallOfFame(league.value)
+    const { value, stale } = await latest(fandomApi.hallOfFame(league.value))
+    if (stale) return
+    seasons.value = value
+    loading.value = false
   } catch (e) {
     error.value = errorMessage(e)
-  } finally {
     loading.value = false
   }
 }
@@ -44,7 +49,7 @@ onMounted(load)
       <p class="muted small" style="margin:0">{{ tr('시즌이 끝나면 응원 점수 최종 순위와 우승팀에 가장 많이 기여한 MVP 팬을 기록합니다.') }}</p>
     </div>
     <div class="pill-tabs" style="margin:0">
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="league = l.code; load()">{{ tr(l.name) }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }" :aria-pressed="league === l.code" @click="league = l.code; load()">{{ tr(l.name) }}</button>
     </div>
     <div v-if="error" class="empty">{{ error }}</div>
     <div v-else-if="!loading && !seasons.length" class="empty">{{ tr('아직 마감된 시즌이 없습니다. 첫 시즌이 끝나면 이곳에 기록됩니다.') }}</div>

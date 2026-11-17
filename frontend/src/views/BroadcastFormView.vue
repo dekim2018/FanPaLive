@@ -1,7 +1,7 @@
 <script setup>
 import { tr } from '../i18n'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { broadcastApi } from '../api/broadcasts'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
@@ -33,6 +33,28 @@ const originalTargetId = ref(null)
 const agreed = ref(false)
 const error = ref('')
 const submitting = ref(false)
+const agreeInput = ref(null)
+const teamField = ref(null)
+const leagueSelect = ref(null)
+// 불러온(또는 처음) 값과 비교해 바뀐 게 있을 때만 나가기 전에 묻는다. 저장에 성공하면 묻지 않는다.
+const initialSnapshot = ref(null)
+const saved = ref(false)
+const snapshot = () => JSON.stringify([form.value.title, form.value.description, sideMode.value, leagueCode.value, targetId.value, matchId.value])
+const dirty = computed(() => !saved.value && initialSnapshot.value !== null && snapshot() !== initialSnapshot.value)
+async function markClean() {
+  // 응원팀 watch 가 경기 선택을 정리한 뒤의 값을 기준으로 삼는다.
+  await nextTick()
+  initialSnapshot.value = snapshot()
+}
+function onBeforeUnload(e) {
+  if (!dirty.value) return
+  e.preventDefault()
+  e.returnValue = ''
+}
+onBeforeRouteLeave(() => {
+  if (dirty.value && !confirm(tr('저장하지 않은 내용이 있습니다. 나갈까요?'))) return false
+})
+onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload))
 
 const selectedTarget = computed(() => targets.value.find((t) => t.id === targetId.value))
 const teamMatches = computed(() => matches.value.filter((m) =>
@@ -65,6 +87,7 @@ watch(targetId, () => {
 })
 
 onMounted(async () => {
+  window.addEventListener('beforeunload', onBeforeUnload)
   if (isEdit.value) {
     try {
       const b = await broadcastApi.get(route.params.id)
@@ -84,6 +107,7 @@ onMounted(async () => {
     } catch (e) {
       error.value = errorMessage(e)
     }
+    await markClean()
     return
   }
   // 새 방송은 내 주 응원팀을 기본으로 고른다.
@@ -92,16 +116,26 @@ onMounted(async () => {
   if (primary) leagueCode.value = primary.leagueCode
   await Promise.all([loadTargets(), loadMatches()])
   if (primary) targetId.value = primary.target.id
+  await markClean()
 })
+
+// 오류 문구와 함께 문제 있는 입력으로 초점을 옮긴다.
+async function focusInvalid(el) {
+  await nextTick()
+  el?.focus()
+}
 
 async function submit() {
   error.value = ''
   if (!agreed.value) {
     error.value = tr('중계권 안내를 확인해 주세요.')
+    focusInvalid(agreeInput.value)
     return
   }
   if (sideMode.value === 'SIDE' && !targetId.value) {
     error.value = tr('응원팀을 선택해 주세요. 일반 방송이면 위에서 "일반 방송"을 고르세요.')
+    // 고를 팀이 없으면 리그 선택으로 보낸다.
+    focusInvalid(teamField.value?.querySelector('button') || leagueSelect.value)
     return
   }
   const body = { title: form.value.title, description: form.value.description }
@@ -115,10 +149,12 @@ async function submit() {
   try {
     if (isEdit.value) {
       await broadcastApi.update(route.params.id, body)
+      saved.value = true
       toast.success(tr('방송 정보를 수정했습니다.'))
       router.replace(`/broadcasts/${route.params.id}`)
     } else {
       const created = await broadcastApi.create(body)
+      saved.value = true
       if (sideMode.value === 'SIDE' && !created.side) {
         toast.show(tr('응원팀 정보를 확인하지 못해 일반 방송으로 만들었습니다. 잠시 후 정보 수정에서 다시 지정해 주세요.'))
       } else {
@@ -140,21 +176,21 @@ async function submit() {
       <h1>{{ isEdit ? tr('방송 정보 수정') : tr('편파중계 만들기') }}</h1>
 
       <div class="mode">
-        <button type="button" :class="{ on: sideMode === 'SIDE' }" @click="sideMode = 'SIDE'">
+        <button type="button" :class="{ on: sideMode === 'SIDE' }" :aria-pressed="sideMode === 'SIDE'" @click="sideMode = 'SIDE'">
           <strong>{{ tr('편파중계') }}</strong><span class="xsmall muted">{{ tr('응원팀을 정하고 한쪽만 응원하는 방송') }}</span>
         </button>
-        <button type="button" :class="{ on: sideMode === 'NONE' }" @click="sideMode = 'NONE'">
+        <button type="button" :class="{ on: sideMode === 'NONE' }" :aria-pressed="sideMode === 'NONE'" @click="sideMode = 'NONE'">
           <strong>{{ tr('일반 방송') }}</strong><span class="xsmall muted">{{ tr('응원팀 없이 자유 주제') }}</span>
         </button>
       </div>
 
       <template v-if="sideMode === 'SIDE'">
         <label class="field">{{ tr('리그') }}
-          <select name="league-code" v-model="leagueCode" class="input">
+          <select ref="leagueSelect" name="league-code" v-model="leagueCode" class="input">
             <option v-for="l in fandom.leagues" :key="l.code" :value="l.code">{{ tr(l.sportName) }} / {{ tr(l.name) }}</option>
           </select>
         </label>
-        <div class="field">
+        <div ref="teamField" class="field">
           <span>{{ tr('응원팀') }}</span>
           <div class="team-grid">
             <button v-for="t in targets" :key="t.id" type="button" class="team" :class="{ on: targetId === t.id }" :aria-pressed="targetId === t.id"
@@ -184,11 +220,11 @@ async function submit() {
       </label>
 
       <label class="check">
-        <input v-model="agreed" type="checkbox" />
+        <input ref="agreeInput" v-model="agreed" type="checkbox" />
         <span>{{ tr('경기 영상(TV 중계 화면 등)을 그대로 송출하지 않고, 내 화면과 목소리로 진행하는 응원 방송임을 확인했습니다. 중계권이 있는 영상의 재송출은 금지됩니다.') }}</span>
       </label>
 
-      <div v-if="error" class="error-text">{{ error }}</div>
+      <div v-if="error" class="error-text" role="alert">{{ error }}</div>
       <div class="row">
         <button class="btn primary" :disabled="submitting">{{ isEdit ? tr('저장') : tr('만들고 스튜디오로 이동') }}</button>
         <button type="button" class="btn" @click="router.back()">{{ tr('취소') }}</button>

@@ -110,7 +110,7 @@ onMounted(async () => {
     <h1>{{ tr('어느 팀을 응원하세요?') }}</h1>
     <p class="muted"><TrText :text="tr('처음 누른 팀이 {0}(★), 그다음부터는 팔로우가 됩니다. 다시 누르면 해제돼요.')"><template #p0><strong>{{ tr('주 응원팀') }}</strong></template></TrText></p>
     <div class="pill-tabs">
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="league = l.code; loadTargets()">{{ tr(l.name) }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" type="button" :class="{ active: league === l.code }" :aria-pressed="league === l.code" @click="league = l.code; loadTargets()">{{ tr(l.name) }}</button>
     </div>
     <div v-if="currentPrimary" class="small muted note">
       <TrText :text="tr('이 리그의 주 응원팀은 {0}입니다.')"><template #p0><strong>{{ tr(currentPrimary.target.name) }}</strong></template></TrText>

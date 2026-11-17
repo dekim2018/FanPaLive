@@ -25,6 +25,7 @@ const recording = ref(null)
 const error = ref('')
 const current = ref(0)
 const videoEl = ref(null)
+const deleting = ref(false)
 
 const segments = computed(() => recording.value?.segments || [])
 const currentUrl = computed(() => segments.value[current.value]?.url)
@@ -66,13 +67,17 @@ function onEnded() {
 }
 
 async function remove() {
-  if (!confirm(tr('녹화 영상을 삭제할까요?'))) return
+  if (deleting.value || !confirm(tr('녹화 영상을 삭제할까요?'))) return
+  // 요청 중에 다시 누르면 같은 삭제가 두 번 나가므로 끝날 때까지 버튼을 막는다.
+  deleting.value = true
   try {
     await recordingApi.remove(recording.value.id)
     toast.success(tr('삭제했습니다.'))
     router.replace('/recordings')
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -102,13 +107,14 @@ onMounted(() => {
       </div>
       <div class="small muted"><TrText :text="tr('저장 위치: {0}')"><template #p0><code>{{ recording.storageLocation }}</code></template></TrText></div>
       <div v-if="segments.length > 1" class="row">
-        <button v-for="(s, i) in segments" :key="s.start" class="btn sm" :class="{ primary: i === current }" @click="playSegment(i)">
+        <button v-for="(s, i) in segments" :key="s.start" type="button" class="btn sm" :class="{ primary: i === current }"
+                :aria-pressed="i === current" @click="playSegment(i)">
           {{ tr('구간 {0} ({1})', i + 1, formatDuration(s.durationSeconds)) }}
         </button>
       </div>
       <div class="row">
         <RouterLink :to="`/broadcasts/${recording.broadcastId}`" class="btn sm">{{ tr('방송 페이지') }}</RouterLink>
-        <button v-if="isOwner" class="btn sm danger" @click="remove">{{ tr('녹화 삭제') }}</button>
+        <button v-if="isOwner" type="button" class="btn sm danger" :disabled="deleting" @click="remove">{{ deleting ? tr('삭제 중…') : tr('녹화 삭제') }}</button>
       </div>
       <ClipMaker v-if="auth.isLoggedIn && recording.status === 'READY' && segments.length" :recording="recording" :position="playhead"
                  @created="(c) => clips.unshift(c)" />
