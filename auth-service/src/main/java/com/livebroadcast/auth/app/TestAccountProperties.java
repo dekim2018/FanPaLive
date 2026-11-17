@@ -26,11 +26,12 @@ public record TestAccountProperties(boolean enabled, String password, List<Accou
 
     /**
      * @param role USER(기본) 또는 ADMIN. ADMIN 계정으로 팀/선수 신청 승인과 경기 등록을 확인한다.
+     * 생성자가 둘 이상이면 설정 바인딩이 생성자를 고르지 못해 값이 버려지므로, 기본값은 compact 생성자에서 채운다.
      */
     public record Account(String username, String nickname, String role) {
 
-        public Account(String username, String nickname) {
-            this(username, nickname, "USER");
+        public Account {
+            role = role == null || role.isBlank() ? "USER" : role;
         }
     }
 }

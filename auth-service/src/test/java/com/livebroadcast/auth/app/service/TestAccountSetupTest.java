@@ -24,7 +24,7 @@ import com.livebroadcast.auth.domain.User;
 class TestAccountSetupTest {
 
     private static final Instant NOW = Instant.parse("2026-11-10T00:00:00Z");
-    private static final List<Account> ACCOUNTS = List.of(new Account("tester1", "테스터1"),
+    private static final List<Account> ACCOUNTS = List.of(new Account("tester1", "테스터1", null),
             new Account("admin1", "운영자", "ADMIN"));
 
     private final FakeUserRepository users = new FakeUserRepository();
