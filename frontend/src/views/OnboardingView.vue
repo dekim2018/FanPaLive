@@ -19,50 +19,81 @@ const fandom = useFandomStore()
 const toast = useToastStore()
 const league = ref('KBO')
 const targets = ref([])
-const primaryId = ref(null)
-const follows = ref(new Set())
 const saving = ref(false)
+// 리그별 선택 { 리그 코드: { primary, follows } }. 탭을 옮겨도 다른 리그에서 고른 팀이 사라지지 않게 리그마다 따로 둔다.
+const picks = ref({})
 
 const currentPrimary = computed(() => fandom.myFans.find((f) => f.primary && f.leagueCode === league.value))
 
+/** 서버에 저장된 그 리그의 응원 상태(저장할 때 무엇이 바뀌었는지 비교하는 기준) */
+function saved(code) {
+  const mine = fandom.myFans.filter((f) => f.leagueCode === code)
+  return {
+    primary: mine.find((f) => f.primary)?.target.id ?? null,
+    follows: new Set(mine.filter((f) => !f.primary).map((f) => f.target.id))
+  }
+}
+
+const current = computed(() => picks.value[league.value] ?? saved(league.value))
+const primaryId = computed(() => current.value.primary)
+const follows = computed(() => current.value.follows)
+
 async function loadTargets() {
+  if (!picks.value[league.value]) picks.value[league.value] = saved(league.value)
   try {
     targets.value = await fandomApi.leagueTargets(league.value)
   } catch {
     targets.value = []
   }
-  primaryId.value = currentPrimary.value?.target.id || null
-  follows.value = new Set(fandom.myFans.filter((f) => !f.primary && f.leagueCode === league.value).map((f) => f.target.id))
 }
 
 function toggle(t) {
-  if (primaryId.value === null) {
-    primaryId.value = t.id
-  } else if (primaryId.value === t.id) {
-    primaryId.value = null
-  } else if (follows.value.has(t.id)) {
-    follows.value.delete(t.id)
+  const pick = picks.value[league.value]
+  if (pick.primary === null) {
+    pick.primary = t.id
+  } else if (pick.primary === t.id) {
+    pick.primary = null
+  } else if (pick.follows.has(t.id)) {
+    pick.follows.delete(t.id)
   } else {
-    follows.value.add(t.id)
+    pick.follows.add(t.id)
   }
-  follows.value = new Set(follows.value)
-  follows.value.delete(primaryId.value)
+  pick.follows.delete(pick.primary)
 }
 
+/**
+ * 고른 모든 리그를 저장한다. 새로 고른 팀은 등록하고, 다시 눌러 해제한 팀은 탈퇴한다.
+ * 주 응원팀을 정한 지 30일이 안 됐으면 서버가 바꾸기와 해제를 막고 이유를 알려 준다.
+ */
 async function save() {
   saving.value = true
+  const failures = []
   try {
-    if (primaryId.value && primaryId.value !== currentPrimary.value?.target.id) {
-      await fandomApi.joinFan(primaryId.value, true)
-    }
-    for (const id of follows.value) {
-      if (!fandom.isFan(id)) await fandomApi.joinFan(id, false)
+    for (const [code, pick] of Object.entries(picks.value)) {
+      const before = saved(code)
+      try {
+        if (pick.primary && pick.primary !== before.primary) await fandomApi.joinFan(pick.primary, true)
+        for (const id of pick.follows) {
+          if (!before.follows.has(id)) await fandomApi.joinFan(id, false)
+        }
+        const kept = new Set([pick.primary, ...pick.follows])
+        for (const id of [before.primary, ...before.follows]) {
+          if (id && !kept.has(id)) await fandomApi.leaveFan(id)
+        }
+      } catch (e) {
+        failures.push(errorMessage(e))
+      }
     }
     await fandom.loadMyFans(true)
+    if (failures.length) {
+      // 일부만 저장됐을 수 있으니 서버 상태로 다시 맞춰 보여 준다.
+      toast.error(failures[0])
+      picks.value = {}
+      await loadTargets()
+      return
+    }
     toast.success(tr('응원팀을 저장했습니다.'))
     router.replace('/')
-  } catch (e) {
-    toast.error(errorMessage(e))
   } finally {
     saving.value = false
   }

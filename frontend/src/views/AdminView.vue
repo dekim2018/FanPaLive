@@ -71,12 +71,22 @@ async function createMatch() {
   }
 }
 
+// 요청 중인 경기. 점수 +1 은 화면의 점수에 1을 더한 값을 보내므로, 응답 전에 또 누르면 같은 값이 두 번 가서 1점만 오른다.
+const matchBusy = ref(new Set())
+
 async function updateMatch(m, patch) {
+  if (matchBusy.value.has(m.id)) return
+  matchBusy.value = new Set(matchBusy.value).add(m.id)
   try {
-    await adminApi.updateMatch(m.id, patch)
+    // 응답의 경기 정보로 바로 바꿔 두어야 목록을 다시 불러오기 전에 눌러도 최신 점수에 더한다.
+    Object.assign(m, await adminApi.updateMatch(m.id, patch))
     loadMatches()
   } catch (e) {
     toast.error(errorMessage(e))
+  } finally {
+    const next = new Set(matchBusy.value)
+    next.delete(m.id)
+    matchBusy.value = next
   }
 }
 
@@ -176,13 +186,13 @@ onMounted(loadRequests)
         <div v-for="m in matches" :key="m.id" class="stack">
           <MatchCard :match="m" />
           <div class="row">
-            <button v-if="m.status === 'SCHEDULED'" class="btn sm" @click="updateMatch(m, { status: 'LIVE' })">{{ tr('경기 시작') }}</button>
+            <button v-if="m.status === 'SCHEDULED'" class="btn sm" :disabled="matchBusy.has(m.id)" @click="updateMatch(m, { status: 'LIVE' })">{{ tr('경기 시작') }}</button>
             <template v-if="m.status === 'LIVE'">
-              <button class="btn sm" @click="updateMatch(m, { homeScore: m.homeScore + 1 })">{{ tr('홈 +1') }}</button>
-              <button class="btn sm" @click="updateMatch(m, { awayScore: m.awayScore + 1 })">{{ tr('원정 +1') }}</button>
-              <button class="btn sm" @click="finishMatch(m)">{{ tr('종료') }}</button>
+              <button class="btn sm" :disabled="matchBusy.has(m.id)" @click="updateMatch(m, { homeScore: m.homeScore + 1 })">{{ tr('홈 +1') }}</button>
+              <button class="btn sm" :disabled="matchBusy.has(m.id)" @click="updateMatch(m, { awayScore: m.awayScore + 1 })">{{ tr('원정 +1') }}</button>
+              <button class="btn sm" :disabled="matchBusy.has(m.id)" @click="finishMatch(m)">{{ tr('종료') }}</button>
             </template>
-            <button v-if="m.status === 'SCHEDULED'" class="btn sm ghost" @click="updateMatch(m, { status: 'CANCELED' })">{{ tr('취소') }}</button>
+            <button v-if="m.status === 'SCHEDULED'" class="btn sm ghost" :disabled="matchBusy.has(m.id)" @click="updateMatch(m, { status: 'CANCELED' })">{{ tr('취소') }}</button>
           </div>
         </div>
       </div>

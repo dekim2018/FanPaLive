@@ -35,8 +35,13 @@ async function load() {
   try {
     match.value = await fandomApi.match(matchId)
     gauge.value = { home: match.value.homeHearts, away: match.value.awayHearts }
+    error.value = ''
   } catch (e) {
-    error.value = e?.response?.status === 404 ? tr('존재하지 않는 경기입니다.') : errorMessage(e)
+    // 30초 새로고침이 한 번 실패했다고 매치룸 전체를 오류 화면으로 바꾸지 않는다(이미 본 경기 정보를 그대로 둔다).
+    // 처음 불러오기 실패나 경기가 없어진 경우(404)만 오류 화면을 보인다.
+    if (!match.value || e?.response?.status === 404) {
+      error.value = e?.response?.status === 404 ? tr('존재하지 않는 경기입니다.') : errorMessage(e)
+    }
   }
 }
 

@@ -57,7 +57,11 @@ async function load() {
     broadcast.value = await broadcastApi.get(broadcastId)
     error.value = ''
   } catch (e) {
-    error.value = e?.response?.status === 404 ? tr('존재하지 않거나 삭제된 방송입니다.') : errorMessage(e)
+    // 5초 새로고침이 한 번 실패했다고 플레이어와 채팅을 내리지 않는다(시청이 끊긴다).
+    // 처음 불러오기 실패나 방송이 삭제된 경우(404)만 오류 화면을 보인다.
+    if (!broadcast.value || e?.response?.status === 404) {
+      error.value = e?.response?.status === 404 ? tr('존재하지 않거나 삭제된 방송입니다.') : errorMessage(e)
+    }
   }
 }
 
