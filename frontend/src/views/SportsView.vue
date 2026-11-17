@@ -34,6 +34,6 @@ const KIND = { TEAM: '팀 종목', INDIVIDUAL: '개인 종목' }
 .league:hover { border-color: var(--accent); }
 .code {
   width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  background: var(--accent-soft); color: #c9bbff; font-weight: 900; font-size: 12px; text-align: center; padding: 2px;
+  background: var(--accent-soft); color: var(--accent-text); font-weight: 900; font-size: 12px; text-align: center; padding: 2px;
 }
 </style>

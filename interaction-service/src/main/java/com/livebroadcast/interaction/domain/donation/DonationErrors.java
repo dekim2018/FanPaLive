@@ -45,7 +45,7 @@ public final class DonationErrors {
     }
 
     public static DomainException targetRequired() {
-        return DomainException.badRequest("TARGET_REQUIRED", "응원기금을 보낼 팀이나 선수를 선택해 주세요.");
+        return DomainException.badRequest("TARGET_REQUIRED", "응원금을 보낼 팀이나 선수를 선택해 주세요.");
     }
 
     public static DomainException invalidFanTarget() {

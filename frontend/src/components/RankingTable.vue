@@ -17,36 +17,38 @@ defineProps({
 <template>
   <div class="rank-wrap">
     <table class="table">
+      <caption class="sr-only">응원 랭킹</caption>
       <thead>
         <tr>
-          <th style="width:56px">순위</th>
-          <th>구단/선수</th>
-          <th class="r">응원 점수</th>
-          <th v-if="!compact" class="r hide-sm">팬</th>
-          <th v-if="!compact" class="r hide-sm">하트</th>
-          <th v-if="!compact" class="r hide-md">후원</th>
-          <th v-if="showHeart" style="width:60px"></th>
+          <th scope="col" style="width:56px">순위</th>
+          <th scope="col" class="l">구단/선수</th>
+          <th scope="col">응원 점수</th>
+          <th v-if="!compact" scope="col" class="hide-sm">팬</th>
+          <th v-if="!compact" scope="col" class="hide-sm">하트</th>
+          <th v-if="!compact" scope="col" class="hide-md">후원</th>
+          <th v-if="showHeart" scope="col" style="width:72px">응원 하기</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="r in rows" :key="r.targetId">
           <td>
             <div class="rank num" :class="{ top: r.rank <= 3 }">{{ r.rank }}</div>
-            <div v-if="r.rankChange" class="xsmall num" :class="r.rankChange > 0 ? 'up' : 'down'">
+            <div v-if="r.rankChange" class="xsmall num" :class="r.rankChange > 0 ? 'up' : 'down'"
+                 :aria-label="r.rankChange > 0 ? `${r.rankChange}계단 상승` : `${-r.rankChange}계단 하락`">
               {{ r.rankChange > 0 ? '▲' : '▼' }}{{ Math.abs(r.rankChange) }}
             </div>
           </td>
-          <td>
+          <td class="l">
             <RouterLink :to="`/targets/${r.targetId}`" class="row nowrap name">
               <TeamCrest :name="r.name" :short-name="r.shortName" :color="r.colorPrimary" :color2="r.colorSecondary" :size="32" />
               <span class="ellipsis">{{ r.name }}</span>
               <span v-if="r.kind === 'PLAYER'" class="chip">선수</span>
             </RouterLink>
           </td>
-          <td class="r num strong">{{ Number(r.score).toLocaleString('ko-KR') }}</td>
-          <td v-if="!compact" class="r num hide-sm">{{ formatCount(r.primaryFans + r.followFans) }}</td>
-          <td v-if="!compact" class="r num hide-sm">{{ formatCount(r.hearts) }}</td>
-          <td v-if="!compact" class="r num hide-md">{{ formatWon(r.donationAmount) }}</td>
+          <td class="num strong">{{ Number(r.score).toLocaleString('ko-KR') }}</td>
+          <td v-if="!compact" class="num hide-sm">{{ formatCount(r.primaryFans + r.followFans) }}</td>
+          <td v-if="!compact" class="num hide-sm">{{ formatCount(r.hearts) }}</td>
+          <td v-if="!compact" class="num hide-md">{{ formatWon(r.donationAmount) }}</td>
           <td v-if="showHeart"><HeartButton :target-id="r.targetId" source="RANKING" compact /></td>
         </tr>
       </tbody>
@@ -57,10 +59,11 @@ defineProps({
 
 <style scoped>
 .rank-wrap { overflow-x: auto; }
-.r { text-align: right; }
 .strong { font-weight: 800; }
 .rank { font-weight: 900; font-size: 16px; }
-.rank.top { color: var(--accent); }
+.rank.top { color: var(--accent-text); }
+th { white-space: nowrap; }
+.l { text-align: left; }
 .name { font-weight: 700; min-width: 0; }
 @media (max-width: 720px) { .hide-sm { display: none; } }
 @media (max-width: 1000px) { .hide-md { display: none; } }

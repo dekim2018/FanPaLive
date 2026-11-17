@@ -24,6 +24,9 @@ public class FanSideColumns {
     @Column(name = "target_color", length = 7)
     private String targetColor;
 
+    @Column(name = "target_text_color", length = 7)
+    private String targetTextColor;
+
     @Column(name = "match_id")
     private Long matchId;
 
@@ -38,6 +41,7 @@ public class FanSideColumns {
             c.targetName = side.targetName();
             c.targetShortName = side.targetShortName();
             c.targetColor = side.targetColor();
+            c.targetTextColor = side.targetTextColor();
             c.matchId = side.matchId();
         }
         return c;
@@ -48,6 +52,7 @@ public class FanSideColumns {
         if (c == null || c.targetId == null) {
             return FanSide.NONE;
         }
-        return new FanSide(c.leagueCode, c.targetId, c.targetName, c.targetShortName, c.targetColor, c.matchId);
+        return new FanSide(c.leagueCode, c.targetId, c.targetName, c.targetShortName, c.targetColor,
+                c.targetTextColor, c.matchId);
     }
 }

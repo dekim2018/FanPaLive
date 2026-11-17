@@ -13,7 +13,7 @@ import com.livebroadcast.fandom.domain.target.FanTarget;
 
 /**
  * 다른 서비스가 응원 대상과 경기를 확인할 때 쓰는 내부 API.
- * broadcast-service(편파방 응원팀 지정), interaction-service(구단 응원기금 후원 대상 확인)가 호출한다.
+ * broadcast-service(편파방 응원팀 지정), interaction-service(구단 응원금 후원 대상 확인)가 호출한다.
  */
 @RestController
 @RequestMapping("/internal")

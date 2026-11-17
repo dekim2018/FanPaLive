@@ -126,7 +126,7 @@ public class DonationController {
         return PageResponse.from(donationUseCase.listReceived(user.id(), page, size).map(DonationResponse::from));
     }
 
-    /** 구단/선수가 받은 응원기금과 편파방 후원 */
+    /** 구단/선수가 받은 응원금과 편파방 후원 */
     @GetMapping("/api/targets/{targetId}/donations")
     public PageResponse<DonationResponse> forTarget(@PathVariable Long targetId,
                                                     @RequestParam(defaultValue = "0") int page,

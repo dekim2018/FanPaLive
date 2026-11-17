@@ -24,11 +24,11 @@ const MENU = [
 </script>
 
 <template>
-  <div v-if="open" class="scrim" @click="emit('close')"></div>
-  <aside class="sidebar" :class="{ open }">
-    <nav class="menu">
+  <div v-if="open" class="scrim" aria-hidden="true" @click="emit('close')"></div>
+  <aside class="sidebar" :class="{ open }" aria-label="사이드 메뉴">
+    <nav class="menu" aria-label="주요 메뉴">
       <RouterLink v-for="m in MENU" :key="m.to" :to="m.to" class="item" @click="emit('close')">
-        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" :d="m.icon"/></svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" :d="m.icon"/></svg>
         <span>{{ m.label }}</span>
       </RouterLink>
     </nav>
@@ -37,22 +37,22 @@ const MENU = [
       <div class="group-title">내 응원팀</div>
       <template v-if="auth.isLoggedIn && fandom.myFans.length">
         <RouterLink v-for="f in fandom.myFans" :key="f.target.id" :to="`/targets/${f.target.id}`" class="item team" @click="emit('close')">
-          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :size="26" />
+          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :color2="f.target.colorSecondary" :size="26" />
           <span class="ellipsis">{{ f.target.name }}</span>
-          <span v-if="f.primary" class="star" title="주 응원팀">★</span>
+          <span v-if="f.primary" class="star" aria-label="주 응원팀">★</span>
         </RouterLink>
       </template>
       <RouterLink v-else-if="auth.isLoggedIn" to="/onboarding" class="item hint">응원팀을 골라 보세요</RouterLink>
       <RouterLink v-else to="/login" class="item hint">로그인하고 팬 등록하기</RouterLink>
     </div>
 
-    <div class="group">
+    <nav class="group" aria-label="리그">
       <div class="group-title">리그</div>
       <RouterLink v-for="l in fandom.leagues" :key="l.code" :to="`/leagues/${l.code}`" class="item league" @click="emit('close')">
         <span class="code">{{ l.code.slice(0, 3) }}</span>
         <span class="ellipsis">{{ l.name }}</span>
       </RouterLink>
-    </div>
+    </nav>
 
     <div class="foot xsmall dim">팬파라이브는 팬이 만드는 편파중계 플랫폼입니다. 구단 로고와 명칭의 권리는 각 구단에 있습니다.</div>
   </aside>
@@ -62,7 +62,8 @@ const MENU = [
 .sidebar {
   position: sticky; top: var(--header-h); align-self: flex-start;
   width: var(--sidebar-w); height: calc(100vh - var(--header-h)); overflow-y: auto; flex-shrink: 0;
-  padding: 12px 10px 24px; border-right: 1px solid var(--border); background: var(--bg);
+  padding: 12px 10px 24px; border-right: 1px solid var(--border); background: var(--bg-elev);
+  overscroll-behavior: contain;
 }
 .scrim { display: none; }
 .menu, .group { display: flex; flex-direction: column; gap: 2px; }
@@ -70,12 +71,12 @@ const MENU = [
 .group-title { font-size: 13px; font-weight: 800; color: var(--text-sub); padding: 0 10px 6px; }
 .item {
   display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px;
-  font-size: 14px; font-weight: 600; color: #d6d8dc; min-width: 0;
+  font-size: 14px; font-weight: 600; color: var(--text-sub); min-width: 0; min-height: 40px;
 }
-.item:hover { background: var(--bg-elev); }
-.item.router-link-exact-active { background: var(--bg-elev-2); color: #fff; }
+.item:hover { background: var(--bg-elev-2); color: var(--text); }
+.item.router-link-exact-active { background: var(--accent-soft); color: var(--accent-text); box-shadow: inset 3px 0 0 var(--accent); }
 .team { gap: 10px; }
-.star { margin-left: auto; color: #ffc93c; font-size: 12px; }
+.star { margin-left: auto; color: var(--gold); font-size: 12px; }
 .hint { color: var(--text-sub); font-size: 13px; }
 .code {
   width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; background: var(--bg-elev-2);
@@ -85,10 +86,12 @@ const MENU = [
 @media (max-width: 1100px) {
   .sidebar {
     position: fixed; left: 0; top: var(--header-h); z-index: 25;
-    transform: translateX(-100%); transition: transform .2s;
+    transform: translateX(-100%); transition: transform .2s, visibility .2s;
+    visibility: hidden;
   }
-  .sidebar.open { transform: none; box-shadow: 8px 0 30px rgba(0,0,0,.5); }
-  .scrim { display: block; position: fixed; inset: var(--header-h) 0 0 0; z-index: 24; background: rgba(0,0,0,.4); }
+  .sidebar.open { visibility: visible; }
+  .sidebar.open { transform: none; box-shadow: var(--shadow-lg); }
+  .scrim { display: block; position: fixed; inset: var(--header-h) 0 0 0; z-index: 24; background: var(--overlay); }
 }
 @media (min-width: 1101px) {
   .sidebar:not(.open) { display: none; }

@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
-  <div v-else-if="broadcast" class="layout-watch" :style="teamStyle(broadcast.side?.targetColor)">
+  <div v-else-if="broadcast" class="layout-watch" :style="teamStyle(broadcast.side?.targetColor, broadcast.side?.targetTextColor)">
     <div class="stack">
       <LivePlayer :url="broadcast.watchUrl" :active="isLive">
         <template #overlay="{ state }">
@@ -107,8 +107,8 @@ onBeforeUnmount(() => {
             <div v-else>아직 방송이 시작되지 않았습니다.</div>
             <RouterLink v-if="recordings.length" :to="`/recordings/${recordings[0].id}`" class="btn primary sm">다시보기</RouterLink>
           </template>
-          <div v-else-if="state === 'connecting'">연결 중...</div>
-          <div v-else>방송자의 송출을 기다리는 중...</div>
+          <div v-else-if="state === 'connecting'">연결 중…</div>
+          <div v-else>방송자의 송출을 기다리는 중…</div>
         </template>
       </LivePlayer>
 
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
         </div>
         <div v-if="broadcast.side" class="row side-row">
           <RouterLink :to="`/targets/${broadcast.side.targetId}`" class="row nowrap">
-            <TeamCrest :name="broadcast.side.targetName" :short-name="broadcast.side.targetShortName" :color="broadcast.side.targetColor" :size="40" />
+            <TeamCrest :name="broadcast.side.targetName" :short-name="broadcast.side.targetShortName" :color="broadcast.side.targetColor" :color2="broadcast.side.targetTextColor" :size="40" />
             <div>
               <div class="xsmall muted">{{ broadcast.side.leagueCode }} 편파중계</div>
               <strong>{{ broadcast.side.targetName }}</strong>
@@ -164,6 +164,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .info.side { border-top: 3px solid var(--team); }
 .side-row { padding: 10px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.desc { white-space: pre-wrap; margin: 0; color: #cfd3da; }
+.desc { white-space: pre-wrap; margin: 0; color: var(--text); }
 .rec { padding: 6px 0; border-top: 1px solid var(--border); }
 </style>

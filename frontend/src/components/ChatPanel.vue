@@ -123,33 +123,33 @@ onMounted(() => load())
         {{ events.connected.value ? '● 실시간' : '○ 연결 중' }}
       </span>
     </div>
-    <div ref="listEl" class="chat-list" :style="{ height }">
-      <button v-if="hasMore" class="btn sm ghost block" @click="loadMore">이전 댓글 보기</button>
+    <div ref="listEl" class="chat-list" :style="{ height }" role="log" aria-live="polite" aria-label="채팅 메시지">
+      <button v-if="hasMore" type="button" class="btn sm ghost block" @click="loadMore">이전 댓글 보기</button>
       <div v-if="!comments.length" class="muted small center">첫 댓글을 남겨 보세요.</div>
       <div v-for="c in comments" :key="c.id" class="chat-item">
         <template v-if="editingId === c.id">
-          <input v-model="editingText" class="input" maxlength="300" @keyup.enter="saveEdit(c)" />
+          <input v-model="editingText" class="input" name="comment-edit" aria-label="댓글 수정" autocomplete="off" maxlength="300" @keyup.enter="saveEdit(c)" />
           <div class="row">
-            <button class="btn sm primary" @click="saveEdit(c)">저장</button>
-            <button class="btn sm" @click="editingId = null">취소</button>
+            <button type="button" class="btn sm primary" @click="saveEdit(c)">저장</button>
+            <button type="button" class="btn sm" @click="editingId = null">취소</button>
           </div>
         </template>
         <template v-else>
           <TeamBadge v-if="fandom.badges[c.authorId]?.length" :label="fandom.badges[c.authorId][0].shortName"
-                     :color="fandom.badges[c.authorId][0].colorPrimary" class="cbadge" />
+                     :color="fandom.badges[c.authorId][0].colorPrimary" :color2="fandom.badges[c.authorId][0].colorSecondary" class="cbadge" />
           <span class="author">{{ c.authorNickname }}</span>
           <span class="text">{{ c.content }}</span>
           <span v-if="c.edited" class="muted small"> (수정됨)</span>
           <span v-if="auth.user && auth.user.id === c.authorId" class="actions">
-            <button class="link" @click="startEdit(c)">수정</button>
-            <button class="link" @click="remove(c)">삭제</button>
+            <button type="button" class="link" :aria-label="`내 댓글 수정: ${c.content}`" @click="startEdit(c)">수정</button>
+            <button type="button" class="link" :aria-label="`내 댓글 삭제: ${c.content}`" @click="remove(c)">삭제</button>
           </span>
         </template>
       </div>
     </div>
     <form v-if="auth.isLoggedIn" class="row chat-form" @submit.prevent="send">
-      <input v-model="content" class="input" maxlength="300" placeholder="채팅을 입력하세요" />
-      <button class="btn primary" :disabled="sending || !content.trim()">전송</button>
+      <input v-model="content" class="input" name="comment" aria-label="채팅 입력" autocomplete="off" maxlength="300" placeholder="두산 화이팅!…" />
+      <button type="submit" class="btn primary" :disabled="sending">{{ sending ? '전송 중…' : '전송' }}</button>
     </form>
     <div v-else class="muted small center">
       <RouterLink :to="{ name: 'login', query: { redirect: $route.fullPath } }" class="ok">로그인</RouterLink> 후 채팅에 참여할 수 있습니다.
@@ -162,9 +162,9 @@ onMounted(() => load())
 .chat-list { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
 .chat-item { font-size: 14px; word-break: break-all; line-height: 1.45; }
 .cbadge { margin-right: 4px; }
-.author { color: #b3a4ff; font-weight: 700; margin-right: 6px; }
+.author { color: var(--accent-text); font-weight: 700; margin-right: 6px; }
 .actions { margin-left: 6px; }
-.link { background: none; border: none; color: var(--text-sub); font-size: 12px; cursor: pointer; padding: 0 3px; }
+.link { background: none; border: none; color: var(--text-sub); font-size: 12px; cursor: pointer; padding: 4px 6px; min-height: 24px; border-radius: 4px; }
 .link:hover { color: var(--text); }
 .ok { color: var(--ok); }
 .center { text-align: center; padding: 8px 0; }

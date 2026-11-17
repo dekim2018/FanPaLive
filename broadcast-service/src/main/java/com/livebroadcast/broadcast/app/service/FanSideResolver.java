@@ -51,7 +51,7 @@ public class FanSideResolver {
                 validMatchId = matchId;
             }
             return new FanSide(target.leagueCode(), target.id(), target.name(), target.shortName(),
-                    target.colorPrimary(), validMatchId);
+                    target.colorPrimary(), target.colorSecondary(), validMatchId);
         } catch (FandomUnavailableException e) {
             log.warn("팬덤 서비스 응답 없음, 응원팀 없이 진행 targetId={} reason={}", targetId, e.getMessage());
             return FanSide.NONE;

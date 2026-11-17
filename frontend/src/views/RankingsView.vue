@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { q, syncQuery } from '../lib/query'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
 import RankingTable from '../components/RankingTable.vue'
@@ -13,9 +14,12 @@ import { useFandomStore } from '../stores/fandom'
  */
 const route = useRoute()
 const fandom = useFandomStore()
-const league = ref(typeof route.query.league === 'string' ? route.query.league : 'KBO')
-const period = ref('WEEKLY')
-const sort = ref('SCORE')
+const router = useRouter()
+const league = ref(q(route, 'league', 'KBO'))
+const period = ref(q(route, 'period', 'WEEKLY', ['WEEKLY', 'MONTHLY', 'SEASON']))
+const sort = ref(q(route, 'sort', 'SCORE', ['SCORE', 'FANS', 'HEARTS', 'DONATIONS']))
+watch([league, period, sort], () => syncQuery(router, route,
+  { league: league.value, period: period.value, sort: sort.value }, { league: 'KBO', period: 'WEEKLY', sort: 'SCORE' }))
 const data = ref(null)
 const error = ref('')
 const SORTS = { SCORE: '응원 점수', FANS: '팬 수', HEARTS: '하트', DONATIONS: '후원' }

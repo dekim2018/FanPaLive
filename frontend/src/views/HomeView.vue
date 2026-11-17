@@ -9,6 +9,7 @@ import RankingTable from '../components/RankingTable.vue'
 import TeamCrest from '../components/TeamCrest.vue'
 import { useViewerStats } from '../composables/useViewerStats'
 import { formatCount } from '../lib/format'
+import { teamFg } from '../lib/team'
 import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
 
@@ -68,15 +69,15 @@ onBeforeUnmount(() => clearInterval(timer))
 <template>
   <div>
     <!-- 대표 라이브 -->
-    <section v-if="featured" class="hero" :style="{ '--hero': featured.side?.targetColor || '#7c5cff' }">
+    <section v-if="featured" class="hero" :style="{ '--hero': featured.side?.targetColor || '#5e5ede' }">
       <RouterLink :to="`/broadcasts/${featured.id}`" class="hero-thumb">
         <span class="badge live">LIVE</span>
         <span v-if="stats[featured.id]" class="hero-viewers">{{ formatCount(stats[featured.id].current) }}명 시청</span>
-        <span class="hero-mark">{{ featured.side?.targetShortName || 'LIVE' }}</span>
+        <span class="hero-mark" :style="{ color: featured.side ? teamFg(featured.side.targetColor, featured.side.targetTextColor) : '#fff' }">{{ featured.side?.targetShortName || 'LIVE' }}</span>
       </RouterLink>
       <div class="hero-info">
         <div class="row">
-          <TeamCrest v-if="featured.side" :name="featured.side.targetName" :short-name="featured.side.targetShortName" :color="featured.side.targetColor" :size="44" />
+          <TeamCrest v-if="featured.side" :name="featured.side.targetName" :short-name="featured.side.targetShortName" :color="featured.side.targetColor" :color2="featured.side.targetTextColor" :size="44" />
           <div>
             <div class="small muted">{{ featured.ownerNickname }}</div>
             <div v-if="featured.side" class="small"><strong>{{ featured.side.targetName }}</strong> 편파중계</div>
@@ -149,7 +150,7 @@ onBeforeUnmount(() => clearInterval(timer))
       <section v-if="ranking" class="section card">
         <div class="section-head">
           <h2>이번 주 {{ ranking.league.name }} 응원 랭킹</h2>
-          <RouterLink to="/rankings" class="more">전체 랭킹</RouterLink>
+          <RouterLink to="/rankings" class="more">전체 랭킹 바로가기</RouterLink>
         </div>
         <RankingTable :rows="ranking.rows.slice(0, 5)" compact />
       </section>
@@ -160,7 +161,7 @@ onBeforeUnmount(() => clearInterval(timer))
         <div class="stack">
           <RouterLink v-for="o in overall" :key="o.row.targetId" :to="`/targets/${o.row.targetId}`" class="row nowrap overall">
             <span class="num rank">{{ o.rank }}</span>
-            <TeamCrest :name="o.row.name" :short-name="o.row.shortName" :color="o.row.colorPrimary" :size="30" />
+            <TeamCrest :name="o.row.name" :short-name="o.row.shortName" :color="o.row.colorPrimary" :color2="o.row.colorSecondary" :size="30" />
             <span class="ellipsis">{{ o.row.name }}</span>
             <span class="chip">{{ o.league.name }}</span>
             <span class="spacer"></span>
@@ -176,13 +177,13 @@ onBeforeUnmount(() => clearInterval(timer))
 .hero {
   display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px;
   padding: 20px; margin-bottom: 28px; border-radius: 14px;
-  background: linear-gradient(120deg, color-mix(in srgb, var(--hero) 30%, transparent) 0%, var(--bg-elev) 55%);
-  border: 1px solid var(--border);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--hero) 9%, var(--bg-elev)) 0%, var(--bg-elev) 60%);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
 }
 .hero-thumb {
   position: relative; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden;
   background: linear-gradient(135deg, var(--hero), #121316 80%);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; color: #fff;
 }
 .hero-thumb .badge { position: absolute; top: 12px; left: 12px; }
 .hero-viewers { position: absolute; top: 12px; left: 56px; background: rgba(0,0,0,.6); font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 4px; line-height: 20px; }
@@ -190,7 +191,7 @@ onBeforeUnmount(() => clearInterval(timer))
 .hero-info { display: flex; flex-direction: column; gap: 12px; justify-content: center; min-width: 0; }
 .hero-title { font-size: 24px; margin: 0; }
 .hero-desc { margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.empty-hero { grid-template-columns: 1fr; padding: 36px; --hero: #7c5cff; }
+.empty-hero { grid-template-columns: 1fr; padding: 36px; --hero: #5e5ede; }
 .cta { margin-bottom: 28px; }
 .strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }

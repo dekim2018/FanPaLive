@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
       <div class="card stack">
         <div class="row">
           <StatusBadge :status="broadcast.status" :online="broadcast.streamOnline" />
-          <h2 style="margin:0">{{ broadcast.title }}</h2>
+          <h1 style="margin:0; font-size:20px">{{ broadcast.title }}</h1>
           <span class="spacer"></span>
           <span v-if="isLive" class="muted small" :data-tick="tick">방송 시간 {{ elapsedSince(broadcast.startedAt) }}</span>
         </div>
@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-if="capture" class="row">
-          <button class="btn sm" @click="toggleMic">{{ micMuted ? '마이크 켜기' : '마이크 끄기' }}</button>
+          <button type="button" class="btn sm" :aria-pressed="micMuted" @click="toggleMic">{{ micMuted ? '마이크 켜기' : '마이크 끄기' }}</button>
           <button v-if="capture.hasSystemAudio" class="btn sm" @click="toggleSystem">
             {{ systemMuted ? '탭/시스템 소리 켜기' : '탭/시스템 소리 끄기' }}
           </button>
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
           <span class="muted">시청 링크</span>
           <code class="link">{{ watchLink }}</code>
           <button class="btn sm" @click="copyLink">복사</button>
-          <RouterLink :to="`/broadcasts/${broadcastId}`" class="btn sm" target="_blank">시청 화면 열기</RouterLink>
+          <RouterLink :to="`/broadcasts/${broadcastId}`" class="btn sm" target="_blank" rel="noopener">시청 화면 열기</RouterLink>
         </div>
       </div>
     </div>
@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
   display: flex; align-items: center; gap: 8px; padding: 10px 12px;
   border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 14px;
 }
-.source.active { border-color: var(--accent); background: rgba(124,92,255,.1); }
+.source.active { border-color: var(--accent-border); background: var(--accent-soft); }
 .source.disabled { opacity: .5; cursor: not-allowed; }
 .link { background: var(--bg); padding: 4px 8px; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 </style>

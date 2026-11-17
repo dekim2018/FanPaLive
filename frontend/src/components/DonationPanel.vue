@@ -10,7 +10,7 @@ import { useToastStore } from '../stores/toast'
 /**
  * 후원 패널. 두 가지 후원을 지원한다.
  * - 방송자 후원: 방송 화면에서. 편파방이면 응원팀 랭킹 점수에도 들어간다.
- * - 응원기금: 구단/선수 페이지 또는 편파방에서 그 팀 앞으로. 실제로 구단에 전달되지 않는 가상 기금이다.
+ * - 응원금: 구단/선수 페이지 또는 편파방에서 그 팀 앞으로. 실제로 구단에 전달되지 않는 가상 기금이다.
  * 후원 대상은 서버가 방송 소유자/응원 대상 기준으로 다시 정하므로 화면 값은 신뢰하지 않는다.
  */
 const props = defineProps({
@@ -92,25 +92,25 @@ onMounted(load)
 <template>
   <section class="card stack">
     <div class="row">
-      <h3 style="margin:0">{{ broadcast ? '후원' : '응원기금' }}</h3>
+      <h3 style="margin:0">{{ broadcast ? '후원' : '응원금' }}</h3>
       <span class="spacer"></span>
       <span class="small muted">총 {{ summary.count }}건</span>
       <strong class="total num">{{ formatWon(summary.totalAmount) }}</strong>
     </div>
 
     <transition name="pop">
-      <div v-if="highlight" class="alert">
+      <div v-if="highlight" class="alert" role="status">
         <strong>{{ highlight.donorNickname }}</strong>님이 {{ formatWon(highlight.amount) }} 후원!
         <div v-if="highlight.message" class="small">"{{ highlight.message }}"</div>
       </div>
     </transition>
 
-    <div v-if="broadcast && fundTarget && auth.isLoggedIn" class="mode">
-      <button :class="{ on: mode === 'BROADCAST' }" @click="mode = 'BROADCAST'">
+    <div v-if="broadcast && fundTarget && auth.isLoggedIn" class="mode" role="group" aria-label="후원 대상 선택">
+      <button type="button" :class="{ on: mode === 'BROADCAST' }" :aria-pressed="mode === 'BROADCAST'" @click="mode = 'BROADCAST'">
         방송자 후원<span class="xsmall">{{ broadcast.ownerNickname }}</span>
       </button>
-      <button :class="{ on: mode === 'FAN_TARGET' }" @click="mode = 'FAN_TARGET'">
-        응원기금<span class="xsmall">{{ fundTarget.name }}</span>
+      <button type="button" :class="{ on: mode === 'FAN_TARGET' }" :aria-pressed="mode === 'FAN_TARGET'" @click="mode = 'FAN_TARGET'">
+        응원금<span class="xsmall">{{ fundTarget.name }}</span>
       </button>
     </div>
 
@@ -121,18 +121,23 @@ onMounted(load)
           <span v-if="fundTarget"> ({{ fundTarget.name }} 응원 점수에도 반영)</span>
         </template>
         <template v-else>
-          <strong>{{ fundTarget.name }}</strong> 응원기금. 랭킹 점수(후원금 100원당 1점)에 반영되는 팬 활동 기록이며 실제 구단에 전달되지 않습니다.
+          <strong>{{ fundTarget.name }}</strong> 응원금. 랭킹 점수(후원금 100원당 1점)에 반영되는 팬 활동 기록이며 실제 구단에 전달되지 않습니다.
         </template>
       </div>
       <div class="row">
-        <button v-for="p in PRESETS" :key="p" class="btn sm" :class="{ on: amount === p }" @click="amount = p">
+        <button v-for="p in PRESETS" :key="p" type="button" class="btn sm" :class="{ on: amount === p }" :aria-pressed="amount === p" @click="amount = p">
           {{ formatWon(p) }}
         </button>
       </div>
-      <input v-model.number="amount" class="input" type="number" :min="config.minAmount" :max="config.maxAmount" step="1000" />
-      <input v-model="message" class="input" maxlength="200" placeholder="응원 메시지 (선택)" />
-      <button class="btn primary block" :disabled="paying" @click="donate">
-        {{ paying ? '결제창 여는 중...' : `${formatWon(amount)} ${mode === 'BROADCAST' ? '후원하기' : '응원기금 보내기'} (테스트 결제)` }}
+      <label class="field">후원 금액(원)
+        <input v-model.number="amount" class="input num" type="number" name="amount" inputmode="numeric" autocomplete="off"
+               :min="config.minAmount" :max="config.maxAmount" step="1000" />
+      </label>
+      <label class="field">응원 메시지 (선택)
+        <input v-model="message" class="input" name="donation-message" autocomplete="off" maxlength="200" placeholder="오늘 꼭 이기자…" />
+      </label>
+      <button type="button" class="btn primary block" :disabled="paying" @click="donate">
+        {{ paying ? '결제창 여는 중…' : `${formatWon(amount)} ${mode === 'BROADCAST' ? '후원하기' : '응원금 보내기'} (테스트 결제)` }}
       </button>
       <div class="xsmall muted">토스페이먼츠 테스트 모드라 실제로 결제되지 않습니다.</div>
     </div>
@@ -145,7 +150,7 @@ onMounted(load)
         <div class="row">
           <strong>{{ d.donorNickname }}</strong>
           <span class="accent num">{{ formatWon(d.amount) }}</span>
-          <span v-if="d.targetType === 'FAN_TARGET'" class="chip">응원기금</span>
+          <span v-if="d.targetType === 'FAN_TARGET'" class="chip">응원금</span>
           <span class="spacer"></span>
           <span class="muted">{{ formatDate(d.approvedAt) }}</span>
         </div>
@@ -156,19 +161,20 @@ onMounted(load)
 </template>
 
 <style scoped>
-.total { color: #c9bbff; }
-.accent { color: #c9bbff; font-weight: 800; }
-.alert { background: linear-gradient(90deg, rgba(124,92,255,.25), rgba(124,92,255,.06)); border: 1px solid var(--accent); padding: 10px 12px; border-radius: 10px; }
+.total { color: var(--accent-text); }
+.accent { color: var(--accent-text); font-weight: 800; }
+.alert { background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 10px 12px; border-radius: 10px; }
 .mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .mode button {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px;
-  border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text-sub);
+  border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text-sub); min-height: 44px;
   font-weight: 800; font-size: 13px; cursor: pointer; text-align: left;
 }
-.mode button.on { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+.mode button:hover { background: var(--bg-elev-2); }
+.mode button.on { border-color: var(--accent-border); color: var(--accent-text); background: var(--accent-soft); }
 .mode .xsmall { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .list { gap: 8px; max-height: 240px; overflow-y: auto; }
 .item { padding: 8px 0; border-top: 1px solid var(--border); }
-.pop-enter-active, .pop-leave-active { transition: all .25s; }
+.pop-enter-active, .pop-leave-active { transition: opacity .25s, transform .25s; }
 .pop-enter-from, .pop-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>

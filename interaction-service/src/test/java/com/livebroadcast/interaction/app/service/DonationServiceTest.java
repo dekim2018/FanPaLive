@@ -163,7 +163,7 @@ class DonationServiceTest {
     }
 
     @Test
-    void 응원기금은_방송자_없이_응원_대상으로_주문된다() {
+    void 응원금은_방송자_없이_응원_대상으로_주문된다() {
         Donation order = service.createOrder(new CreateOrderCommand(DonationTargetType.FAN_TARGET, null, DOOSAN,
                 DONOR, "시청자", 10000, "두산 화이팅"));
 
@@ -174,7 +174,7 @@ class DonationServiceTest {
     }
 
     @Test
-    void 공개되지_않은_응원_대상에는_응원기금을_낼_수_없다() {
+    void 공개되지_않은_응원_대상에는_응원금을_낼_수_없다() {
         assertThatThrownBy(() -> service.createOrder(new CreateOrderCommand(DonationTargetType.FAN_TARGET, null, 2L,
                 DONOR, "시청자", 10000, ""))).hasMessageContaining("응원");
         assertThatThrownBy(() -> service.createOrder(new CreateOrderCommand(DonationTargetType.FAN_TARGET, null,
@@ -269,7 +269,7 @@ class DonationServiceTest {
     }
 
     @Test
-    void 하루_응원_대상별_합계에는_응원기금과_편파방_후원이_모두_들어간다() {
+    void 하루_응원_대상별_합계에는_응원금과_편파방_후원이_모두_들어간다() {
         Donation fund = service.createOrder(new CreateOrderCommand(DonationTargetType.FAN_TARGET, null, DOOSAN,
                 DONOR, "시청자", 10000, ""));
         Donation side = service.createOrder(new CreateOrderCommand(20L, DONOR, "시청자", 5000, ""));

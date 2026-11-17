@@ -15,7 +15,7 @@ import { useAuthStore } from '../stores/auth'
 import { useFandomStore } from '../stores/fandom'
 import { useToastStore } from '../stores/toast'
 
-/** 구단/선수 채널: 팬 등록, 하트, 응원기금, 편파방, 서포터 순위, 순위 변화 */
+/** 구단/선수 채널: 팬 등록, 하트, 응원금, 편파방, 서포터 순위, 순위 변화 */
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -113,8 +113,8 @@ onMounted(async () => {
 
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
-  <div v-else-if="t" :style="teamStyle(t.colorPrimary)">
-    <section class="banner" :style="{ background: `linear-gradient(110deg, ${t.colorPrimary} 0%, ${t.colorSecondary || '#121316'} 140%)` }">
+  <div v-else-if="t" :style="teamStyle(t.colorPrimary, t.colorSecondary)">
+    <section class="banner">
       <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="84" />
       <div class="banner-text">
         <div class="row">
@@ -147,7 +147,7 @@ onMounted(async () => {
       <div class="stat"><span class="label">주 응원 팬</span><strong class="num">{{ formatCount(t.primaryFans) }}</strong></div>
       <div class="stat"><span class="label">팔로워</span><strong class="num">{{ formatCount(t.followFans) }}</strong></div>
       <div class="stat"><span class="label">누적 하트</span><strong class="num">{{ formatCount(t.hearts) }}</strong></div>
-      <div class="stat"><span class="label">응원기금</span><strong class="num">{{ formatWon(t.donationTotal) }}</strong></div>
+      <div class="stat"><span class="label">응원금 현황</span><strong class="num">{{ formatWon(t.donationTotal) }}</strong></div>
       <div class="stat"><span class="label">이번 달 편파방 시청자</span><strong class="num">약 {{ formatCount(monthlyViewers) }}명</strong></div>
     </section>
     <p v-if="t.description" class="muted">{{ t.description }}</p>
@@ -177,14 +177,14 @@ onMounted(async () => {
                     @click="supporterPeriod = p; loadTab()">{{ PERIOD_LABEL[p] }}</button>
           </div>
           <table v-if="supporters.length" class="table">
-            <thead><tr><th>순위</th><th>팬</th><th style="text-align:right">기여 점수</th><th style="text-align:right">하트</th><th style="text-align:right">후원</th></tr></thead>
+            <thead><tr><th>순위</th><th>팬</th><th>기여 점수</th><th>하트</th><th>후원</th></tr></thead>
             <tbody>
               <tr v-for="(s, i) in supporters" :key="s.userId">
                 <td class="num"><strong>{{ i + 1 }}</strong></td>
                 <td>{{ s.nickname }}</td>
-                <td class="num" style="text-align:right">{{ formatCount(s.points) }}</td>
-                <td class="num" style="text-align:right">{{ formatCount(s.hearts) }}</td>
-                <td class="num" style="text-align:right">{{ formatWon(s.donationAmount) }}</td>
+                <td class="num">{{ formatCount(s.points) }}</td>
+                <td class="num">{{ formatCount(s.hearts) }}</td>
+                <td class="num">{{ formatWon(s.donationAmount) }}</td>
               </tr>
             </tbody>
           </table>
@@ -221,20 +221,25 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* 팀 색 배너: 진한 배경색(--team) 위에 연한 글자색(--team-on), 보조 글자는 --team-sub. 값은 teamStyle() 이 대비를 확인해서 넣는다. */
 .banner {
   display: flex; align-items: center; gap: 20px; padding: 24px; border-radius: 14px; margin-bottom: 8px; flex-wrap: wrap;
+  background: linear-gradient(110deg, var(--team) 55%, color-mix(in srgb, var(--team) 80%, #000) 100%);
+  color: var(--team-on);
 }
-.banner .chip { background: rgba(0,0,0,.3); color: #fff; }
+.banner .chip { background: transparent; border: 1px solid var(--team-sub); color: var(--team-sub); }
 .banner-text { flex: 1; min-width: 200px; }
-.name { font-size: 30px; margin: 6px 0 0; text-shadow: 0 2px 10px rgba(0,0,0,.3); }
-.en { color: rgba(255,255,255,.75); }
+.name { font-size: 30px; margin: 6px 0 0; }
+.en { color: var(--team-sub); }
 .banner-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.banner-actions .btn.team { background: #fff; color: #111; }
-.banner-actions .btn.ghost { border-color: rgba(255,255,255,.5); color: #fff; }
-.mine { background: rgba(0,0,0,.45) !important; color: #ffd75e !important; }
+.banner-actions .btn.team { background: var(--team-on); color: var(--team); }
+.banner-actions .btn.team:hover { filter: brightness(.94); }
+.banner-actions .btn.ghost { background: transparent; border-color: currentColor; color: inherit; }
+.banner-actions .btn.ghost:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+.mine { font-weight: 800; }
 .note { margin: 6px 0 0; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
-.stat { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.stat { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--shadow); }
 .stat .label { font-size: 12px; color: var(--text-sub); }
 .stat strong { font-size: 19px; }
 .history { display: flex; align-items: flex-end; gap: 10px; height: 180px; }

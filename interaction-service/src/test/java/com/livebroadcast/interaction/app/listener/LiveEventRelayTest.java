@@ -57,7 +57,7 @@ class LiveEventRelayTest {
     }
 
     @Test
-    void 구단_응원기금은_방송_화면으로_보내지_않는다() {
+    void 구단_응원금은_방송_화면으로_보내지_않는다() {
         Donation donation = Donation.orderForTarget("don_t", 1L, "두산 베어스", 2L, "시청자", 5000, "", 1000,
                 1_000_000, NOW);
 

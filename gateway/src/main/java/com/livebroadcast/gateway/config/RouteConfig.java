@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * 외부에서 들어오는 /api/** 요청을 각 마이크로서비스로 라우팅한다.
- * 응원기금 목록(/api/targets/{id}/donations)은 interaction-service, 나머지 /api/targets/** 는 fandom-service 로 간다.
+ * 응원금 목록(/api/targets/{id}/donations)은 interaction-service, 나머지 /api/targets/** 는 fandom-service 로 간다.
  * 댓글, 후원, 실시간 이벤트는 URL 이 /api/broadcasts/{id}/... 형태라서 broadcast-service 보다 먼저 매칭되도록 order 를 낮게 준다.
  * /internal/** 는 어떤 라우트에도 걸리지 않으므로 외부에서 접근할 수 없다.
  */

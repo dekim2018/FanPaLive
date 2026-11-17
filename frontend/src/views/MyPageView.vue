@@ -55,7 +55,7 @@ onMounted(async () => {
       <div v-if="!fandom.myFans.length" class="muted small">아직 응원팀이 없습니다.</div>
       <div class="grid dense">
         <RouterLink v-for="f in fandom.myFans" :key="f.target.id" :to="`/targets/${f.target.id}`" class="row nowrap fan">
-          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :size="40" />
+          <TeamCrest :name="f.target.name" :short-name="f.target.shortName" :color="f.target.colorPrimary" :color2="f.target.colorSecondary" :size="40" />
           <div style="min-width:0">
             <strong class="ellipsis" style="display:block">{{ f.target.name }}</strong>
             <span class="xsmall muted">{{ f.leagueName }}, {{ f.primary ? '★ 주 응원팀' : '팔로우' }}</span>
@@ -70,17 +70,17 @@ onMounted(async () => {
         <button :class="{ active: tab === 'received' }" @click="tab = 'received'; loadDonations()">받은 후원</button>
       </div>
       <table class="table">
-        <thead><tr><th>일시</th><th>대상</th><th>메시지</th><th style="text-align:right">금액</th></tr></thead>
+        <thead><tr><th>일시</th><th>대상</th><th>메시지</th><th>금액</th></tr></thead>
         <tbody>
           <tr v-for="d in (tab === 'given' ? given : received)" :key="d.id">
             <td class="small">{{ formatDate(d.approvedAt) }}</td>
             <td>
               <template v-if="tab === 'received'">{{ d.donorNickname }}</template>
-              <template v-else-if="d.targetType === 'FAN_TARGET'"><span class="chip">응원기금</span> {{ d.targetName }}</template>
+              <template v-else-if="d.targetType === 'FAN_TARGET'"><span class="chip">응원금</span> {{ d.targetName }}</template>
               <template v-else>{{ d.streamerNickname }}<span v-if="d.targetName" class="xsmall muted"> ({{ d.targetName }})</span></template>
             </td>
             <td class="small muted">{{ d.message }}</td>
-            <td class="num" style="text-align:right">{{ formatWon(d.amount) }}</td>
+            <td class="num">{{ formatWon(d.amount) }}</td>
           </tr>
         </tbody>
       </table>
@@ -90,7 +90,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: #c9bbff; font-weight: 900; font-size: 22px; display: inline-flex; align-items: center; justify-content: center; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text); font-weight: 900; font-size: 22px; display: inline-flex; align-items: center; justify-content: center; }
 .hearts { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; }
 .hearts strong { color: var(--heart); font-size: 20px; }
 .fan { gap: 10px; padding: 8px; border-radius: 10px; background: var(--bg); }

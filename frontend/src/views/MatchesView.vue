@@ -1,5 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { q, syncQuery } from '../lib/query'
 import { fandomApi } from '../api/fandom'
 import { errorMessage } from '../api/http'
 import MatchCard from '../components/MatchCard.vue'
@@ -8,8 +10,11 @@ import { useFandomStore } from '../stores/fandom'
 const fandom = useFandomStore()
 const today = new Date()
 const toIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-const date = ref(toIso(today))
-const league = ref('')
+const route = useRoute()
+const router = useRouter()
+const date = ref(/^\d{4}-\d{2}-\d{2}$/.test(q(route, 'date', '')) ? q(route, 'date', '') : toIso(today))
+const league = ref(q(route, 'league', ''))
+watch([date, league], () => syncQuery(router, route, { date: date.value, league: league.value }, { date: toIso(today) }))
 const items = ref([])
 const error = ref('')
 const days = Array.from({ length: 7 }, (_, i) => {

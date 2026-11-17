@@ -74,6 +74,7 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="error" class="empty">{{ error }}</div>
   <div v-else-if="match">
+    <h1 class="sr-only">{{ match.home.name }} 대 {{ match.away.name }} 매치룸</h1>
     <section class="board card">
       <div class="row small muted">
         <span>{{ match.league.name }}</span>
@@ -101,9 +102,11 @@ onBeforeUnmount(() => {
       </div>
       <HeartGauge :home="match.home" :away="match.away" :home-hearts="gauge.home" :away-hearts="gauge.away" />
       <div v-if="match.status === 'SCHEDULED' || match.status === 'LIVE'" class="row cheer">
-        <HeartButton :target-id="match.home.id" source="MATCH" :match-id="match.id" />
+        <HeartButton :target-id="match.home.id" source="MATCH" :match-id="match.id"
+                     :color="match.home.colorPrimary" :color2="match.home.colorSecondary" />
         <span class="spacer"></span>
-        <HeartButton :target-id="match.away.id" source="MATCH" :match-id="match.id" />
+        <HeartButton :target-id="match.away.id" source="MATCH" :match-id="match.id"
+                     :color="match.away.colorPrimary" :color2="match.away.colorSecondary" />
       </div>
       <div v-else class="small muted center">경기가 끝나 응원 게이지가 확정되었습니다.</div>
     </section>

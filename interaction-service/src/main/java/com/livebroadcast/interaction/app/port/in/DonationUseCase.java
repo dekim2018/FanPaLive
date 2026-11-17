@@ -42,7 +42,7 @@ public interface DonationUseCase {
     int reconcileWithGateway(LocalDate date);
 
     /**
-     * @param targetType BROADCAST 면 broadcastId 필수(방송자 후원), FAN_TARGET 이면 targetId 필수(구단/선수 응원기금)
+     * @param targetType BROADCAST 면 broadcastId 필수(방송자 후원), FAN_TARGET 이면 targetId 필수(구단/선수 응원금)
      */
     record CreateOrderCommand(DonationTargetType targetType, Long broadcastId, Long targetId, Long donorId,
                               String donorNickname, long amount, String message) {

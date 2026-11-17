@@ -13,7 +13,13 @@ public interface FandomQueryPort {
     Optional<MatchInfo> findMatch(Long matchId);
 
     record TargetInfo(Long id, String leagueCode, String name, String shortName, String colorPrimary,
-                      String status) {
+                      String colorSecondary, String status) {
+
+        public TargetInfo(Long id, String leagueCode, String name, String shortName, String colorPrimary,
+                          String status) {
+            this(id, leagueCode, name, shortName, colorPrimary, null, status);
+        }
+
         public boolean isActive() {
             return "ACTIVE".equals(status);
         }

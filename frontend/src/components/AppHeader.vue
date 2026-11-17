@@ -61,25 +61,28 @@ async function logout() {
 
 <template>
   <header class="header">
-    <button class="icon-btn" aria-label="메뉴" @click="emit('toggle-sidebar')">
-      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    <button class="icon-btn" type="button" aria-label="메뉴 열고 닫기" @click="emit('toggle-sidebar')">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
     </button>
     <RouterLink to="/" class="logo" aria-label="팬파라이브 홈">
-      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
-        <rect x="2" y="2" width="28" height="28" rx="8" fill="#7c5cff"/>
-        <path d="M10 9h12v4h-8v3h7v4h-7v4h-4z" fill="#fff"/>
-        <circle cx="24" cy="22" r="3" fill="#ff3040"/>
+      <!-- 로고: 채팅 말풍선 + 한쪽으로 기운 F(편파) + LIVE 점 -->
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+        <path d="M6 4H34A4 4 0 0 1 38 8V26A4 4 0 0 1 34 30H17L9 37V30H6A4 4 0 0 1 2 26V8A4 4 0 0 1 6 4Z" fill="#5e5ede"/>
+        <g transform="skewX(-12) translate(4 0)"><path d="M14 10H27V14H18.5V16.5H25V20.5H18.5V25H14Z" fill="#fff"/></g>
+        <circle cx="31.5" cy="10.5" r="3" fill="#ff5a4e"/>
       </svg>
-      <span class="logo-text">팬파라이브</span>
+      <span class="logo-text wordmark">팬파라이브</span>
     </RouterLink>
 
-    <form class="search" @submit.prevent="submitSearch">
-      <input v-model="q" class="search-input" placeholder="구단, 선수 검색 (예: 두산)"
+    <form class="search" role="search" @submit.prevent="submitSearch">
+      <label for="global-search" class="sr-only">구단, 선수 검색</label>
+      <input id="global-search" v-model="q" class="search-input" type="search" name="q" autocomplete="off"
+             spellcheck="false" placeholder="구단, 선수를 검색해보세요"
              @focus="searchOpen = true" @blur="closeSearchLater" />
-      <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
-      <div v-if="searchOpen && results.length" class="search-pop">
+      <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
+      <div v-if="searchOpen && results.length" class="search-pop" aria-label="검색 결과">
         <button v-for="t in results" :key="t.id" type="button" class="search-item" @mousedown.prevent="pick(t)">
-          <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :size="28" />
+          <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="28" />
           <span class="ellipsis">{{ t.name }}</span>
           <span class="muted xsmall">{{ t.leagueName }}</span>
         </button>
@@ -88,12 +91,13 @@ async function logout() {
 
     <div class="right">
       <template v-if="auth.isLoggedIn">
-        <RouterLink to="/broadcasts/new" class="btn primary sm studio">
-          <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M4 6h11a2 2 0 0 1 2 2v1.5l4-2.5v10l-4-2.5V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>
+        <RouterLink to="/broadcasts/new" class="btn primary sm studio" aria-label="방송하기">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M4 6h11a2 2 0 0 1 2 2v1.5l4-2.5v10l-4-2.5V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>
           <span class="hide-xs">방송하기</span>
         </RouterLink>
-        <div class="user">
-          <button class="avatar" @click="menuOpen = !menuOpen">{{ auth.user.nickname.slice(0, 1) }}</button>
+        <div class="user" @keydown.esc="menuOpen = false">
+          <button class="avatar" type="button" :aria-label="`${auth.user.nickname} 메뉴`" aria-haspopup="menu"
+                  :aria-expanded="menuOpen" @click="menuOpen = !menuOpen">{{ auth.user.nickname.slice(0, 1) }}</button>
           <div v-if="menuOpen" class="menu" @click="menuOpen = false">
             <div class="menu-head">
               <strong>{{ auth.user.nickname }}</strong>
@@ -115,24 +119,27 @@ async function logout() {
 <style scoped>
 .header {
   position: sticky; top: 0; z-index: 30; height: var(--header-h);
-  display: flex; align-items: center; gap: 10px; padding: 0 16px;
-  background: rgba(18, 19, 22, .96); backdrop-filter: blur(8px);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  background: rgba(255, 255, 255, .96); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
 }
-.icon-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 6px; border-radius: 8px; display: inline-flex; }
+.icon-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 9px; border-radius: 8px; display: inline-flex; }
 .icon-btn:hover { background: var(--bg-elev-2); }
-.logo { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 19px; letter-spacing: -.03em; }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-text { font-size: 22px; line-height: 1; color: var(--text); padding-top: 2px; }
 .search { position: relative; flex: 0 1 440px; margin: 0 auto; }
 .search-input {
   width: 100%; height: 40px; padding: 0 40px 0 16px; border-radius: 999px;
-  border: 1px solid var(--border); background: var(--bg-elev); color: var(--text); font-size: 14px;
+  border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); font-size: 16px;
 }
-.search-input:focus { outline: none; border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-dim); }
+.search-input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus); background: var(--bg-elev); }
 .search-icon { position: absolute; right: 14px; top: 11px; color: var(--text-sub); }
 .search-pop {
   position: absolute; top: 46px; left: 0; right: 0; z-index: 40;
   background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; padding: 6px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.4);
+  box-shadow: var(--shadow-lg);
 }
 .search-item {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px;
@@ -142,13 +149,14 @@ async function logout() {
 .right { display: flex; align-items: center; gap: 10px; }
 .user { position: relative; }
 .avatar {
-  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
-  background: var(--accent-soft); color: #c9bbff; font-weight: 900;
+  width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--accent-soft); color: var(--accent-text); font-weight: 900;
+  box-shadow: inset 0 0 0 1px var(--key);
 }
 .menu {
   position: absolute; right: 0; top: 42px; min-width: 180px; z-index: 40;
   background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; padding: 6px;
-  display: flex; flex-direction: column; box-shadow: 0 12px 30px rgba(0,0,0,.4);
+  display: flex; flex-direction: column; box-shadow: var(--shadow-lg);
 }
 .menu-head { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
 .menu a, .menu button {

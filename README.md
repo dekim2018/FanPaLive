@@ -2,7 +2,7 @@
 
 팬이 직접 하는 스포츠 **편파중계** 라이브 플랫폼입니다.
 브라우저만으로 PC 화면 공유 방송과 모바일 카메라 방송을 송출하고 다른 기기에서 실시간으로 시청하는 과제 기능 위에,
-종목과 구단/선수, 팬 등록, 하트 응원, 응원 랭킹, 후원 3종(방송자, 편파방, 구단 응원기금), 경기 매치룸을 더했습니다.
+종목과 구단/선수, 팬 등록, 하트 응원, 응원 랭킹, 후원 3종(방송자, 편파방, 구단 응원금), 경기 매치룸을 더했습니다.
 
 백엔드는 Spring Boot 기반 MSA(Gateway + 4개 서비스), 각 서비스 내부는 헥사고날 구조(app / in / out / domain)로 구성했습니다.
 **전체 기능 목록과 확인 방법은 [docs/FEATURES.md](docs/FEATURES.md) 에 정리했습니다.**
@@ -430,7 +430,7 @@ com.livebroadcast.broadcast
 | POST | `/api/donations/webhook` | - | 토스페이먼츠 웹훅 |
 | GET | `/api/broadcasts/{id}/donations`, `/summary` | - | 방송별 후원 내역, 합계 |
 
-팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원기금, 시청자 수)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
+팬파라이브에서 추가된 API(종목, 팬, 하트, 랭킹, 경기, 신청, 운영, 응원금, 시청자 수)는 [docs/FEATURES.md 5장](docs/FEATURES.md#5-서비스와-api)에 있습니다.
 
 에러 응답은 모든 서비스가 같은 형식을 씁니다.
 
@@ -459,6 +459,7 @@ com.livebroadcast.broadcast
 | [토스페이먼츠 SDK v2](https://docs.tosspayments.com/sdk/v2/js), [결제 조회와 거래 조회 API](https://docs.tosspayments.com/reference) | 테스트 결제, 결과 모름 확정, 결제 대사 | 토스페이먼츠 이용약관 |
 | [Redis](https://redis.io/docs/latest/) (Lua 스크립트, Sorted Set, HyperLogLog, Streams) | 하트 한도, 랭킹, 순시청자, 후원 이벤트 | RSALv2/SSPLv1 (Redis 7 이미지) |
 | [k6](https://k6.io/) | 하트 부하 테스트 스크립트 | AGPL-3.0 |
+| [Black Han Sans (검은고딕)](https://github.com/zesstype/Black-Han-Sans) | 로고 글자(팬파라이브 다섯 글자만 남긴 부분 글꼴) | SIL OFL 1.1 |
 | [WHIP RFC 9725](https://www.rfc-editor.org/rfc/rfc9725), [WHEP draft](https://datatracker.ietf.org/doc/draft-ietf-wish-whep/) | 송출/시청 시그널링 규격 | - |
 
 WHIP/WHEP 브라우저 클라이언트(`frontend/src/lib/whip.js`, `whep.js`)는 위 규격과 MediaMTX 문서를 참고해 직접 작성했습니다.

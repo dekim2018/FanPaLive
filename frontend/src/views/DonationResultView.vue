@@ -47,13 +47,13 @@ onMounted(async () => {
 <template>
   <div class="result card stack">
     <template v-if="state === 'processing'">
-      <h1>후원을 확정하는 중입니다...</h1>
+      <h1>후원을 확정하는 중입니다…</h1>
       <p class="muted">서버에서 결제 승인 결과와 금액을 확인하고 있습니다.</p>
     </template>
     <template v-else-if="state === 'done'">
       <h1>후원이 완료되었습니다</h1>
       <p v-if="donation.targetType === 'FAN_TARGET'">
-        <strong>{{ donation.targetName }}</strong> 응원기금으로 <strong class="accent">{{ formatWon(donation.amount) }}</strong>을 보냈습니다.
+        <strong>{{ donation.targetName }}</strong> 응원금으로 <strong class="accent">{{ formatWon(donation.amount) }}</strong>을 보냈습니다.
       </p>
       <p v-else>
         <strong>{{ donation.streamerNickname }}</strong>님에게 <strong class="accent">{{ formatWon(donation.amount) }}</strong>을 후원했습니다.
@@ -80,5 +80,5 @@ onMounted(async () => {
 
 <style scoped>
 .result { max-width: 560px; margin: 40px auto; }
-.accent { color: #c9bbff; }
+.accent { color: var(--accent-text); }
 </style>

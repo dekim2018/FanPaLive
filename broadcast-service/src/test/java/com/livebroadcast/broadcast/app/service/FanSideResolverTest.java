@@ -22,7 +22,7 @@ class FanSideResolverTest {
         @Override
         public Optional<TargetInfo> findTarget(Long targetId) {
             if (down) throw new FandomUnavailableException("timeout");
-            if (targetId == DOOSAN) return Optional.of(new TargetInfo(DOOSAN, "KBO", "두산 베어스", "두산", "#131230", "ACTIVE"));
+            if (targetId == DOOSAN) return Optional.of(new TargetInfo(DOOSAN, "KBO", "두산 베어스", "두산", "#131230", "#FFFFFF", "ACTIVE"));
             if (targetId == 99L) return Optional.of(new TargetInfo(99L, "KBO", "숨김팀", "숨김", "#000000", "HIDDEN"));
             return Optional.empty();
         }
@@ -48,6 +48,8 @@ class FanSideResolverTest {
 
         assertThat(side.targetShortName()).isEqualTo("두산");
         assertThat(side.leagueCode()).isEqualTo("KBO");
+        assertThat(side.targetColor()).isEqualTo("#131230");
+        assertThat(side.targetTextColor()).isEqualTo("#FFFFFF");
         assertThat(side.matchId()).isEqualTo(10L);
     }
 

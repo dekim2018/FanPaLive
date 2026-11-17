@@ -33,11 +33,11 @@ async function connect() {
         state.value = 'playing'
       },
       onStateChange: (s) => {
-        if (s === 'failed' || s === 'disconnected' || s === 'closed') scheduleRetry('연결이 끊겼습니다. 다시 연결하는 중...')
+        if (s === 'failed' || s === 'disconnected' || s === 'closed') scheduleRetry('연결이 끊겼습니다. 다시 연결하는 중…')
       }
     })
   } catch (e) {
-    scheduleRetry(e instanceof NotPublishingError ? '방송자의 송출을 기다리는 중...' : e.message)
+    scheduleRetry(e instanceof NotPublishingError ? '방송자의 송출을 기다리는 중…' : e.message)
   }
 }
 
@@ -79,19 +79,20 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="video-box">
-    <video ref="video" autoplay playsinline :muted="muted"></video>
-    <div v-if="state !== 'playing'" class="video-overlay">
+    <video ref="video" autoplay playsinline :muted="muted" aria-label="라이브 방송 영상"></video>
+    <div v-if="state !== 'playing'" class="video-overlay" role="status" aria-live="polite">
       <slot name="overlay" :state="state">
-        <div v-if="state === 'connecting'">연결 중...</div>
+        <div v-if="state === 'connecting'">연결 중…</div>
         <div v-else-if="state === 'waiting'">{{ message }}</div>
       </slot>
     </div>
-    <button v-if="state === 'playing'" class="btn sm sound" @click="toggleMute">
+    <button v-if="state === 'playing'" type="button" class="btn sm sound" :aria-pressed="!muted" @click="toggleMute">
       {{ muted ? '소리 켜기' : '음소거' }}
     </button>
   </div>
 </template>
 
 <style scoped>
-.sound { position: absolute; left: 12px; bottom: 12px; background: rgba(0,0,0,.6); }
+.sound { position: absolute; left: 12px; bottom: 12px; background: rgba(0,0,0,.7); color: #fff; }
+.sound:hover { background: rgba(0,0,0,.85); }
 </style>

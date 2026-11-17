@@ -26,10 +26,10 @@ public record BroadcastResponse(
 ) {
     /** 편파방 응원팀. 일반 방송이면 null */
     public record SideResponse(String leagueCode, Long targetId, String targetName, String targetShortName,
-                               String targetColor, Long matchId) {
+                               String targetColor, String targetTextColor, Long matchId) {
         public static SideResponse of(FanSide side) {
             return side == null || !side.isPresent() ? null : new SideResponse(side.leagueCode(), side.targetId(),
-                    side.targetName(), side.targetShortName(), side.targetColor(), side.matchId());
+                    side.targetName(), side.targetShortName(), side.targetColor(), side.targetTextColor(), side.matchId());
         }
     }
 

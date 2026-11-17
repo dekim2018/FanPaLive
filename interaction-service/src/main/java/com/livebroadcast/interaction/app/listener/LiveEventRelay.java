@@ -51,7 +51,7 @@ public class LiveEventRelay {
     public void on(DonationCompleted event) {
         Donation d = event.donation();
         if (!d.isForBroadcast() || d.getBroadcastId() == null) {
-            // 구단/선수 응원기금은 방송 화면이 없으므로 실시간 알림 대상이 아니다.
+            // 구단/선수 응원금은 방송 화면이 없으므로 실시간 알림 대상이 아니다.
             return;
         }
         liveEvents.publish(d.getBroadcastId(), "donation.completed", DonationPayload.from(d));
