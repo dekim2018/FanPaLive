@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { computed } from 'vue'
 import TeamCrest from './TeamCrest.vue'
 import { elapsedSince, formatCount, formatDate } from '../lib/format'
@@ -26,15 +27,15 @@ const thumbStyle = computed(() => {
     <div class="thumb" :style="thumbStyle" aria-hidden="true">
       <div class="thumb-mark">
         <template v-if="side">
-          <span class="mark-team" :style="{ color: teamFg(side.targetColor, side.targetTextColor) }">{{ side.targetShortName || side.targetName }}</span>
-          <span class="mark-sub">편파중계</span>
+          <span class="mark-team" :style="{ color: teamFg(side.targetColor, side.targetTextColor) }">{{ tr(side.targetShortName || side.targetName) }}</span>
+          <span class="mark-sub">{{ tr('편파중계') }}</span>
         </template>
         <span v-else class="mark-sub">{{ broadcast.sourceType === 'MOBILE_CAMERA' ? 'CAMERA' : 'SCREEN' }}</span>
       </div>
       <div class="tl">
         <span v-if="live" class="badge live">LIVE</span>
-        <span v-else class="badge" :class="broadcast.status.toLowerCase()">{{ broadcast.status === 'ENDED' ? '종료' : '대기' }}</span>
-        <span v-if="live && viewers" class="viewers">{{ formatCount(viewers.current) }}명</span>
+        <span v-else class="badge" :class="broadcast.status.toLowerCase()">{{ broadcast.status === 'ENDED' ? tr('종료') : tr('대기') }}</span>
+        <span v-if="live && viewers" class="viewers">{{ tr('{0}명', formatCount(viewers.current)) }}</span>
       </div>
       <div v-if="live" class="br small">{{ elapsedSince(broadcast.startedAt) }}</div>
     </div>
@@ -42,14 +43,14 @@ const thumbStyle = computed(() => {
       <TeamCrest v-if="side" :name="side.targetName" :short-name="side.targetShortName" :color="side.targetColor" :color2="side.targetTextColor" :size="36" />
       <span v-else class="avatar">{{ broadcast.ownerNickname?.slice(0, 1) }}</span>
       <div class="meta-text">
-        <span class="sr-only">{{ live ? `방송 중${viewers ? `, 시청자 ${viewers.current}명` : ''}` : broadcast.status === 'ENDED' ? '종료된 방송' : '대기 중인 방송' }}</span>
+        <span class="sr-only">{{ live ? (viewers ? tr('방송 중, 시청자 {0}명', viewers.current) : tr('방송 중')) : broadcast.status === 'ENDED' ? tr('종료된 방송') : tr('대기 중인 방송') }}</span>
         <div class="title ellipsis">{{ broadcast.title }}</div>
         <div class="owner small ellipsis">{{ broadcast.ownerNickname }}</div>
         <div class="chips">
           <span v-if="side" class="chip">{{ side.leagueCode }}</span>
-          <span v-if="side" class="chip">{{ side.targetName }}</span>
+          <span v-if="side" class="chip">{{ tr(side.targetName) }}</span>
           <span v-if="!live" class="chip">{{ formatDate(broadcast.createdAt) }}</span>
-          <span v-if="live && viewers && viewers.unique" class="chip">누적 약 {{ formatCount(viewers.unique) }}명</span>
+          <span v-if="live && viewers && viewers.unique" class="chip">{{ tr('누적 약 {0}명', formatCount(viewers.unique)) }}</span>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 /**
  * 토스페이먼츠 결제위젯 SDK v2 (결제창 연동).
  * 문서: https://docs.tosspayments.com/sdk/v2/js
@@ -14,7 +15,7 @@ function loadSdk() {
     script.onload = () => resolve(window.TossPayments)
     script.onerror = () => {
       loading = null
-      reject(new Error('결제 모듈을 불러오지 못했습니다.'))
+      reject(new Error(tr('결제 모듈을 불러오지 못했습니다.')))
     }
     document.head.appendChild(script)
   })

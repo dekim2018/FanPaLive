@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { onMounted, ref } from 'vue'
 import { recordingApi } from '../api/broadcasts'
 import { errorMessage } from '../api/http'
@@ -47,28 +48,28 @@ onMounted(load)
 
 <template>
   <div class="stack">
-    <h1>다시보기</h1>
+    <h1>{{ tr('다시보기') }}</h1>
     <div class="pill-tabs" style="margin:0">
-      <button :class="{ active: !league }" @click="changeLeague('')">전체</button>
-      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="changeLeague(l.code)">{{ l.name }}</button>
+      <button :class="{ active: !league }" @click="changeLeague('')">{{ tr('전체') }}</button>
+      <button v-for="l in fandom.leagues" :key="l.code" :class="{ active: league === l.code }" @click="changeLeague(l.code)">{{ tr(l.name) }}</button>
     </div>
     <div v-if="error" class="empty">{{ error }}</div>
-    <div v-else-if="!loading && !items.length" class="empty">아직 녹화된 방송이 없습니다. 방송을 하면 자동으로 녹화됩니다.</div>
+    <div v-else-if="!loading && !items.length" class="empty">{{ tr('아직 녹화된 방송이 없습니다. 방송을 하면 자동으로 녹화됩니다.') }}</div>
     <div v-else class="grid">
       <RouterLink v-for="r in items" :key="r.id" :to="`/recordings/${r.id}`" class="card stack rec">
         <div class="row">
           <StatusBadge :status="r.status === 'READY' ? 'VOD' : r.status" />
           <span class="spacer"></span>
-          <span class="small muted">{{ r.status === 'READY' ? formatDuration(r.durationSeconds) : '녹화 중' }}</span>
+          <span class="small muted">{{ r.status === 'READY' ? formatDuration(r.durationSeconds) : tr('녹화 중') }}</span>
         </div>
         <div class="title">{{ r.title }}</div>
-        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: solid(r.side.targetColor), color: teamFg(r.side.targetColor, r.side.targetTextColor) }">{{ r.side.targetShortName || r.side.targetName }}</span><span class="xsmall muted">{{ r.side.leagueCode }} 편파중계</span></div>
+        <div v-if="r.side" class="row"><span class="tchip" :style="{ background: solid(r.side.targetColor), color: teamFg(r.side.targetColor, r.side.targetTextColor) }">{{ tr(r.side.targetShortName || r.side.targetName) }}</span><span class="xsmall muted">{{ tr('{0} 편파중계', r.side.leagueCode) }}</span></div>
         <div class="small muted">{{ r.ownerNickname }}, {{ formatDate(r.startedAt) }}</div>
       </RouterLink>
     </div>
     <div v-if="totalPages > 1" class="pagination">
-      <button class="btn sm" :disabled="page === 0" @click="move(-1)">이전</button>
-      <button class="btn sm" :disabled="page + 1 >= totalPages" @click="move(1)">다음</button>
+      <button class="btn sm" :disabled="page === 0" @click="move(-1)">{{ tr('이전') }}</button>
+      <button class="btn sm" :disabled="page + 1 >= totalPages" @click="move(1)">{{ tr('다음') }}</button>
     </div>
   </div>
 </template>

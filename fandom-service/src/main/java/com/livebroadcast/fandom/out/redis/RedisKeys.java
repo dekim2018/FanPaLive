@@ -31,4 +31,8 @@ final class RedisKeys {
     static String matchGauge(Long matchId) {
         return "fanpa:match:" + matchId + ":gauge";
     }
+
+    static String streamTicket(String ticket) {
+        return "fanpa:sse-ticket:" + ticket;
+    }
 }

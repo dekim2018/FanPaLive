@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 /**
  * 팀 색 도우미. 구단마다 두 가지 색을 쓴다.
  * - colorPrimary: 진한 배경색 (예: 두산 남색, 롯데 남색)
@@ -147,5 +148,5 @@ export function gaugeColors(home, away) {
   return { home: toHex(darker), away: lighter }
 }
 
-export const KIND_LABEL = { TEAM: '구단', PLAYER: '선수' }
-export const PERIOD_LABEL = { WEEKLY: '주간', MONTHLY: '월간', SEASON: '시즌' }
+export const KIND_LABEL = { TEAM: tr('구단'), PLAYER: tr('선수') }
+export const PERIOD_LABEL = { WEEKLY: tr('주간'), MONTHLY: tr('월간'), SEASON: tr('시즌') }

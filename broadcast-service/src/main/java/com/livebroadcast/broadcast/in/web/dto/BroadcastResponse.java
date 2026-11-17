@@ -22,7 +22,8 @@ public record BroadcastResponse(
         Instant endedAt,
         Instant createdAt,
         Instant updatedAt,
-        SideResponse side
+        SideResponse side,
+        boolean moderated
 ) {
     /** 편파방 응원팀. 일반 방송이면 null */
     public record SideResponse(String leagueCode, Long targetId, String targetName, String targetShortName,
@@ -37,6 +38,6 @@ public record BroadcastResponse(
         return new BroadcastResponse(b.getId(), b.getOwnerId(), b.getOwnerNickname(), b.getTitle(),
                 b.getDescription(), b.getStatus(), b.getSourceType(), b.isStreamOnline(),
                 media.whepUrl(b.mediaPath()), b.getStartedAt(), b.getEndedAt(), b.getCreatedAt(), b.getUpdatedAt(),
-                SideResponse.of(b.getSide()));
+                SideResponse.of(b.getSide()), b.isModerated());
     }
 }

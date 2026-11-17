@@ -38,8 +38,12 @@ class DonationEventServiceTest {
         assertThat(service.apply(event)).isFalse();
 
         assertThat(stats.findStats(List.of(9L)).get(9L).donationTotal()).isEqualTo(5000L);
-        assertThat(events.published).hasSize(1);
-        assertThat(((DonationApplied) events.published.get(0)).points()).isEqualTo(50L);
+        // 집계 반영(랭킹 점수)과 후원한 팬의 포인트 적립 이벤트가 하나씩 나간다
+        assertThat(events.published).filteredOn(DonationApplied.class::isInstance).hasSize(1);
+        assertThat(events.published).filteredOn(com.livebroadcast.fandom.app.event.DonationCredited.class::isInstance)
+                .hasSize(1);
+        assertThat(((DonationApplied) events.published.stream().filter(DonationApplied.class::isInstance)
+                .findFirst().orElseThrow()).points()).isEqualTo(50L);
     }
 
     @Test

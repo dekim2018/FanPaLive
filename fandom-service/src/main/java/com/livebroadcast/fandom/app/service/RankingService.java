@@ -233,6 +233,21 @@ public class RankingService implements RankingQueryUseCase, RankingMaintenanceUs
         }
     }
 
+    @Override
+    @Transactional
+    public Map<League, List<RankingRow>> snapshotSeason(LocalDate date) {
+        String key = keys.key(RankingPeriod.SEASON, date);
+        Map<League, List<RankingRow>> result = new LinkedHashMap<>();
+        for (League league : catalog.findLeagues()) {
+            List<RankingRow> rows = rows(league, RankingPeriod.SEASON, date, RankingSort.SCORE, false);
+            if (!rows.isEmpty() && rows.get(0).score() > 0) {
+                snapshots.save(league.id(), RankingPeriod.SEASON, key, rows);
+                result.put(league, rows);
+            }
+        }
+        return result;
+    }
+
     // ===== 계산 =====
 
     private void rebuild(League league, RankingPeriod period, LocalDate date) {

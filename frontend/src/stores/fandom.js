@@ -11,6 +11,7 @@ export const useFandomStore = defineStore('fandom', {
     myFans: [],
     myFansLoaded: false,
     badges: {},
+    levels: {},
     heartsLeft: null
   }),
   getters: {
@@ -55,6 +56,18 @@ export const useFandomStore = defineStore('fandom', {
         Object.entries(res).forEach(([id, list]) => { this.badges[id] = list })
       } catch {
         // 배지는 꾸밈 요소라 실패해도 채팅은 그대로 보인다.
+      }
+    },
+    /** 채팅 작성자 팬 등급. 배지와 같은 방식으로 처음 보는 사용자만 묶어서 조회한다. */
+    async fetchLevels(userIds) {
+      const missing = [...new Set(userIds)].filter((id) => id && !(id in this.levels))
+      if (!missing.length) return
+      missing.forEach((id) => { this.levels[id] = 'ROOKIE' })
+      try {
+        const res = await fandomApi.levels(missing.slice(0, 100))
+        res.forEach((r) => { this.levels[r.userId] = r.level })
+      } catch {
+        // 등급도 꾸밈 요소라 실패해도 채팅은 그대로 보인다.
       }
     }
   }

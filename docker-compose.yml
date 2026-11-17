@@ -97,6 +97,8 @@ services:
       FANDOM_SERVICE_URL: http://fandom-service:8084
       TOSS_CLIENT_KEY: ${TOSS_CLIENT_KEY:-}
       TOSS_SECRET_KEY: ${TOSS_SECRET_KEY:-}
+      # 장애 실험(scripts/chaos/toss-blackhole.sh)에서 응답 없는 주소로 바꿔 결제 결과 모름(UNKNOWN) 처리를 확인한다.
+      TOSS_API_URL: ${TOSS_API_URL:-https://api.tosspayments.com}
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

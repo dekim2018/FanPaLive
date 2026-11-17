@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 import axios from 'axios'
 
 /**
@@ -56,8 +57,15 @@ http.interceptors.response.use(
   }
 )
 
-export function errorMessage(error, fallback = '요청을 처리하지 못했습니다.') {
-  return error?.response?.data?.message || error?.message || fallback
+/** 서버 오류 문구는 한국어 원문이 키라서, 영어 화면에서는 사전에 있는 문구만 영어로 바뀐다. */
+export function errorMessage(error, fallback = tr('요청을 처리하지 못했습니다.')) {
+  const server = error?.response?.data?.message
+  if (server) return tr(server)
+  if (error?.isAxiosError) {
+    return error.response ? fallback : tr('서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+  }
+  // 화면 코드가 던진 오류(장치 권한, 송출 연결 등)는 이미 번역된 문구다.
+  return error?.message || fallback
 }
 
 export default http

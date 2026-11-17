@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import TeamCrest from './TeamCrest.vue'
 import HeartButton from './HeartButton.vue'
 import { formatCount, formatWon } from '../lib/format'
@@ -17,16 +18,16 @@ defineProps({
 <template>
   <div class="rank-wrap">
     <table class="table">
-      <caption class="sr-only">응원 랭킹</caption>
+      <caption class="sr-only">{{ tr('응원 랭킹') }}</caption>
       <thead>
         <tr>
-          <th scope="col" style="width:56px">순위</th>
-          <th scope="col" class="l">구단/선수</th>
-          <th scope="col">응원 점수</th>
-          <th v-if="!compact" scope="col" class="hide-sm">팬</th>
-          <th v-if="!compact" scope="col" class="hide-sm">하트</th>
-          <th v-if="!compact" scope="col" class="hide-md">후원</th>
-          <th v-if="showHeart" scope="col" style="width:72px">응원 하기</th>
+          <th scope="col" style="width:56px">{{ tr('순위') }}</th>
+          <th scope="col" class="l">{{ tr('구단/선수') }}</th>
+          <th scope="col">{{ tr('응원 점수') }}</th>
+          <th v-if="!compact" scope="col" class="hide-sm">{{ tr('팬') }}</th>
+          <th v-if="!compact" scope="col" class="hide-sm">{{ tr('하트') }}</th>
+          <th v-if="!compact" scope="col" class="hide-md">{{ tr('후원') }}</th>
+          <th v-if="showHeart" scope="col" style="width:72px">{{ tr('응원 하기') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -34,15 +35,15 @@ defineProps({
           <td>
             <div class="rank num" :class="{ top: r.rank <= 3 }">{{ r.rank }}</div>
             <div v-if="r.rankChange" class="xsmall num" :class="r.rankChange > 0 ? 'up' : 'down'"
-                 :aria-label="r.rankChange > 0 ? `${r.rankChange}계단 상승` : `${-r.rankChange}계단 하락`">
+                 :aria-label="r.rankChange > 0 ? tr('{0}계단 상승', r.rankChange) : tr('{0}계단 하락', -r.rankChange)">
               {{ r.rankChange > 0 ? '▲' : '▼' }}{{ Math.abs(r.rankChange) }}
             </div>
           </td>
           <td class="l">
             <RouterLink :to="`/targets/${r.targetId}`" class="row nowrap name">
               <TeamCrest :name="r.name" :short-name="r.shortName" :color="r.colorPrimary" :color2="r.colorSecondary" :size="32" />
-              <span class="ellipsis">{{ r.name }}</span>
-              <span v-if="r.kind === 'PLAYER'" class="chip">선수</span>
+              <span class="ellipsis">{{ tr(r.name) }}</span>
+              <span v-if="r.kind === 'PLAYER'" class="chip">{{ tr('선수') }}</span>
             </RouterLink>
           </td>
           <td class="num strong">{{ Number(r.score).toLocaleString('ko-KR') }}</td>
@@ -53,7 +54,7 @@ defineProps({
         </tr>
       </tbody>
     </table>
-    <div v-if="!rows.length" class="empty">아직 집계된 응원이 없습니다.</div>
+    <div v-if="!rows.length" class="empty">{{ tr('아직 집계된 응원이 없습니다.') }}</div>
   </div>
 </template>
 

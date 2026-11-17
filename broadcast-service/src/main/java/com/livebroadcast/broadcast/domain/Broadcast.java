@@ -38,6 +38,9 @@ public class Broadcast {
     private final Instant createdAt;
     private Instant updatedAt;
     private FanSide side;
+    /** 운영 제재로 중단된 시각과 사유. 제재된 방송은 목록에서 빠지고 다시 시작할 수 없다. */
+    private Instant moderatedAt;
+    private String moderationReason;
 
     public Broadcast(Long id, Long ownerId, String ownerNickname, String title, String description,
                      BroadcastStatus status, SourceType sourceType, boolean streamOnline, String publishToken,
@@ -109,6 +112,9 @@ public class Broadcast {
      */
     public void startLive(Long requesterId, SourceType sourceType, String newPublishToken, Instant now) {
         ensureOwner(requesterId);
+        if (isModerated()) {
+            throw BroadcastErrors.moderated();
+        }
         if (!status.canTransitionTo(BroadcastStatus.LIVE)) {
             throw BroadcastErrors.alreadyLive();
         }
@@ -174,7 +180,31 @@ public class Broadcast {
     }
 
     public boolean isWatchable() {
-        return status.isOnAir();
+        return status.isOnAir() && !isModerated();
+    }
+
+    /**
+     * 운영 제재: 방송 중이면 바로 종료하고, 목록에서 숨기고, 다시 시작하지 못하게 한다.
+     *
+     * @return 방송 중이어서 이번에 종료했으면 true
+     */
+    public boolean moderate(String reason, Instant now) {
+        boolean ended = forceEnd(now);
+        String safe = reason == null ? "" : reason.strip();
+        this.moderationReason = safe.length() > 200 ? safe.substring(0, 200) : safe;
+        this.moderatedAt = now;
+        this.updatedAt = now;
+        return ended;
+    }
+
+    /** 저장소에서 읽어 올 때만 쓴다. */
+    public void restoreModeration(Instant at, String reason) {
+        this.moderatedAt = at;
+        this.moderationReason = reason;
+    }
+
+    public boolean isModerated() {
+        return moderatedAt != null;
     }
 
     public void markStreamOnline(Instant now) {
@@ -248,4 +278,6 @@ public class Broadcast {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public FanSide getSide() { return side; }
+    public Instant getModeratedAt() { return moderatedAt; }
+    public String getModerationReason() { return moderationReason; }
 }

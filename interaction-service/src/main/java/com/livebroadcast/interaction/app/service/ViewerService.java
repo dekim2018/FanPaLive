@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 
 import com.livebroadcast.interaction.app.port.out.BroadcastQueryPort;
 import com.livebroadcast.interaction.app.port.out.PresencePort;
+import com.livebroadcast.interaction.app.port.out.StreamerStatsPort;
 import com.livebroadcast.interaction.app.port.out.ViewerCounterPort;
+import com.livebroadcast.interaction.domain.broadcast.BroadcastInfo;
 
 /**
  * 시청자 수 두 가지.
@@ -32,13 +34,15 @@ public class ViewerService {
     private final ViewerCounterPort counter;
     private final PresencePort presence;
     private final BroadcastQueryPort broadcasts;
+    private final StreamerStatsPort streamerStats;
     private final Clock clock;
 
     public ViewerService(ViewerCounterPort counter, PresencePort presence, BroadcastQueryPort broadcasts,
-                         Clock clock) {
+                         StreamerStatsPort streamerStats, Clock clock) {
         this.counter = counter;
         this.presence = presence;
         this.broadcasts = broadcasts;
+        this.streamerStats = streamerStats;
         this.clock = clock;
     }
 
@@ -52,8 +56,14 @@ public class ViewerService {
             return;
         }
         try {
-            Long targetId = broadcasts.findBroadcast(broadcastId).map(b -> b.targetId()).orElse(null);
-            counter.record(broadcastId, targetId, currentMonth(), key);
+            BroadcastInfo info = broadcasts.findBroadcast(broadcastId).orElse(null);
+            Long targetId = info == null ? null : info.targetId();
+            String month = currentMonth();
+            counter.record(broadcastId, targetId, month, key);
+            if (targetId != null) {
+                // 같은 시청자 키로 "이 팀 편파방을 연 스트리머별" 순시청자도 센다(스트리머 순위용).
+                streamerStats.recordView(targetId, month, info.ownerId(), info.ownerNickname(), key);
+            }
         } catch (RuntimeException e) {
             log.debug("순시청자 기록 실패 broadcastId={} reason={}", broadcastId, e.getMessage());
         }

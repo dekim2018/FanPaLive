@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { broadcastApi } from '../api/broadcasts'
@@ -42,15 +43,15 @@ onMounted(async () => {
   <div>
     <div class="row head">
       <h1 style="margin:0">{{ league?.name || code }}</h1>
-      <span v-if="league" class="chip">{{ league.sportName }}</span>
+      <span v-if="league" class="chip">{{ tr(league.sportName) }}</span>
       <span class="spacer"></span>
-      <RouterLink :to="{ path: '/rankings', query: { league: code } }" class="btn sm ghost">응원 랭킹</RouterLink>
-      <RouterLink v-if="league?.openForRequest" :to="{ path: '/requests', query: { league: code } }" class="btn sm">팀/선수 신청</RouterLink>
+      <RouterLink :to="{ path: '/rankings', query: { league: code } }" class="btn sm ghost">{{ tr('응원 랭킹') }}</RouterLink>
+      <RouterLink v-if="league?.openForRequest" :to="{ path: '/requests', query: { league: code } }" class="btn sm">{{ tr('팀/선수 신청') }}</RouterLink>
     </div>
 
     <section class="section">
-      <div class="section-head"><h2>편파방 LIVE</h2></div>
-      <div v-if="!lives.length" class="empty">이 리그에서 방송 중인 편파방이 없습니다.</div>
+      <div class="section-head"><h2>{{ tr('편파방 LIVE') }}</h2></div>
+      <div v-if="!lives.length" class="empty">{{ tr('이 리그에서 방송 중인 편파방이 없습니다.') }}</div>
       <div v-else class="grid">
         <BroadcastCard v-for="b in lives" :key="b.id" :broadcast="b" :viewers="stats[b.id]" />
       </div>
@@ -58,10 +59,10 @@ onMounted(async () => {
 
     <section class="section">
       <div class="section-head">
-        <h2>구단과 선수</h2>
+        <h2>{{ tr('구단과 선수') }}</h2>
         <div class="pill-tabs" style="margin:0 0 0 auto">
-          <button :class="{ active: sort === 'fans' }" @click="sort = 'fans'; loadTargets()">팬 많은 순</button>
-          <button :class="{ active: sort === 'name' }" @click="sort = 'name'; loadTargets()">이름순</button>
+          <button :class="{ active: sort === 'fans' }" @click="sort = 'fans'; loadTargets()">{{ tr('팬 많은 순') }}</button>
+          <button :class="{ active: sort === 'name' }" @click="sort = 'name'; loadTargets()">{{ tr('이름순') }}</button>
         </div>
       </div>
       <div class="grid dense">
@@ -69,19 +70,19 @@ onMounted(async () => {
           <RouterLink :to="`/targets/${t.id}`" class="row nowrap">
             <TeamCrest :name="t.name" :short-name="t.shortName" :color="t.colorPrimary" :color2="t.colorSecondary" :size="44" />
             <div style="min-width:0">
-              <strong class="ellipsis" style="display:block">{{ t.name }}</strong>
-              <span class="xsmall muted">{{ t.kind === 'PLAYER' ? '선수' : '구단' }}</span>
+              <strong class="ellipsis" style="display:block">{{ tr(t.name) }}</strong>
+              <span class="xsmall muted">{{ t.kind === 'PLAYER' ? tr('선수') : tr('구단') }}</span>
             </div>
           </RouterLink>
           <div class="row xsmall muted num">
-            <span>팬 {{ formatCount(t.primaryFans + t.followFans) }}</span>
-            <span>하트 {{ formatCount(t.hearts) }}</span>
+            <span>{{ tr('팬 {0}', formatCount(t.primaryFans + t.followFans)) }}</span>
+            <span>{{ tr('하트 {0}', formatCount(t.hearts)) }}</span>
             <span class="spacer"></span>
             <HeartButton v-if="fandom.feature('hearts')" :target-id="t.id" compact />
           </div>
         </div>
       </div>
-      <div v-if="!targets.length" class="empty">아직 등록된 구단/선수가 없습니다.</div>
+      <div v-if="!targets.length" class="empty">{{ tr('아직 등록된 구단/선수가 없습니다.') }}</div>
     </section>
   </div>
 </template>

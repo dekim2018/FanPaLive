@@ -45,6 +45,6 @@ app:
     # 토스페이먼츠 개발자센터에서 발급받은 "테스트" 키를 환경변수로 넣는다.
     client-key: ${TOSS_CLIENT_KEY:}
     secret-key: ${TOSS_SECRET_KEY:}
-    api-url: https://api.tosspayments.com
+    api-url: ${TOSS_API_URL:https://api.tosspayments.com}
     min-amount: 1000
     max-amount: 1000000

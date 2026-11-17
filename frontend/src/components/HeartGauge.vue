@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { computed } from 'vue'
 import { formatCount } from '../lib/format'
 import { gaugeColors, readable } from '../lib/team'
@@ -21,18 +22,18 @@ const colors = computed(() => gaugeColors(props.home, props.away))
 <template>
   <div class="gauge">
     <div class="labels row nowrap">
-      <strong :style="{ color: readable(colors.home) }">{{ home.shortName || home.name }} {{ percent }}%</strong>
+      <strong :style="{ color: readable(colors.home) }">{{ tr(home.shortName || home.name) }} {{ percent }}%</strong>
       <span class="spacer"></span>
-      <strong :style="{ color: readable(colors.away) }">{{ 100 - percent }}% {{ away.shortName || away.name }}</strong>
+      <strong :style="{ color: readable(colors.away) }">{{ 100 - percent }}% {{ tr(away.shortName || away.name) }}</strong>
     </div>
-    <div class="bar" role="img" :aria-label="`응원 게이지 ${home.name} ${percent}퍼센트, ${away.name} ${100 - percent}퍼센트`">
+    <div class="bar" role="img" :aria-label="tr('응원 게이지 {0} {1}퍼센트, {2} {3}퍼센트', tr(home.name), percent, tr(away.name), 100 - percent)">
       <div class="home" :style="{ width: percent + '%', background: colors.home }"></div>
       <div class="away" :style="{ background: colors.away }"></div>
     </div>
     <div class="row nowrap small muted num">
-      <span>하트 {{ formatCount(homeHearts) }}</span>
+      <span>{{ tr('하트 {0}', formatCount(homeHearts)) }}</span>
       <span class="spacer"></span>
-      <span>하트 {{ formatCount(awayHearts) }}</span>
+      <span>{{ tr('하트 {0}', formatCount(awayHearts)) }}</span>
     </div>
   </div>
 </template>

@@ -54,6 +54,8 @@ public class BroadcastPersistenceAdapter implements BroadcastRepositoryPort {
     private static Specification<BroadcastJpaEntity> specification(BroadcastFilter filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            // 운영 제재된 방송은 공개 목록에 나오지 않는다(내 방송 목록에는 남는다).
+            predicates.add(cb.isNull(root.get("moderatedAt")));
             if (filter.status() != null) {
                 predicates.add(cb.equal(root.get("status"), filter.status()));
             }
@@ -95,13 +97,15 @@ public class BroadcastPersistenceAdapter implements BroadcastRepositoryPort {
         return new BroadcastJpaEntity(b.getId(), b.getOwnerId(), b.getOwnerNickname(), b.getTitle(),
                 b.getDescription(), b.getStatus(), b.getSourceType(), b.isStreamOnline(), b.getPublishToken(),
                 b.getStreamOfflineSince(), b.getStartedAt(), b.getEndedAt(), b.getCreatedAt(), b.getUpdatedAt(),
-                FanSideColumns.from(b.getSide()));
+                FanSideColumns.from(b.getSide())).moderation(b.getModeratedAt(), b.getModerationReason());
     }
 
     static Broadcast toDomain(BroadcastJpaEntity e) {
-        return new Broadcast(e.getId(), e.getOwnerId(), e.getOwnerNickname(), e.getTitle(), e.getDescription(),
+        Broadcast b = new Broadcast(e.getId(), e.getOwnerId(), e.getOwnerNickname(), e.getTitle(), e.getDescription(),
                 e.getStatus(), e.getSourceType(), e.isStreamOnline(), e.getPublishToken(),
                 e.getStreamOfflineSince(), e.getStartedAt(), e.getEndedAt(), e.getCreatedAt(), e.getUpdatedAt(),
                 FanSideColumns.toDomain(e.getSide()));
+        b.restoreModeration(e.getModeratedAt(), e.getModerationReason());
+        return b;
     }
 }

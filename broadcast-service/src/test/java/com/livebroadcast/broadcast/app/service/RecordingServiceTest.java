@@ -15,6 +15,7 @@ import com.livebroadcast.broadcast.app.port.out.MediaServerPort;
 import com.livebroadcast.broadcast.domain.RecordedSegment;
 import com.livebroadcast.broadcast.domain.Recording;
 import com.livebroadcast.broadcast.domain.RecordingStatus;
+import com.livebroadcast.broadcast.support.FakeClipRepository;
 import com.livebroadcast.broadcast.support.FakeRecordingRepository;
 
 /**
@@ -28,8 +29,9 @@ class RecordingServiceTest {
 
     private final FakeRecordingRepository repository = new FakeRecordingRepository();
     private final FakeMediaServer mediaServer = new FakeMediaServer();
+    private final FakeClipRepository clips = new FakeClipRepository();
     private final RecordingService service = new RecordingService(repository, mediaServer,
-            new MediaProperties("http://api", "http://playback", null, null, null, null));
+            new MediaProperties("http://api", "http://playback", null, null, null, null), clips);
 
     // 첫 송출 60초, 5초 끊김 후 다시 60초
     private final Recording first = repository.save(recording(T0, T0.plusSeconds(60)));

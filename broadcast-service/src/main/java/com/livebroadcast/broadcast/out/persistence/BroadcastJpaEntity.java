@@ -67,6 +67,12 @@ public class BroadcastJpaEntity {
     @Embedded
     private FanSideColumns side;
 
+    @Column(name = "moderated_at")
+    private Instant moderatedAt;
+
+    @Column(name = "moderation_reason", length = 200)
+    private String moderationReason;
+
     protected BroadcastJpaEntity() {
     }
 
@@ -106,4 +112,18 @@ public class BroadcastJpaEntity {
     Instant getCreatedAt() { return createdAt; }
     Instant getUpdatedAt() { return updatedAt; }
     FanSideColumns getSide() { return side; }
+
+    BroadcastJpaEntity moderation(Instant at, String reason) {
+        this.moderatedAt = at;
+        this.moderationReason = reason;
+        return this;
+    }
+
+    Instant getModeratedAt() {
+        return moderatedAt;
+    }
+
+    String getModerationReason() {
+        return moderationReason;
+    }
 }

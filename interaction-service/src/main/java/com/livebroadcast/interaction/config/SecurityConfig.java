@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/internal/**").permitAll()
+                        .requestMatchers("/api/moderation/**").hasRole("ADMIN")
                         // SSE 는 비동기 디스패치가 한 번 더 일어나므로 경로 기준으로 허용한다.
                         .requestMatchers(HttpMethod.GET,
                                 "/api/broadcasts/*/comments",
@@ -31,7 +32,8 @@ public class SecurityConfig {
                                 "/api/targets/*/donations",
                                 "/api/targets/*/donations/summary",
                                 "/api/viewers",
-                                "/api/viewers/**").permitAll()
+                                "/api/viewers/**",
+                                "/api/streamers/ranking").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/donations/webhook").permitAll()
                         .anyRequest().authenticated());
         return http.build();

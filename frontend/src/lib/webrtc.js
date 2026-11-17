@@ -1,3 +1,4 @@
+import { tr } from '../i18n'
 /**
  * WHIP(송출) / WHEP(시청) 공통 유틸.
  * WHIP: RFC 9725, WHEP: IETF draft. MediaMTX 가 두 프로토콜을 모두 지원한다.
@@ -30,7 +31,7 @@ export function preferH264(transceiver) {
     const others = caps.codecs.filter((c) => c.mimeType.toLowerCase() !== 'video/h264')
     if (h264.length) transceiver.setCodecPreferences([...h264, ...others])
   } catch (e) {
-    console.warn('코덱 우선순위 설정 실패', e)
+    console.warn(tr('코덱 우선순위 설정 실패'), e)
   }
 }
 

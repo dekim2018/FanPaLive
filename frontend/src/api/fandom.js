@@ -26,6 +26,14 @@ export const fandomApi = {
   upcoming: (limit = 6) => http.get('/matches/upcoming', { params: { limit } }).then((r) => r.data),
   match: (id) => http.get(`/matches/${id}`).then((r) => r.data),
 
+  prediction: (matchId) => http.get(`/matches/${matchId}/prediction`).then((r) => r.data),
+  predict: (matchId, pick) => http.post(`/matches/${matchId}/prediction`, { pick }).then((r) => r.data),
+  myPredictions: (limit = 20) => http.get('/predictions/me', { params: { limit } }).then((r) => r.data),
+
+  levels: (userIds) => http.get('/fans/levels', { params: { userIds: userIds.join(',') } }).then((r) => r.data),
+  myProfile: () => http.get('/fans/profile/me').then((r) => r.data),
+  hallOfFame: (league = 'KBO') => http.get('/hall-of-fame', { params: { league } }).then((r) => r.data),
+
   requestTarget: (body) => http.post('/target-requests', body),
   voteRequest: (id) => http.post(`/target-requests/${id}/votes`).then((r) => r.data),
   openRequests: (params) => http.get('/target-requests', { params }).then((r) => r.data),
@@ -39,11 +47,23 @@ export const adminApi = {
   setVisible: (targetId, visible) => http.patch(`/admin/targets/${targetId}`, { visible }).then((r) => r.data),
   createMatch: (body) => http.post('/admin/matches', body).then((r) => r.data),
   updateMatch: (id, body) => http.patch(`/admin/matches/${id}`, body).then((r) => r.data),
-  ops: () => http.get('/admin/ops').then((r) => r.data)
+  ops: () => http.get('/admin/ops').then((r) => r.data),
+  previewImport: (leagueCode, payload) => http.post('/admin/matches/import/preview', { leagueCode, payload }).then((r) => r.data),
+  runImport: (leagueCode, payload) => http.post('/admin/matches/import', { leagueCode, payload }).then((r) => r.data),
+  closeSeason: (date) => http.post('/admin/seasons/close', null, { params: date ? { date } : {} }).then((r) => r.data)
+}
+
+/** fandom-service: 사이트 안 알림 */
+export const notificationApi = {
+  list: (params) => http.get('/notifications', { params }).then((r) => r.data),
+  unreadCount: () => http.get('/notifications/unread-count').then((r) => r.data.count),
+  markRead: (ids = []) => http.post('/notifications/read', { ids }).then((r) => r.data),
+  ticket: () => http.post('/notifications/stream-ticket').then((r) => r.data.ticket)
 }
 
 /** interaction-service: 시청자 수 */
 export const viewerApi = {
   stats: (ids) => (ids.length ? http.get('/viewers', { params: { ids: ids.join(',') } }).then((r) => r.data) : Promise.resolve({})),
-  target: (targetId) => http.get(`/viewers/targets/${targetId}`).then((r) => r.data)
+  target: (targetId) => http.get(`/viewers/targets/${targetId}`).then((r) => r.data),
+  streamerRanking: (targetId, month) => http.get('/streamers/ranking', { params: { target: targetId, month } }).then((r) => r.data)
 }

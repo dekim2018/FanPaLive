@@ -120,6 +120,20 @@ public class BroadcastService implements BroadcastCommandUseCase, BroadcastQuery
     }
 
     @Override
+    @Transactional
+    public boolean moderate(Long broadcastId, String reason) {
+        Broadcast broadcast = lock(broadcastId);
+        Instant now = clock.instant();
+        boolean ended = broadcast.moderate(reason, now);
+        Broadcast saved = broadcastRepository.save(broadcast);
+        if (ended) {
+            // 사용자가 종료한 것과 같은 흐름: 녹화 마무리, 송출 연결 끊기
+            events.publish(new BroadcastEnded(saved.getId(), saved.mediaPath(), now));
+        }
+        return ended;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public LiveSession getSession(Long broadcastId, Long requesterId) {
         Broadcast broadcast = get(broadcastId);

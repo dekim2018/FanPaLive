@@ -27,7 +27,9 @@ public class SecurityConfig {
                         .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/fans/me", "/api/hearts/me",
-                                "/api/target-requests/mine").authenticated()
+                                "/api/target-requests/mine", "/api/fans/profile/me").authenticated()
+                        // 알림 구독은 1회용 티켓으로 사용자를 확인한다(EventSource 는 헤더를 못 보냄).
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/stream").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/fandom/config",
                                 "/api/sports", "/api/leagues/**",
@@ -35,7 +37,8 @@ public class SecurityConfig {
                                 "/api/target-requests",
                                 "/api/rankings", "/api/rankings/**",
                                 "/api/matches", "/api/matches/**",
-                                "/api/fans/badges").permitAll()
+                                "/api/fans/badges", "/api/fans/levels",
+                                "/api/hall-of-fame").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }

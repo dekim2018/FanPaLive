@@ -1,4 +1,5 @@
 <script setup>
+import { tr } from '../i18n'
 import { computed, ref } from 'vue'
 import { solid, teamFg } from '../lib/team'
 import { useRouter } from 'vue-router'
@@ -46,9 +47,9 @@ async function send() {
     const res = await fandomApi.giveHeart({ targetId: props.targetId, amount: 1, source: props.source, matchId: props.matchId })
     fandom.heartsLeft = res.remainingToday
     emit('sent', res)
-    toast.success(`하트를 보냈어요. 오늘 남은 하트 ${res.remainingToday}개`)
+    toast.success(tr('하트를 보냈어요. 오늘 남은 하트 {0}개', res.remainingToday))
   } catch (e) {
-    toast.error(errorMessage(e, '하트를 보내지 못했습니다.'))
+    toast.error(errorMessage(e, tr('하트를 보내지 못했습니다.')))
   } finally {
     sending.value = false
   }
@@ -57,12 +58,12 @@ async function send() {
 
 <template>
   <button type="button" class="heart-btn" :class="{ compact, 'team-look': !!teamLook }" :style="teamLook" :disabled="sending"
-          :aria-label="compact ? '하트 보내기' : undefined" @click="send">
+          :aria-label="compact ? tr('하트 보내기') : undefined" @click="send">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
       <path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
     </svg>
-    <span v-if="!compact">하트 보내기</span>
-    <span v-if="!compact && fandom.heartsLeft !== null" class="left" :aria-label="`오늘 남은 하트 ${fandom.heartsLeft}개`">{{ fandom.heartsLeft }}</span>
+    <span v-if="!compact">{{ tr('하트 보내기') }}</span>
+    <span v-if="!compact && fandom.heartsLeft !== null" class="left" :aria-label="tr('오늘 남은 하트 {0}개', fandom.heartsLeft)">{{ fandom.heartsLeft }}</span>
     <span v-for="b in bursts" :key="b" class="burst" aria-hidden="true">+1</span>
   </button>
 </template>

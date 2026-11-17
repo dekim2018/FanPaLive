@@ -58,4 +58,20 @@ public final class BroadcastErrors {
     public static DomainException notRecordingOwner() {
         return DomainException.forbidden("NOT_RECORDING_OWNER", "녹화 영상 소유자만 삭제할 수 있습니다.");
     }
+
+    public static DomainException moderated() {
+        return DomainException.forbidden("BROADCAST_MODERATED", "운영 정책 위반으로 중단된 방송은 다시 시작할 수 없습니다.");
+    }
+
+    public static DomainException clipNotFound() {
+        return DomainException.notFound("CLIP_NOT_FOUND", "클립을 찾을 수 없습니다.");
+    }
+
+    public static DomainException clipNotAllowed() {
+        return DomainException.forbidden("CLIP_NOT_ALLOWED", "클립을 만든 사람이나 녹화 소유자만 삭제할 수 있습니다.");
+    }
+
+    public static DomainException recordingNotReady() {
+        return DomainException.conflict("RECORDING_NOT_READY", "녹화가 끝난 영상에서만 클립을 만들 수 있습니다.");
+    }
 }
