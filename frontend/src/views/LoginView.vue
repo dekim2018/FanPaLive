@@ -71,12 +71,13 @@ onMounted(async () => {
         <input ref="passwordInput" name="password" v-model="password" class="input" type="password" autocomplete="current-password" required />
       </label>
       <div v-if="error" class="error-text" role="alert">{{ error }}</div>
-      <button class="btn primary block" :disabled="submitting">{{ tr('로그인') }}</button>
+      <button class="btn primary block" :disabled="submitting">{{ submitting ? tr('로그인하는 중…') : tr('로그인') }}</button>
       <div class="small muted">{{ tr('계정이 없나요?') }} <RouterLink to="/signup" class="accent">{{ tr('회원가입') }}</RouterLink></div>
     </form>
 
     <div v-if="testAccounts.length" class="card stack">
-      <h3>{{ tr('평가용 테스트 계정으로 바로 로그인') }}</h3>
+      <!-- h1 다음 단계라 h2 로 두고, 보이는 크기는 기존 h3(16px)에 맞춘다 -->
+      <h2 style="font-size:16px">{{ tr('평가용 테스트 계정으로 바로 로그인') }}</h2>
       <p class="small muted" style="margin:0">
         {{ tr('방송 소유자와 다른 사용자의 권한 차이를 확인할 수 있도록 두 개의 계정을 준비했습니다.') }}
       </p>

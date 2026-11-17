@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
         <div class="row small muted">
           <strong style="color:var(--text)">{{ broadcast.ownerNickname }}</strong>
           <span v-if="isLive && viewers" class="num">{{ tr('{0}명 시청 중, 누적 약 {1}명', formatCount(viewers.current), formatCount(viewers.unique)) }}</span>
-          <span v-if="isLive" :data-tick="tick">{{ tr('방송 시간 {0}', elapsedSince(broadcast.startedAt)) }}</span>
+          <span v-if="isLive" class="num" :data-tick="tick">{{ tr('방송 시간 {0}', elapsedSince(broadcast.startedAt)) }}</span>
           <span v-else-if="broadcast.endedAt">{{ tr('종료 {0}', formatDate(broadcast.endedAt)) }}</span>
           <span v-if="broadcast.sourceType">{{ broadcast.sourceType === 'PC_SCREEN' ? tr('PC 화면 송출') : tr('모바일 카메라 송출') }}</span>
         </div>
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-if="recordings.length" class="card stack">
-        <h3 style="margin:0">{{ tr('이 방송의 다시보기') }}</h3>
+        <h2 style="margin:0; font-size:16px">{{ tr('이 방송의 다시보기') }}</h2>
         <RouterLink v-for="r in recordings" :key="r.id" :to="`/recordings/${r.id}`" class="row small rec">
           <StatusBadge :status="r.status === 'READY' ? 'VOD' : r.status" />
           <span>{{ formatDate(r.startedAt) }}</span>

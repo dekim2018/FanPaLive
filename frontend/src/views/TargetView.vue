@@ -317,4 +317,6 @@ onMounted(async () => {
 .hbar { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
 .bar { width: 100%; max-width: 36px; border-radius: 6px 6px 0 0; background: var(--team); }
 .rec { gap: 10px; }
+/* 줄바꿈되는 flex 안에서도 긴 제목이 카드 밖으로 넘치지 않고 말줄임되게 줄어들 수 있게 한다 */
+.rec strong { flex: 1; min-width: 0; }
 </style>

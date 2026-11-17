@@ -92,6 +92,7 @@ onBeforeUnmount(() => clearInterval(timer))
     </div>
 
     <div v-if="error" class="empty">{{ error }}</div>
+    <div v-else-if="loading && !items.length" class="empty" aria-busy="true">{{ tr('불러오는 중…') }}</div>
     <div v-else-if="!loading && !items.length" class="empty">
       {{ tab === 'LIVE' ? tr('지금 방송 중인 채널이 없습니다.') : tr('방송이 없습니다.') }}
       <div style="margin-top:12px"><RouterLink to="/broadcasts/new" class="btn primary sm">{{ tr('방송 만들기') }}</RouterLink></div>
@@ -102,7 +103,7 @@ onBeforeUnmount(() => clearInterval(timer))
 
     <div v-if="totalPages > 1" class="pagination">
       <button type="button" class="btn sm" :disabled="page === 0" @click="move(-1)">{{ tr('이전') }}</button>
-      <span class="muted small" style="align-self:center">{{ page + 1 }} / {{ totalPages }}</span>
+      <span class="muted small num" style="align-self:center">{{ page + 1 }} / {{ totalPages }}</span>
       <button type="button" class="btn sm" :disabled="page + 1 >= totalPages" @click="move(1)">{{ tr('다음') }}</button>
     </div>
   </div>

@@ -63,7 +63,7 @@ onMounted(async () => {
           <TrText :text="tr('{0}님에게 {1}을 후원했습니다.')"><template #p0><strong>{{ donation.streamerNickname }}</strong></template><template #p1><strong class="accent">{{ formatWon(donation.amount) }}</strong></template></TrText>
           <span v-if="donation.targetName" class="muted">{{ tr('({0} 응원 점수에도 반영)', tr(donation.targetName)) }}</span>
         </p>
-        <p v-if="donation.message" class="muted">"{{ donation.message }}"</p>
+        <p v-if="donation.message" class="muted">“{{ donation.message }}”</p>
       </template>
       <template v-else-if="state === 'unknown'">
         <span class="badge unknown" style="align-self:flex-start">{{ tr('결제 확인 중') }}</span>

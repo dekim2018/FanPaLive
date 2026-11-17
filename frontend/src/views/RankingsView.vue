@@ -1,6 +1,6 @@
 <script setup>
-import { tr } from '../i18n'
-import { onMounted, ref, watch } from 'vue'
+import { intlLocale, tr } from '../i18n'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { q, syncQuery } from '../lib/query'
 import { latestOnly } from '../lib/latest'
@@ -28,6 +28,24 @@ const error = ref('')
 // 필터를 빠르게 바꿔도 마지막 요청의 응답만 쓴다
 const latest = latestOnly()
 const SORTS = { SCORE: tr('응원 점수'), FANS: tr('팬 수'), HEARTS: tr('하트'), DONATIONS: tr('후원') }
+
+// 집계 기간을 서버 문자열(2026-11-09) 대신 화면 언어의 날짜 형식으로 보여 준다
+const dayFormatter = new Intl.DateTimeFormat(intlLocale, { month: 'short', day: 'numeric' })
+// 시즌처럼 해를 넘기는 기간은 연도까지 보여 줘야 앞뒤가 헷갈리지 않는다
+const yearDayFormatter = new Intl.DateTimeFormat(intlLocale, { year: 'numeric', month: 'short', day: 'numeric' })
+/** LocalDate 문자열을 그 지역의 자정으로 읽는다(new Date('YYYY-MM-DD') 는 UTC 라 하루가 밀릴 수 있다) */
+function localDay(value, offset = 0) {
+  const [y, m, d] = value.split('-').map(Number)
+  return new Date(y, m - 1, d + offset)
+}
+// 서버의 to 는 다음 기간의 첫날(포함하지 않음)이라 하루 앞 날짜까지로 보여 준다
+const periodRange = computed(() => {
+  if (!data.value?.from || !data.value?.to) return ''
+  const from = localDay(data.value.from)
+  const to = localDay(data.value.to, -1)
+  const f = from.getFullYear() === to.getFullYear() ? dayFormatter : yearDayFormatter
+  return to < from ? f.format(from) : f.formatRange(from, to)
+})
 
 async function load() {
   loading.value = true
@@ -60,7 +78,7 @@ onMounted(load)
         <button v-for="(label, key) in SORTS" :key="key" type="button" :class="{ on: sort === key }" :aria-pressed="sort === key" @click="sort = key; load()">{{ label }}</button>
       </div>
       <span class="spacer"></span>
-      <span v-if="data" class="small muted">{{ data.from }} ~ {{ data.to }}</span>
+      <span v-if="periodRange" class="small muted">{{ periodRange }}</span>
     </div>
     <div v-if="error" class="empty">{{ error }} <button type="button" class="btn sm" @click="load">{{ tr('다시 시도') }}</button></div>
     <!-- 다시 불러오는 동안에는 이전 순위를 두고 aria-busy 로만 알린다 -->
@@ -78,5 +96,10 @@ onMounted(load)
 .filters { margin-bottom: 16px; }
 .seg { display: inline-flex; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
 .seg button { border: none; background: none; color: var(--text-sub); font-weight: 700; font-size: 13px; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+.seg button:hover { background: var(--bg-elev-2); }
 .seg button.on { background: var(--bg-elev-2); color: var(--text); }
+/* 손가락으로 누르는 기기에서는 누르는 영역을 넉넉하게 */
+@media (pointer: coarse) {
+  .seg button { min-height: 40px; }
+}
 </style>

@@ -18,7 +18,7 @@ const KIND = { TEAM: tr('팀 종목'), INDIVIDUAL: tr('개인 종목') }
       </div>
       <div class="grid dense">
         <RouterLink v-for="l in s.leagues" :key="l.code" :to="`/leagues/${l.code}`" class="league card">
-          <div class="code">{{ l.code }}</div>
+          <div class="code" translate="no">{{ l.code }}</div>
           <div>
             <strong>{{ tr(l.name) }}</strong>
             <div class="xsmall muted">{{ tr(l.country) }}<span v-if="l.openForRequest">, {{ tr('팬 신청 가능') }}</span></div>

@@ -50,7 +50,7 @@ function move(delta) {
 }
 
 async function remove(b) {
-  if (!confirm(tr('"{0}" 방송을 삭제할까요?', b.title))) return
+  if (!confirm(tr('“{0}” 방송을 삭제할까요?', b.title))) return
   try {
     await broadcastApi.remove(b.id)
     toast.success(tr('삭제했습니다.'))
@@ -81,9 +81,10 @@ onMounted(load)
           <div class="muted small">{{ tr('등록 {0}, 최근 방송 {1}', formatDate(b.createdAt), formatDate(b.startedAt)) }}</div>
         </div>
         <span class="spacer"></span>
-        <RouterLink :to="`/studio/${b.id}`" class="btn sm primary">{{ tr('스튜디오') }}</RouterLink>
-        <RouterLink :to="`/broadcasts/${b.id}/edit`" class="btn sm">{{ tr('수정') }}</RouterLink>
-        <button class="btn sm danger" :disabled="b.status === 'LIVE'" @click="remove(b)">{{ tr('삭제') }}</button>
+        <!-- 항목마다 같은 버튼 문구가 반복되므로 스크린리더에는 방송 제목을 함께 알린다 -->
+        <RouterLink :to="`/studio/${b.id}`" class="btn sm primary" :aria-label="tr('{0} 스튜디오', b.title)">{{ tr('스튜디오') }}</RouterLink>
+        <RouterLink :to="`/broadcasts/${b.id}/edit`" class="btn sm" :aria-label="tr('{0} 수정', b.title)">{{ tr('수정') }}</RouterLink>
+        <button type="button" class="btn sm danger" :disabled="b.status === 'LIVE'" :aria-label="tr('{0} 삭제', b.title)" @click="remove(b)">{{ tr('삭제') }}</button>
       </div>
     </div>
     <div v-if="totalPages > 1" class="pagination">

@@ -1,5 +1,5 @@
 <script setup>
-import { tr } from '../i18n'
+import { intlLocale, tr } from '../i18n'
 import { computed, onMounted, ref } from 'vue'
 import { fandomApi } from '../api/fandom'
 import { fundApi } from '../api/interactions'
@@ -23,6 +23,10 @@ const latestDonations = latestOnly()
 const hearts = ref(null)
 const profile = ref(null)
 const predictions = ref([])
+// 예측 목록에는 경기 번호만 오므로 경기 정보(팀 이름, 날짜)를 따로 받아 둔다. 키는 matchId
+const predictionMatches = ref({})
+// 점수는 줄여 쓰지 않고 앱 언어에 맞춰 천 단위 구분만 한다
+const numberFormat = new Intl.NumberFormat(intlLocale)
 
 /** 지금 등급 안에서 다음 등급까지 얼마나 왔는지(0~100) */
 const progress = computed(() => {
@@ -61,13 +65,23 @@ onMounted(async () => {
   try { hearts.value = await fandomApi.myHearts() } catch { hearts.value = null }
   try { profile.value = await fandomApi.myProfile() } catch { profile.value = null }
   try { predictions.value = await fandomApi.myPredictions(10) } catch { predictions.value = [] }
+  loadPredictionMatches()
 })
+
+/** 최근 예측 경기들의 정보를 한꺼번에 받는다. 실패한 경기는 '경기 #번호'로 남긴다 */
+async function loadPredictionMatches() {
+  const ids = [...new Set(predictions.value.map((p) => p.matchId))]
+  const results = await Promise.allSettled(ids.map((id) => fandomApi.match(id)))
+  const map = {}
+  results.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) map[ids[i]] = r.value })
+  predictionMatches.value = map
+}
 </script>
 
 <template>
   <div class="stack">
     <div class="row">
-      <span class="avatar">{{ auth.user.nickname.slice(0, 1) }}</span>
+      <span class="avatar" aria-hidden="true">{{ auth.user.nickname.slice(0, 1) }}</span>
       <div>
         <h1 style="margin:0">{{ auth.user.nickname }}</h1>
         <span class="small muted">@{{ auth.user.username }}<span v-if="auth.user.role === 'ADMIN'">, {{ tr('운영자') }}</span></span>
@@ -85,14 +99,14 @@ onMounted(async () => {
         <h2 id="level-title" style="margin:0">{{ tr('팬 등급') }}</h2>
         <LevelBadge :level="profile.level" />
         <span class="spacer"></span>
-        <strong class="num points">{{ tr('{0}점', profile.points.toLocaleString()) }}</strong>
+        <strong class="num points">{{ tr('{0}점', numberFormat.format(profile.points)) }}</strong>
       </div>
       <div class="progress" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"
            :aria-label="tr('다음 등급까지 진행률')">
-        <div :style="{ width: progress + '%' }"></div>
+        <div :style="{ transform: `scaleX(${progress / 100})` }"></div>
       </div>
       <div class="small muted">
-        <template v-if="profile.nextLevel">{{ tr('{0}까지 {1}점 남았어요.', levelInfo(profile.nextLevel).label, profile.pointsToNext.toLocaleString()) }}</template>
+        <template v-if="profile.nextLevel">{{ tr('{0}까지 {1}점 남았어요.', levelInfo(profile.nextLevel).label, numberFormat.format(profile.pointsToNext)) }}</template>
         <template v-else>{{ tr('최고 등급이에요.') }}</template>
         {{ tr('하트 1개 2점, 후원 100원당 1점, 승부 예측 적중 30점이 쌓여요. 포인트는 돈으로 바꿀 수 없어요.') }}
       </div>
@@ -114,7 +128,11 @@ onMounted(async () => {
       <div v-if="predictions.length">
         <h3 class="sub">{{ tr('최근 승부 예측') }}</h3>
         <div class="row small" v-for="p in predictions" :key="p.matchId">
-          <RouterLink :to="`/matches/${p.matchId}`" class="link">{{ tr('경기 #{0}', p.matchId) }}</RouterLink>
+          <RouterLink :to="`/matches/${p.matchId}`" class="link">
+            <template v-if="predictionMatches[p.matchId]">{{ tr('{0} 대 {1}', tr(predictionMatches[p.matchId].home.name), tr(predictionMatches[p.matchId].away.name)) }}</template>
+            <template v-else>{{ tr('경기 #{0}', p.matchId) }}</template>
+          </RouterLink>
+          <span v-if="predictionMatches[p.matchId]" class="muted">{{ formatDate(predictionMatches[p.matchId].startsAt) }}</span>
           <span>{{ PICK[p.pick] }}</span>
           <span class="spacer"></span>
           <span :class="['res', (p.result || 'wait').toLowerCase()]">{{ p.result ? RESULT[p.result] : tr('결과 대기') }}</span>
@@ -174,7 +192,8 @@ onMounted(async () => {
 .fan { gap: 10px; padding: 8px; border-radius: 10px; background: var(--bg); }
 .points { font-size: 20px; }
 .progress { height: 10px; border-radius: 999px; background: var(--bg-elev-2); overflow: hidden; }
-.progress > div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .4s ease; }
+/* width 대신 transform 으로 늘려 레이아웃을 다시 계산하지 않는다 */
+.progress > div { height: 100%; background: var(--accent); transform-origin: left; transition: transform .4s ease; }
 .stats-row { gap: 10px; }
 .mini { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px; background: var(--bg); }
 .sub { font-size: 15px; margin: 4px 0 8px; }

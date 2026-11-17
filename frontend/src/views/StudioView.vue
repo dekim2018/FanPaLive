@@ -30,6 +30,15 @@ const sourceType = ref(supportsScreenShare() ? 'PC_SCREEN' : 'MOBILE_CAMERA')
 const capture = ref(null)
 const publisher = ref(null)
 const connectionState = ref('new')
+// RTCPeerConnection 의 영어 상태값을 그대로 보이지 않도록 화면 문구로 바꾼다.
+const CONNECTION_LABELS = {
+  new: tr('대기'),
+  connecting: tr('연결하는 중…'),
+  connected: tr('연결됨'),
+  disconnected: tr('연결 끊김'),
+  failed: tr('실패'),
+  closed: tr('연결 종료')
+}
 // 진행 중인 동작('prepare' | 'start' | 'reconnect' | 'end'). 버튼 문구를 '…하는 중…'으로 바꾸려고 이름으로 둔다.
 const busy = ref(null)
 const micMuted = ref(false)
@@ -247,12 +256,12 @@ onBeforeUnmount(() => {
           <StatusBadge :status="broadcast.status" :online="broadcast.streamOnline" />
           <h1 style="margin:0; font-size:20px">{{ broadcast.title }}</h1>
           <span class="spacer"></span>
-          <span v-if="isLive" class="muted small" :data-tick="tick">{{ tr('방송 시간 {0}', elapsedSince(broadcast.startedAt)) }}</span>
+          <span v-if="isLive" class="muted small num" :data-tick="tick">{{ tr('방송 시간 {0}', elapsedSince(broadcast.startedAt)) }}</span>
         </div>
 
         <div class="stack">
-          <div class="small muted">{{ tr('송출 방식') }}</div>
-          <div class="row">
+          <div id="source-type-label" class="small muted">{{ tr('송출 방식') }}</div>
+          <div class="row" role="radiogroup" aria-labelledby="source-type-label">
             <label class="source" :class="{ active: sourceType === 'PC_SCREEN', disabled: !canScreenShare }">
               <input v-model="sourceType" type="radio" value="PC_SCREEN" :disabled="!canScreenShare || !!publisher" />
               {{ tr('PC 화면 공유 + 소리 + 마이크') }}
@@ -289,11 +298,11 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="small muted">
-          <TrText :text="tr('송출 연결: {0}, 미디어 서버 수신: {1}')"><template #p0><strong>{{ publisher ? connectionState : tr('없음') }}</strong></template><template #p1><strong>{{ broadcast.streamOnline ? tr('정상') : tr('대기') }}</strong></template></TrText>
+          <TrText :text="tr('송출 연결: {0}, 미디어 서버 수신: {1}')"><template #p0><strong>{{ publisher ? (CONNECTION_LABELS[connectionState] || connectionState) : tr('없음') }}</strong></template><template #p1><strong>{{ broadcast.streamOnline ? tr('정상') : tr('대기') }}</strong></template></TrText>
         </div>
         <div class="row small">
           <span class="muted">{{ tr('시청 링크') }}</span>
-          <code class="link">{{ watchLink }}</code>
+          <code class="link" translate="no">{{ watchLink }}</code>
           <button class="btn sm" @click="copyLink">{{ tr('복사') }}</button>
           <RouterLink :to="`/broadcasts/${broadcastId}`" class="btn sm" target="_blank" rel="noopener">{{ tr('시청 화면 열기') }}</RouterLink>
         </div>
