@@ -765,6 +765,8 @@ export default {
   "저장하지 않은 내용이 있습니다. 나갈까요?": "You have unsaved changes. Leave anyway?",
   "불러오는 중…": "Loading…",
   "다시 시도": "Try again",
+  "영상을 불러오는 중…": "Loading video…",
+  "영상을 불러오지 못했습니다.": "Could not load the video.",
   "삭제 중…": "Deleting…",
   "구단/선수 목록을 불러오지 못했습니다.": "Could not load teams and players.",
   "후원 내역을 불러오지 못했습니다.": "Could not load donation history.",
