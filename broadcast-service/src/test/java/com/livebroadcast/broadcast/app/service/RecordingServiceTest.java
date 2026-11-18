@@ -48,6 +48,8 @@ class RecordingServiceTest {
         List<PlaybackSegment> secondSegments = service.get(second.getId()).segments();
 
         assertThat(firstSegments).extracting(PlaybackSegment::start).containsExactly("2026-11-10T00:00:00.300Z");
+        // 길이가 처음부터 들어 있는 일반 MP4 로 받아야 재생 전부터 전체 길이가 보인다(fMP4 는 받을수록 길이가 늘어남).
+        assertThat(firstSegments.get(0).url()).startsWith("/playback/get?path=live%2F1&start=").endsWith("&format=mp4");
         assertThat(secondSegments).extracting(PlaybackSegment::start).containsExactly("2026-11-10T00:01:05.300Z");
     }
 

@@ -1,7 +1,5 @@
 package com.livebroadcast.broadcast.app.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -114,10 +112,7 @@ public class RecordingService implements RecordingUseCase {
 
     private PlaybackSegment toPlayback(String mediaPath, RecordedSegment segment) {
         String start = segment.start().toString();
-        String url = mediaProperties.publicPlaybackBase() + "/get"
-                + "?path=" + URLEncoder.encode(mediaPath, StandardCharsets.UTF_8)
-                + "&start=" + URLEncoder.encode(start, StandardCharsets.UTF_8)
-                + "&duration=" + segment.durationSeconds();
+        String url = mediaProperties.playbackUrl(mediaPath, start, segment.durationSeconds());
         return new PlaybackSegment(url, start, segment.durationSeconds());
     }
 }

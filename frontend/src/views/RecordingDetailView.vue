@@ -11,6 +11,7 @@ import { formatDate, formatDuration } from '../lib/format'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
 import TrText from '../components/TrText.vue'
+import { useBlobVideo } from '../composables/useBlobVideo'
 
 /**
  * 녹화 영상은 MediaMTX 가 일정 길이의 세그먼트로 저장한다.
@@ -29,6 +30,10 @@ const deleting = ref(false)
 
 const segments = computed(() => recording.value?.segments || [])
 const currentUrl = computed(() => segments.value[current.value]?.url)
+// 구간 파일을 통째로 받아 재생해야 전체 길이가 보이고 원하는 위치로 이동할 수 있다(composables/useBlobVideo).
+const { src: videoSrc, loading: videoLoading, failed: videoFailed, retry: retryVideo } = useBlobVideo(currentUrl)
+// 다음 구간으로 넘어갈 때는 새 파일을 다 받은 뒤 이어서 재생한다.
+let playWhenReady = false
 const isOwner = computed(() => recording.value && auth.user?.id === recording.value.ownerId)
 const clips = ref([])
 const playhead = ref(0)
@@ -58,8 +63,14 @@ async function load() {
 }
 
 function playSegment(index) {
+  playWhenReady = true
   current.value = index
-  requestAnimationFrame(() => videoEl.value?.play().catch(() => {}))
+}
+
+function onLoaded() {
+  if (!playWhenReady) return
+  playWhenReady = false
+  videoEl.value?.play().catch(() => {})
 }
 
 function onEnded() {
@@ -91,7 +102,15 @@ onMounted(() => {
   <div v-if="error" class="empty">{{ error }}</div>
   <div v-else-if="recording" class="stack">
     <div class="video-box">
-      <video v-if="currentUrl" ref="videoEl" :src="currentUrl" controls playsinline @ended="onEnded" @timeupdate="onTime"></video>
+      <video v-if="videoSrc" ref="videoEl" :src="videoSrc" controls playsinline
+             @loadedmetadata="onLoaded" @ended="onEnded" @timeupdate="onTime"></video>
+      <div v-else-if="currentUrl" class="video-overlay" :aria-busy="videoLoading">
+        <div v-if="videoFailed">
+          {{ tr('영상을 불러오지 못했습니다.') }}
+          <button type="button" class="btn sm" @click="retryVideo">{{ tr('다시 시도') }}</button>
+        </div>
+        <div v-else>{{ tr('영상을 불러오는 중…') }}</div>
+      </div>
       <div v-else class="video-overlay">
         <div v-if="recording.status === 'RECORDING'">{{ tr('아직 방송 중이라 녹화가 진행되고 있습니다.') }}</div>
         <div v-else>{{ tr('재생할 수 있는 녹화 파일이 없습니다.') }}</div>
