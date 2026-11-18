@@ -1,5 +1,7 @@
 package com.livebroadcast.broadcast.app;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,5 +36,18 @@ public record MediaProperties(
 
     public String whepUrl(String mediaPath) {
         return publicMediaBase + "/" + mediaPath + "/whep";
+    }
+
+    /**
+     * 녹화 구간 재생 주소(MediaMTX Playback 서버).
+     * 기본 형식(fMP4)은 앞부분에 전체 길이가 없어 브라우저가 받은 만큼만 길이로 보여 주고 재생할수록 늘어나므로,
+     * 길이가 처음부터 들어 있는 일반 MP4(format=mp4)로 받는다.
+     */
+    public String playbackUrl(String mediaPath, String start, double durationSeconds) {
+        return publicPlaybackBase + "/get"
+                + "?path=" + URLEncoder.encode(mediaPath, StandardCharsets.UTF_8)
+                + "&start=" + URLEncoder.encode(start, StandardCharsets.UTF_8)
+                + "&duration=" + durationSeconds
+                + "&format=mp4";
     }
 }

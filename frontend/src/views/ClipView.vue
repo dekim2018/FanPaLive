@@ -9,6 +9,7 @@ import { formatDate, formatDuration } from '../lib/format'
 import { teamStyle } from '../lib/team'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
+import { useBlobVideo } from '../composables/useBlobVideo'
 
 /** 클립 한 개 재생. 원본 녹화의 구간을 MediaMTX Playback 서버에서 바로 받아 재생한다. */
 const route = useRoute()
@@ -17,6 +18,8 @@ const auth = useAuthStore()
 const toast = useToastStore()
 const clip = ref(null)
 const error = ref('')
+// 클립 파일을 통째로 받아 재생해야 전체 길이가 보이고 원하는 위치로 이동할 수 있다(composables/useBlobVideo).
+const { src: videoSrc, loading: videoLoading, failed: videoFailed, retry: retryVideo } = useBlobVideo(computed(() => clip.value?.playbackUrl))
 const canDelete = computed(() => clip.value && auth.user
   && (auth.user.id === clip.value.creatorId || auth.user.role === 'ADMIN'))
 
@@ -62,7 +65,14 @@ onMounted(load)
   <div v-if="error" class="empty">{{ error }}</div>
   <div v-else-if="clip" class="stack clip-page" :style="teamStyle(clip.side?.targetColor, clip.side?.targetTextColor)">
     <div class="video-box">
-      <video :src="clip.playbackUrl" controls playsinline autoplay muted></video>
+      <video v-if="videoSrc" :src="videoSrc" controls playsinline autoplay muted></video>
+      <div v-else class="video-overlay" :aria-busy="videoLoading">
+        <div v-if="videoFailed">
+          {{ tr('영상을 불러오지 못했습니다.') }}
+          <button type="button" class="btn sm" @click="retryVideo">{{ tr('다시 시도') }}</button>
+        </div>
+        <div v-else>{{ tr('영상을 불러오는 중…') }}</div>
+      </div>
     </div>
     <div class="card stack" :class="{ side: clip.side }">
       <h1 style="margin:0; font-size:20px">{{ clip.title }}</h1>
