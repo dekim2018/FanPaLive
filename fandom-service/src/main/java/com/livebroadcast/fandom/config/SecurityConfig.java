@@ -23,7 +23,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ApiSecuritySupport support) throws Exception {
         support.applyDefaults(http)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/fans/me", "/api/hearts/me",

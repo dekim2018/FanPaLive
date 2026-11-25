@@ -24,11 +24,13 @@ public class FandomServiceClient implements FandomQueryPort {
     private final RestClient restClient;
 
     public FandomServiceClient(@Value("${services.fandom-url}") String baseUrl,
-                               @Value("${app.internal.api-key}") String internalApiKey) {
+                               @Value("${app.internal.api-key}") String internalApiKey,
+            RestClient.Builder builder) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(1));
         factory.setReadTimeout(Duration.ofSeconds(2));
-        this.restClient = RestClient.builder()
+        // 공통 빌더(InternalHttpConfig)를 받아 요청 추적이 다음 서비스로 이어지게 한다.
+        this.restClient = builder
                 .baseUrl(baseUrl)
                 .requestFactory(factory)
                 .defaultHeader(InternalApiKeyFilter.HEADER, internalApiKey)

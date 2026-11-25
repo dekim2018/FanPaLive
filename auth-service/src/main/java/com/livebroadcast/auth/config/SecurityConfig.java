@@ -19,7 +19,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ApiSecuritySupport support) throws Exception {
         support.applyDefaults(http)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/auth/signup", "/api/auth/login", "/api/auth/test-login",
                                 "/api/auth/refresh", "/api/auth/logout").permitAll()
