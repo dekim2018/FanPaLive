@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "errdeck:sync": "cd ../../ErrDeck/sdk-vue && npm run build && cd - && cp ../../ErrDeck/sdk-vue/dist/errdeck-vue.js src/lib/errdeck/"
   },
   "dependencies": {
     "axios": "^1.21.0",

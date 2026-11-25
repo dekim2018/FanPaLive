@@ -45,3 +45,20 @@ subprojects {
         useJUnitPlatform()
     }
 }
+
+// 서비스(공통 모듈 제외)의 지표를 Prometheus 형식으로도 낸다. 노출은 MANAGEMENT_EXPOSURE 로 켠다.
+// ErrDeck SDK 는 공개 저장소에 없으므로 -Perrdeck=true 일 때만 로컬 메이븐에서 넣는다(docs/ERRDECK.md).
+configure(subprojects.findAll { it.name != 'common' }) {
+    dependencies {
+        runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    }
+    if (findProperty('errdeck') == 'true') {
+        repositories {
+            mavenLocal()
+        }
+        dependencies {
+            implementation 'com.errdeck:errdeck-sdk-spring:0.1.0-SNAPSHOT'
+        }
+    }
+}
+

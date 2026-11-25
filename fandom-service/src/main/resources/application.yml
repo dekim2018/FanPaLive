@@ -26,10 +26,14 @@ spring:
       enabled: ${VIRTUAL_THREADS:true}
 
 management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
   endpoints:
     web:
       exposure:
-        include: health
+        include: ${MANAGEMENT_EXPOSURE:health}
 
 services:
   interaction-url: ${INTERACTION_SERVICE_URL:http://localhost:8083}
@@ -56,3 +60,16 @@ app:
       hearts: ${FEATURE_HEARTS:true}
       matches: ${FEATURE_MATCHES:true}
       target-requests: ${FEATURE_TARGET_REQUESTS:true}
+
+# ErrDeck(같은 사람이 만든 모니터링 서비스) 연결. -Perrdeck=true 로 빌드하고 ERRDECK_DSN 을 줄 때만 켜진다(docs/ERRDECK.md).
+# 지표는 MANAGEMENT_EXPOSURE=health,prometheus 로 띄우면 /actuator/prometheus 에 나온다. 요청 시간은 p95 를 계산하게 히스토그램으로.
+errdeck:
+  dsn: ${ERRDECK_DSN:}
+  environment: ${APP_ENVIRONMENT:local}
+  release: ${APP_RELEASE:local}
+  in-app-packages: com.livebroadcast
+  redact-paths:
+    - (Bearer\s+)[A-Za-z0-9._~+/=-]+
+  tracing:
+    sample-rate: ${ERRDECK_TRACE_SAMPLE_RATE:0.1}
+
